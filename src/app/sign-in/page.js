@@ -1,4 +1,4 @@
-import "../pages/all.css"
+import "../css/all.css"
 import React from "react";
 
 const page =() => {

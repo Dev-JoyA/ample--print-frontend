@@ -1,5 +1,5 @@
 import Link from "next/link";
-import "../pages/all.css"
+import "../css/all.css"
 
 const page = () => {
   return (
