@@ -1,0 +1,100 @@
+/*!*****************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[3]!./src/app/css/all.css ***!
+  \*****************************************************************************************************************************************************************************************************************************************************************/
+/* Container Styling */
+.signin-container {
+    background-color: rgb(3, 20, 51);
+    text-align: center;
+  }
+  
+  /* Heading Styling */
+  .signin-container h1 {
+    margin-bottom: 15px;
+    font-size: 36px;
+    color: #c7e7f5;
+    font-weight: bold;
+  }
+  
+  /* Form Styling */
+  form {
+    background-color: rgb(3, 20, 51);
+   
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  /* Label Styling */
+  form label {
+    text-align: left;
+    font-size: 14px;
+    color: whitesmoke;
+    font-weight: bold;
+    margin-bottom: 1px;
+  }
+  
+  /* Input Styling */
+  form input {
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+  
+  form input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.3);
+  }
+  
+  /* Button Styling */
+  form butoon {
+    padding: 12px;
+    font-size: 16px;
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  form butoon:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Link Styling */
+  .signin-container p {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #555;
+  }
+  
+  .signin-container a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  .signin-container a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Responsive Styling */
+  @media (max-width: 500px) {
+    .signin-container {
+      padding: 15px;
+    }
+  
+    form input,
+    form butoon {
+      font-size: 14px;
+    }
+  }
+  
