@@ -1,54 +1,60 @@
-import Link from "next/link";
-import Image from "next/image";
+"use client"
 import React from "react";
+import Header from "../components/Header";
+import Link from "next/link"
 
 const Page = () => {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative">
-      {/* Background Image */}
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="/images/logo/images.jpeg" // Replace with your image path
-          alt="Background"
-          layout="fill"
-          objectFit="cover"
-          quality={100}
-          priority // Ensures the image loads first
-        />
-      </div>
-
-      {/* Overlay with low opacity */}
-      <div className="absolute inset-0 bg-white/30 z-10"></div>
-
+    <div className="min-h-screen flex flex-col items-center  relative">
+      <Header />
       {/* Content */}
-      <div className="relative z-20 text-center">
-        <h1 className="text-4xl font-bold mb-4 text-black">Sign In</h1>
-        <form className="bg-[#031433]/90 rounded-lg shadow-[0_10px_25px_rgba(0,0,0,0.3)] max-w-md w-full p-8 space-y-4">
-          <label className="block text-sm font-bold text-left text-white">Email</label>
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-          />
-          <label className="block text-sm font-bold text-left text-white">Password</label>
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-          />
-          <button
-            type="submit"
-            className="w-full p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-          >
-            Submit
-          </button>
-        </form>
-        <p className="mt-4 text-sm text-black-300">
-          Or sign in with Google{" "}
-          <a href="google/oauth" className="text-blue-500 font-bold hover:underline">
-            Google
-          </a>
-        </p>
+      <div className="w-[850px] h-auto max-h-screen mx-auto rounded-[10px] pr-[40px] pb-[10px] pl-[40px] flex flex-col gap-[10px] bg-white/95 backdrop-blur-sm relative">
+        <div className="flex flex-col items-center">
+          <form className="w-full max-w-md flex flex-col gap-4">
+             <div className="flex flex-col gap-1">
+              <label className="font-carlito text-[15px] font-[600] text-[#1E1E1E]">
+                Email
+              </label>
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                // value={formData.email}
+                // onChange={handleChange}
+                required
+                className="px-4 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="font-carlito text-[15px] font-[600] text-[#1E1E1E]">
+                Password
+              </label>
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                // value={formData.password}
+                // onChange={handleChange}
+                required
+                className="px-4 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+             <button
+              type="submit"
+              // disabled={isLoading}
+              className="px-6 py-2 bg-[#000000] text-white font-carlito text-[18px] font-[600] rounded-md hover:bg-blue-700 transition disabled:opacity-50"
+            >
+              {/* {isLoading ? "Creating..." : "Create Free Account"} */}Submit
+            </button>
+            <p className="font-carlito text-sm text-gray-600 text-center">
+              Don't have an account?{" "}
+                <Link href="/sign-up" className="text-[#FF676A] hover:underline">
+                   Sign Up
+                </Link>
+            </p>
+         </form>
+        </div>
+        
       </div>
     </div>
   );
