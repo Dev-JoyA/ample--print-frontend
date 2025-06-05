@@ -7,7 +7,6 @@ import Link from "next/link";
 const Page = () => {
   const [formData, setFormData] = useState({
     email: "",
-    password: ""
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -27,7 +26,7 @@ const Page = () => {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:4001/auth/sign-in", {
+      const response = await fetch("http://localhost:4001/auth/forgot-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -36,17 +35,16 @@ const Page = () => {
       });
       const data = await response.json();
       if (!response.ok) {
-        setError(data.message || "Sign-in failed");
+        setError(data.message || "Forgot password failed");
         setIsLoading(false);
         return;
       }
       setFormData({
         email: "",
-        password: ""
       });
-      setError(data.message || "Sign-in successful");
+      setError(data.message || "Forgot password email sent");
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push("/reset-password");
       }, 1500);
     } catch (error) {
       console.error("Cannot fetch:", error);
@@ -75,24 +73,10 @@ const Page = () => {
               <input
                 type="email"
                 name="email"
-                placeholder="Email"
+                placeholder="Enter your email"
                 value={formData.email}
                 onChange={handleChange}
-                // required
-                className="px-4 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="font-carlito text-[15px] font-[600] text-[#1E1E1E]">
-                Password
-              </label>
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-                // required
+                required
                 className="px-4 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -101,22 +85,10 @@ const Page = () => {
               disabled={isLoading}
               className="px-6 py-2 bg-[#000000] text-white font-carlito text-[18px] font-[600] rounded-md hover:bg-blue-700 transition disabled:opacity-50"
             >
-              {isLoading ? "Signing in..." : "Sign in"}
+              {isLoading ? "Sending..." : "Send Reset Link"}
             </button>
-            <p className="font-carlito text-sm text-gray-600 text-center">
-              Don't have an account?{" "}
-              <Link href="/sign-up" className="text-[#FF676A] hover:underline">
-                Sign Up
-              </Link>
-            </p>
           </form>
         </div>
-        <button onClick={() => router.push("/forgot-password")}
-              type="submit"
-              className="px-6 py-2 bg-[#000000] text-white font-carlito text-[18px] font-[600] rounded-md hover:bg-blue-700 transition disabled:opacity-50"
-            >
-              Forgot Password?
-            </button>
       </div>
     </div>
   );
