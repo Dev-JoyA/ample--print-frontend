@@ -57,12 +57,12 @@ const Page = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center relative">
+       <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 mt-[-50px]">
       <Header isLoading={isLoading} />
       {/* Content */}
-      <div className="w-[850px] h-auto max-h-screen mx-auto rounded-[10px] pr-[40px] pb-[10px] pl-[40px] flex flex-col gap-[10px] bg-white/95 backdrop-blur-sm relative">
+      <div className="w-full max-w-lg rounded-lg p-6 sm:p-8 bg-white/95 backdrop-blur-sm shadow-lg">
         <div className="flex flex-col items-center">
-          <form onSubmit={handleSubmit} className="w-full max-w-md flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
             {error && (
               <div className={`text-sm text-center ${error.includes("successful") ? "text-green-500" : "text-red-500"}`}>
                 {error}
@@ -75,11 +75,12 @@ const Page = () => {
               <input
                 type="email"
                 name="email"
+                id="email"
                 placeholder="Email"
                 value={formData.email}
                 onChange={handleChange}
                 // required
-                className="px-4 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="flex flex-col gap-1">
@@ -89,11 +90,12 @@ const Page = () => {
               <input
                 type="password"
                 name="password"
+                id="password"
                 placeholder="Password"
                 value={formData.password}
                 onChange={handleChange}
                 // required
-                className="px-4 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <button
@@ -111,12 +113,14 @@ const Page = () => {
             </p>
           </form>
         </div>
-        <button onClick={() => router.push("/forgot-password")}
-              type="submit"
-              className="px-6 py-2 bg-[#000000] text-white font-carlito text-[18px] font-[600] rounded-md hover:bg-blue-700 transition disabled:opacity-50"
-            >
-              Forgot Password?
-            </button>
+       <button
+          onClick={() => router.push("/forgot-password")}
+          disabled={isLoading}
+          type="submit"
+          className="w-full mt-4 py-2 bg-transparent text-[#FF676A] font-carlito text-[16px] font-[500] rounded-md hover:bg-[red] hover:text-white transition duration-300 disabled:opacity-50 border border-[#FF676A]"
+        >
+          Forgot Password?
+      </button>
       </div>
     </div>
   );

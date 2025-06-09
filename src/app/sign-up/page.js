@@ -1,6 +1,5 @@
 "use client"
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Header from "../components/Header"
@@ -67,20 +66,23 @@ const Page = () => {
   };
 
     return (
-    <div className="min-h-screen bg-gray-100 p-4 flex items-center justify-center sm:p-6 md:p-8">
-      <Header isLoading={isLoading} />
-      <div className="w-[850px] h-auto max-h-screen mx-auto rounded-[10px] pr-[40px] pb-[10px] pl-[40px] flex flex-col gap-[10px] bg-white/95 backdrop-blur-sm relative">
+    <div className="min-h-screen bg-gray-100 p-6 sm:p-6 md:p-8 flex items-center justify-center lg:items-center lg:justify-center flex-col lg:flex-row gap-4 lg:gap-0">
+      <div className="mt-[-120px]">
+        <Header isLoading={isLoading} />
+      </div>
+      
+      <div className="w-full max-w-[850px] h-auto max-h-screen mx-auto rounded-[10px] pr-[40px] sm:pr-4 pb-[10px] pl-[40px] sm:pl-4 flex flex-col gap-[10px] bg-white/95 backdrop-blur-sm relative">
         {/* Shadow element separated from container */}
         <div className="flex flex-col items-center">
           {/* Form Inputs */}
-          <form onSubmit={handleSubmit} className="w-full max-w-md flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="w-full max-w-md sm:max-w-[90%] flex flex-col gap-4">
             {error && (
               <div className={`text-sm text-center ${error.includes("successful") ? "text-green-500" : "text-red-500"}`}>
                 {error}
               </div>
             )}
             <div className="flex flex-col gap-1">
-              <label className="font-carlito text-[15px] font-[600] text-[#1E1E1E]">
+              <label className="font-carlito text-[18px] sm:text-sm font-[600] text-[#1E1E1E]">
                 First Name
               </label>
               <input
@@ -90,11 +92,11 @@ const Page = () => {
                 value={formData.firstName}
                 onChange={handleChange}
                 required
-                className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-2 sm:px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="font-carlito text-[15px] font-[600] text-[#1E1E1E]">
+              <label className="font-carlito text-[18px] sm:text-sm font-[600] text-[#1E1E1E]">
                 Last Name
               </label>
               <input
@@ -104,11 +106,11 @@ const Page = () => {
                 value={formData.lastName}
                 onChange={handleChange}
                 required
-                className="px-4 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-6 sm:px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="font-carlito text-[15px] font-[600] text-[#1E1E1E]">
+              <label className="font-carlito text-[18px] sm:text-sm font-[600] text-[#1E1E1E]">
                 Username
               </label>
               <input
@@ -118,11 +120,11 @@ const Page = () => {
                 value={formData.userName}
                 onChange={handleChange}
                 required
-                className="px-4 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-6 sm:px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="font-carlito text-[15px] font-[600] text-[#1E1E1E]">
+              <label className="font-carlito text-[18px] sm:text-sm font-[600] text-[#1E1E1E]">
                 Email
               </label>
               <input
@@ -132,11 +134,11 @@ const Page = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="px-4 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-6 sm:px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="font-carlito text-[15px] font-[600] text-[#1E1E1E]">
+              <label className="font-carlito text-[18px] sm:text-sm font-[600] text-[#1E1E1E]">
                 Password
               </label>
               <input
@@ -146,11 +148,11 @@ const Page = () => {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="px-4 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 sm:px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="font-carlito text-[15px] font-[600] text-[#1E1E1E]">
+              <label className="font-carlito text-[18px] sm:text-sm font-[600] text-[#1E1E1E]">
                 Phone Number
               </label>
               <input
@@ -159,10 +161,10 @@ const Page = () => {
                 placeholder="Phone Number"
                 value={formData.phoneNumber}
                 onChange={handleChange}
-                className="px-4 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-6 sm:px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <p className="font-carlito text-sm text-gray-600">
+            <p className="font-carlito text-sm sm:text-xs text-gray-600">
               By creating an account, you accept our{" "}
               <Link href="/terms" className="text-[#000000] font-carlito hover:underline">
                 Terms and Conditions
@@ -171,11 +173,11 @@ const Page = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="px-6 py-2 bg-[#000000] text-white font-carlito text-[18px] font-[600] rounded-md hover:bg-blue-700 transition disabled:opacity-50"
+              className="px-6 sm:px-6 py-2 sm:py-1.5 bg-[#000000] text-white font-carlito text-[18px] sm:text-base font-[600] rounded-md hover:bg-blue-700 transition disabled:opacity-50"
             >
               {isLoading ? "Creating..." : "Create Free Account"}
             </button>
-            <p className="font-carlito text-sm text-gray-600 text-center">
+            <p className="font-carlito text-sm sm:text-xs text-gray-600 text-center">
               Already have an account?{" "}
               <Link href="/sign-in" className="text-[#FF676A] hover:underline">
                 Log in
@@ -184,8 +186,7 @@ const Page = () => {
           </form>
         </div>
       </div>
-       
-    </div>
+</div>
   );
 };
 
