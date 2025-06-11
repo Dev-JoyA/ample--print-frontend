@@ -46,7 +46,15 @@ const Page = () => {
       });
       setError(data.message || "Sign-in successful");
       setTimeout(() => {
-        router.push("/dashboard");
+        console.log(data, data.user, data.user.role, "finding role")
+        if (data.user.role === "admin") {
+          router.push("/dashboards/admin-dashboard");
+        }
+        else if (data.user.role === "super-admin") {
+          router.push("/dashboards/super-admin-dashboard");
+        }
+        
+        router.push("/dashboards/user-dashboard");
       }, 1500);
     } catch (error) {
       console.error("Cannot fetch:", error);
