@@ -42,10 +42,8 @@ const Page = () => {
       setFormData({
         email: "",
       });
-      setError(data.message || "Forgot password email sent");
-      setTimeout(() => {
-        router.push("/reset-password");
-      }, 1500);
+      setError(data.message || "password reset link sent");
+      
     } catch (error) {
       console.error("Cannot fetch:", error);
       setError(error.message || "Network error");
