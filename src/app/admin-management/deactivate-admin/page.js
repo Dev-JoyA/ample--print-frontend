@@ -19,7 +19,9 @@ const page = () => {
         console.log("Admin deactivated");
     }
   return (
-    <div>Deactivate Admin Page</div>
+    <div>
+        <button onClick={handleClick} className="bg-red-500 text-white px-4 py-2 rounded">Deactivate Admin</button>
+    </div>
   )
 }
 
