@@ -38,7 +38,6 @@ const Page = () => {
       if (!response.ok) {
         setError(data.message || "Sign-in failed");
         setIsLoading(false);
-        return;
       }
       setFormData({
         email: "",
@@ -55,12 +54,16 @@ const Page = () => {
         }
       }, 1500);
     } catch (error) {
-      console.error("Cannot fetch:", error);
-      setError(error.message || "Network error");
+      console.log("Cannot fetch:", error);
+      setError(error.message || "Network error");  
     } finally {
       setIsLoading(false);
     }
   };
+
+  if(error){
+    throw new Error(error);
+  }
 
   return (
        <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 mt-[-50px]">
