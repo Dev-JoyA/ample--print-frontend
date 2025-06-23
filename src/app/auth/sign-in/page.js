@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Header from "../components/Header";
+import Header from "../../ui/components/Header";
 import Link from "next/link";
 
 const Page = () => {
@@ -38,7 +38,6 @@ const Page = () => {
       if (!response.ok) {
         setError(data.message || "Sign-in failed");
         setIsLoading(false);
-        return;
       }
       setFormData({
         email: "",
@@ -46,15 +45,25 @@ const Page = () => {
       });
       setError(data.message || "Sign-in successful");
       setTimeout(() => {
-        router.push("/dashboard");
+        if (data.role === "admin") {
+          router.push("/dashboards/admin-dashboard");
+        }else if (data.role === "superadmin") {
+          router.push("/dashboards/super-admin-dashboard");
+        }else {
+          router.push("/dashboards/user-dashboard");
+        }
       }, 1500);
     } catch (error) {
-      console.error("Cannot fetch:", error);
-      setError(error.message || "Network error");
+      console.log("Cannot fetch:", error);
+      setError(error.message || "Network error");  
     } finally {
       setIsLoading(false);
     }
   };
+
+  if(error){
+    throw new Error(error);
+  }
 
   return (
        <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 mt-[-50px]">
