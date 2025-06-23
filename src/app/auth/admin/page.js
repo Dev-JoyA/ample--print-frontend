@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import Header from "../components/Header"
+import Header from "../../ui/components/Header"
 
 const Page = () => {
   const router = useRouter();
