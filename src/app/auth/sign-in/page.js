@@ -35,6 +35,10 @@ const Page = () => {
         body: JSON.stringify(formData)
       });
       const data = await response.json();
+      console.log("Response data:", data);
+      console.log("Response cookie:", response.headers.get("set-cookie"));
+      console.log("Response status:", response);
+      console.log("Response status text:", response.statusText);
       if (!response.ok) {
         setError(data.message || "Sign-in failed");
         setIsLoading(false);
@@ -50,7 +54,7 @@ const Page = () => {
         }else if (data.role === "superadmin") {
           router.push("/dashboards/super-admin-dashboard");
         }else {
-          router.push("/dashboards/user-dashboard");
+          router.push("/dashboards");
         }
       }, 1500);
     } catch (error) {
@@ -62,7 +66,7 @@ const Page = () => {
   };
 
   if(error){
-    throw new Error(error);
+    throw Error(error);
   }
 
   return (
