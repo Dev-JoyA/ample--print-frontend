@@ -15,6 +15,8 @@ try {
     body: JSON.stringify(formData)
   });
   const data = await response.json();
+  const token = response.headers.get("set-cookie");
+  console.log("Token:", token);
   console.log("Response data:", data);
   console.log("Response cookie:", response.headers.get("set-cookie"));
   console.log("Response status:", response);
