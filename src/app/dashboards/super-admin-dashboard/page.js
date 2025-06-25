@@ -1,8 +1,11 @@
 "use client";
 import { useRouter } from 'next/navigation';
+import { useAuthCheck } from "@/app/lib/auth";
 
 const page = () => {
   const router = useRouter();
+  useAuthCheck();
+
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
