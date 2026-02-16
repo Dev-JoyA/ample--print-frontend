@@ -70,7 +70,7 @@ export default function CustomerBriefPage() {
           <section>
             <h2 className="text-2xl font-semibold text-white mb-4">Design Instructions</h2>
             <Textarea
-              placeholder='Describe your visions here... e.g., "Modern minimalistic look with a focus on our brand\'s primary red accent ..."'
+              placeholder={`Describe your visions here... e.g., "Modern minimalistic look with a focus on our brand's primary red accent ..."`}
               value={formData.designInstructions}
               onChange={(e) => handleInputChange('designInstructions', e.target.value)}
               rows={6}

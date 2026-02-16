@@ -1,11 +1,12 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import Button from '@/components/ui/Button';
 
-export default function OrderSummaryPage() {
+function OrderSummaryContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const productId = searchParams.get('productId');
@@ -105,5 +106,20 @@ export default function OrderSummaryPage() {
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function OrderSummaryPage() {
+  return (
+    <Suspense fallback={
+      <DashboardLayout userRole="customer">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-4xl font-bold text-white mb-8">Order Summary</h1>
+          <div className="text-gray-400">Loading...</div>
+        </div>
+      </DashboardLayout>
+    }>
+      <OrderSummaryContent />
+    </Suspense>
   );
 }

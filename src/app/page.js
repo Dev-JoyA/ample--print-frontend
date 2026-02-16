@@ -178,7 +178,7 @@ export default function Home() {
         <div className="grid md:grid-cols-3 gap-6">
           {[
             { name: 'Madeleine Nkiru', company: 'Startup Hub', text: 'Fast turnaround, competitive pricing, and excellent quality. PrintPro is our go-to printing partner for all marketing materials.' },
-            { name: 'Mathew Kamsguy', company: 'Event Masters LLC', text: 'We've used PrintPro for multiple events and they never disappoint. The banners are durable and vibrant. Great customer support tool!' },
+            { name: 'Mathew Kamsguy', company: 'Event Masters LLC', text: "We've used PrintPro for multiple events and they never disappoint. The banners are durable and vibrant. Great customer support tool!" },
             { name: 'Joy Aruku', company: 'Marketing Pro Agency', text: 'Outstanding quality and service! PrintPro delivered our business cards ahead of schedule and they look absolutely professional. Highly recommended!' },
           ].map((testimonial, idx) => (
             <div key={idx} className="bg-dark-light rounded-lg p-6 border border-dark-lighter">
