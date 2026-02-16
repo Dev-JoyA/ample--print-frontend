@@ -14,10 +14,11 @@ const Button = ({
   
   const variants = {
     primary: 'bg-primary text-white hover:bg-primary-dark focus:ring-primary',
-    secondary: 'bg-dark-light text-white hover:bg-dark-lighter focus:ring-dark-light',
+    secondary: 'bg-slate-950 text-white hover:bg-dark-lighter focus:ring-dark-light',
     outline: 'border-2 border-primary text-primary hover:bg-primary hover:text-white focus:ring-primary',
     ghost: 'text-gray-300 hover:bg-dark-light hover:text-white',
     danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-600',
+    explore: 'text-red-600 font-semibold text-[12px]',
     click: 'border border-gray-300 text-white hover:bg-gray-700 focus:ring-gray-300',
   };
 

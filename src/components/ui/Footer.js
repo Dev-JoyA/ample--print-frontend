@@ -8,18 +8,34 @@ const Footer = () => {
           {/* Company Info */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
-                <span className="text-white text-sm font-bold">A</span>
-              </div>
-              <span className="text-white text-xl font-bold">Ampleprinthub</span>
+              <img className="w-17 h-17" src="/images/logo/logo.png" alt="Logo" />
             </div>
             <p className="text-gray-400 mb-4 max-w-md">
               Your trusted partner for professional printing services. High-quality products, fast turnaround, and exceptional customer service.
             </p>
             <div className="space-y-2 text-gray-400 text-sm">
-              <p>246 Houston Avenue, Lagos State</p>
-              <p>+234 812 4567 890</p>
-              <p>info@ampleprint.com</p>
+                <p>
+                <a 
+                    href="https://www.google.com/maps/search/?api=1&query=5+Boyle+Street+Somolu+Lagos+Nigeria" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-gray-300 hover:text-blue-500 hover:underline transition-colors"
+                >
+                    5, Boyle Street Somolu, Lagos, Nigeria
+                </a>
+                </p>
+
+                <p>
+                <a href="tel:+2348142534202" className="text-gray-300 hover:text-blue-500 hover:underline transition-colors">
+                    +2348142534202
+                </a>
+                </p>
+
+                <p>
+                <a href="mailto:amplePrintHub@gmail.com" className="text-gray-300 hover:text-blue-500 hover:underline transition-colors">
+                    amplePrintHub@gmail.com
+                </a>
+                </p>
             </div>
           </div>
 
