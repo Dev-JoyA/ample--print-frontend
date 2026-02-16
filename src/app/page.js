@@ -116,21 +116,20 @@ export default function Home() {
         </div>
         <div className="grid md:grid-cols-3 gap-6">
           {[
-            { name: 'BRAND ESSENTIALS', desc: 'Foundational print materials every business needs to look professional.', icon: '👔', image: '/images/dummy-images/bg-1.png' },
-            { name: 'MARKETING & PAPER', desc: 'High-impact paper prints designed to promote, inform, and convert.', icon: '📄', image: '/images/dummy-images/bg-2.jpg' },
-            { name: 'PACKAGING & CARRY', desc: 'Custom packaging that elevates your product presentation.', icon: '📦', image: '/images/dummy-images/bg-3.jpg' },
-            { name: 'LARGE FORMAT', desc: 'Bold, oversized prints designed for maximum dominance.', icon: '📊', image: '/images/dummy-images/bg-4.jpg' },
-            { name: 'BOOKS & PUBLISHING', desc: 'Multi-page solutions for education and corporate storytelling.', icon: '📚', image: '/images/dummy-images/bg-5.jpg' },
-            { name: 'BRANDED MERCHANDISE', desc: 'Promotional products that extend your brand beyond paper.', icon: '👕', image: '/images/dummy-images/bg-6.jpg' },
+            { name: 'BRAND ESSENTIALS', desc: 'Foundational print materials every business needs to look professional.', image: '/images/dummy-images/bg-1.png' },
+            { name: 'MARKETING & PAPER', desc: 'High-impact paper prints designed to promote, inform, and convert.', image: '/images/dummy-images/bg-2.jpg' },
+            { name: 'PACKAGING & CARRY', desc: 'Custom packaging that elevates your product presentation.', image: '/images/dummy-images/bg-3.jpg' },
+            { name: 'LARGE FORMAT', desc: 'Bold, oversized prints designed for maximum dominance.', image: '/images/dummy-images/bg-4.jpg' },
+            { name: 'BOOKS & PUBLISHING', desc: 'Multi-page solutions for education and corporate storytelling.', image: '/images/dummy-images/bg-5.jpg' },
+            { name: 'BRANDED MERCHANDISE', desc: 'Promotional products that extend your brand beyond paper.', image: '/images/dummy-images/bg-6.jpg' },
           ].map((solution, idx) => (
-            <div key={idx} className="rounded-lg p-6 border border-dark-lighter hover:border-primary/50 transition-all" style={{ backgroundImage: `url(${solution.image})` }}>
-              <div className="flex items-start justify-between mb-4">
-                <span className="text-3xl">{solution.icon}</span>
-                <span className="text-xs text-gray-500">4-10 Days</span>
+            <div key={idx} className="rounded-lg p-4 border border-gray-700 hover:border-primary/50 transition-all" style={{ backgroundImage: `url(${solution.image})` }}>
+              <div className="flex justify-end mb-4">
+                <span className="text-[10px] text-white bg-zinc-950 border border-gray-500 rounded-md px-3">4-10 Days</span>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">{solution.name}</h3>
+              <h3 className="text-xl font-semibold text-white mt-[7rem]">{solution.name}</h3>
               <p className="text-gray-400 text-sm mb-4">{solution.desc}</p>
-              <Button variant="ghost" size="sm" icon="→" iconPosition="right">
+              <Button variant="explore" size="sm" icon="→" iconPosition="right">
               Explore Tier
             </Button>
             </div>
@@ -139,24 +138,24 @@ export default function Home() {
       </section>
 
       {/* How It Works Section */}
-      <section className="max-w-7xl mx-auto px-6 py-20 bg-[#232A37]">
+      <section className="max-w-7xl mx-auto px-6 py-20 bg-slate-800">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-white mb-2">How It Works</h2>
           <p className="text-gray-400">Simple, straightforward process from order to delivery.</p>
         </div>
-        <div className="grid md:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-4 gap-6 my-[6rem]">
           {[
             { step: 1, title: 'Upload/Browse Your Design', desc: 'Upload your files or use our design templates to get started quickly.' },
             { step: 2, title: 'Review & Approve', desc: 'Our team prepares a proof for your review and approval before printing.' },
             { step: 3, title: 'We Print', desc: 'Your order is printed using premium materials and quality equipment.' },
             { step: 4, title: 'Fast Delivery', desc: 'Receive your order within 2-5 business days with tracking.' },
           ].map((item) => (
-            <div key={item.step} className="bg-dark-light rounded-lg p-6 border border-dark-lighter text-center relative">
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold">
+            <div key={item.step} className="rounded-lg p-6 text-center relative">
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-gray-950  border border-rose-600 rounded-full flex items-center justify-center text-rose-600 text-[10px]">
                 {item.step}
               </div>
               <div className="mt-4 mb-4">
-                <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto">
+                <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto">
                   <span className="text-2xl">↑</span>
                 </div>
               </div>
@@ -179,7 +178,7 @@ export default function Home() {
             { name: 'Mathew Kamsguy', company: 'Event Masters LLC', text: "We've used PrintPro for multiple events and they never disappoint. The banners are durable and vibrant. Great customer support tool!" },
             { name: 'Joy Aruku', company: 'Marketing Pro Agency', text: 'Outstanding quality and service! PrintPro delivered our business cards ahead of schedule and they look absolutely professional. Highly recommended!' },
           ].map((testimonial, idx) => (
-            <div key={idx} className="bg-dark-light rounded-lg p-6 border border-dark-lighter">
+            <div key={idx} className="rounded-lg p-6 border border-dark-lighter">
               <div className="flex gap-1 mb-4">
                 {'⭐'.repeat(5)}
               </div>
@@ -198,12 +197,12 @@ export default function Home() {
 
       {/* CTA Section */}
       <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="bg-primary rounded-lg p-12 text-center">
+        <div className="bg-red-900 rounded-lg p-12 text-center">
           <h2 className="text-4xl font-bold text-white mb-4">Ready to Elevate Your Print?</h2>
           <p className="text-white/90 text-lg mb-8">Join thousands of satisfied customers and experience professional printing services today.</p>
           <Link href="/new-order">
             <Button variant="secondary" size="lg" icon="→" iconPosition="right">
-              Get Started Free
+              Get Started For Free
             </Button>
           </Link>
         </div>
