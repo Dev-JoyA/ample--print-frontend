@@ -1,73 +1,85 @@
-import React from 'react'
+'use client';
 
-const page = () => {
+import { useState } from 'react';
+import Link from 'next/link';
+import DashboardLayout from '@/components/layouts/DashboardLayout';
+import SummaryCard from '@/components/cards/SummaryCard';
+import OrderCard from '@/components/cards/OrderCard';
+import Button from '@/components/ui/Button';
+
+export default function AdminDashboard() {
+  const [orders] = useState([
+    {
+      id: 1,
+      orderNumber: 'ORD-7291',
+      productName: 'Premium A5 Marketing Flyers',
+      orderedDate: '2025-12-12',
+      totalAmount: 4000.00,
+      status: 'IN DESIGN',
+    },
+    {
+      id: 2,
+      orderNumber: 'ORD-8822',
+      productName: 'Photo Books',
+      orderedDate: '2025-12-12',
+      totalAmount: 19200.00,
+      status: 'PENDING',
+    },
+  ]);
+
   return (
-    <div>
-       <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+    <DashboardLayout userRole="admin">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">Admin Dashboard</h1>
+          <p className="text-gray-400">Manage orders, customer briefs, and design uploads</p>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Collection Actions */}
-          <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Create Collection</h2>
-            <p className="text-gray-600 mb-4">Add a new collection to organize your products.</p>
-            <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
-              Create Now
-            </button>
+        {/* Summary Cards */}
+        <div className="grid md:grid-cols-4 gap-6">
+          <SummaryCard
+            title="Total Orders"
+            value="24"
+            icon="📦"
+            color="blue"
+          />
+          <SummaryCard
+            title="Pending Briefs"
+            value="08"
+            icon="📝"
+            color="yellow"
+          />
+          <SummaryCard
+            title="Designs Uploaded"
+            value="16"
+            icon="🎨"
+            color="green"
+          />
+          <SummaryCard
+            title="Completed Orders"
+            value="148"
+            icon="✅"
+            color="green"
+          />
+        </div>
+
+        {/* Recent Orders */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-semibold text-white">Recent Orders</h2>
+            <Link href="/admin/orders">
+              <Button variant="ghost" size="sm">
+                View All →
+              </Button>
+            </Link>
           </div>
-
-          <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Edit Collection</h2>
-            <p className="text-gray-600 mb-4">Modify existing collections.</p>
-            <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
-              Edit Now
-            </button>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Delete Collection</h2>
-            <p className="text-gray-600 mb-4">Remove a collection from the system.</p>
-            <button className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors">
-              Delete Now
-            </button>
-          </div>
-
-          {/* Product Actions */}
-          <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Create Product</h2>
-            <p className="text-gray-600 mb-4">Add a new product to your inventory.</p>
-            <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
-              Create Now
-            </button>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Edit Product</h2>
-            <p className="text-gray-600 mb-4">Update product details and information.</p>
-            <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
-              Edit Now
-            </button>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Delete Product</h2>
-            <p className="text-gray-600 mb-4">Remove a product from the inventory.</p>
-            <button className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors">
-              Delete Now
-            </button>
+          <div className="space-y-4">
+            {orders.map((order) => (
+              <OrderCard key={order.id} order={order} />
+            ))}
           </div>
         </div>
-      </main>
-    </div>
-    </div>
-  )
+      </div>
+    </DashboardLayout>
+  );
 }
-
-export default page

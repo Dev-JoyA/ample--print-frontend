@@ -10,9 +10,29 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        primary: {
+          DEFAULT: "#EF4444", // Red accent
+          dark: "#DC2626",
+          light: "#F87171",
+        },
+        dark: {
+          DEFAULT: "#1F2937",
+          light: "#374151",
+          lighter: "#4B5563",
+        },
+        status: {
+          blue: "#3B82F6",
+          yellow: "#FBBF24",
+          green: "#10B981",
+          red: "#EF4444",
+        },
       },
       fontFamily: {
-        carlito: ["Carlito", "sans-serif"], 
+        carlito: ["Carlito", "sans-serif"],
+        inter: ["Inter", "sans-serif"],
+      },
+      spacing: {
+        'sidebar': '280px',
       },
     },
   },

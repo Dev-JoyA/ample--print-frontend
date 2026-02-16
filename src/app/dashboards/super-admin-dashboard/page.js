@@ -1,27 +1,45 @@
-"use client";
-import { useRouter } from 'next/navigation';
-import { useAuthCheck } from "@/app/lib/auth";
+'use client';
 
-const page = () => {
-  const router = useRouter();
-  useAuthCheck();
+import DashboardLayout from '@/components/layouts/DashboardLayout';
+import SummaryCard from '@/components/cards/SummaryCard';
 
-
+export default function SuperAdminDashboard() {
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:gap-6">
-        <button onClick={() => router.push("../admin-management/create-admin") } className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
-          Create Admin
-        </button>
-        <button onClick={() => router.push("../admin-management/activate-admin") } className="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-300">
-          Activate Admin
-        </button>
-        <button onClick={() => router.push("../admin-management/deactivate-admin") } className="px-6 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition duration-300">
-          Deactivate Admin
-        </button>
-      </div>
-    </div>
-  )
-}
+    <DashboardLayout userRole="super-admin">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">Super Admin Dashboard</h1>
+          <p className="text-gray-400">Manage invoices, payments, and financial records</p>
+        </div>
 
-export default page
+        {/* Summary Cards */}
+        <div className="grid md:grid-cols-4 gap-6">
+          <SummaryCard
+            title="Total Revenue"
+            value="₦2,450,000"
+            icon="💰"
+            color="green"
+          />
+          <SummaryCard
+            title="Pending Invoices"
+            value="12"
+            icon="📄"
+            color="yellow"
+          />
+          <SummaryCard
+            title="Unverified Payments"
+            value="05"
+            icon="⏳"
+            color="red"
+          />
+          <SummaryCard
+            title="Total Orders"
+            value="148"
+            icon="📦"
+            color="blue"
+          />
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+}
