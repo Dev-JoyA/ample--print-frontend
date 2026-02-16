@@ -18,6 +18,7 @@ const Button = ({
     outline: 'border-2 border-primary text-primary hover:bg-primary hover:text-white focus:ring-primary',
     ghost: 'text-gray-300 hover:bg-dark-light hover:text-white',
     danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-600',
+    click: 'border border-gray-300 text-white hover:bg-gray-700 focus:ring-gray-300',
   };
 
   const sizes = {

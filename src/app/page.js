@@ -5,22 +5,20 @@ import Footer from '@/components/ui/Footer';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-dark">
+    <div className="min-h-screen bg-slate-950 text-[#FFFFFF] font-inter">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-dark border-b border-dark-light">
+      <header className="sticky top-0 z-50 bg-slate-950 border-b border-dark-light">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
-              <span className="text-white text-sm font-bold">A</span>
-            </div>
-            <span className="text-white text-xl font-bold">Ample Print</span>
+            <img className="w-17 h-17" src="/images/logo/logo.png" alt="Logo" />
           </div>
           <nav className="hidden md:flex items-center gap-6">
-            <Link href="/" className="text-gray-300 hover:text-white transition-colors">Home</Link>
-            <Link href="/collections" className="text-gray-300 hover:text-white transition-colors">Collections</Link>
-            <Link href="/how-it-works" className="text-gray-300 hover:text-white transition-colors">How It Works</Link>
-            <Link href="/testimonials" className="text-gray-300 hover:text-white transition-colors">Testimonials</Link>
-            <Link href="/contact" className="text-gray-300 hover:text-white transition-colors">Contact</Link>
+            <Link href="/" className="font-[600] text-gray-400 hover:text-white transition-colors">Home</Link>
+            <Link href="/collections" className="font-[600] text-gray-400 hover:text-white transition-colors">Collections</Link>
+            <Link href="/dashboard" className="font-[600] text-gray-400 hover:text-white transition-colors">My Orders</Link>
+            <Link href="/how-it-works" className="font-[600] text-gray-400 hover:text-white transition-colors">How It Works</Link>
+            <Link href="/testimonials" className="font-[600] text-gray-400 hover:text-white transition-colors">Testimonials</Link>
+            <Link href="/contact" className="font-[600] text-gray-400 hover:text-white transition-colors">Contact</Link>
           </nav>
           <div className="flex items-center gap-4">
             <Link href="/auth/sign-in">
@@ -34,11 +32,11 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
+      <section className="max-w-7xl mx-auto px-10 py-[4rem]">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
             <div className="inline-block px-3 py-1 bg-primary/20 text-primary rounded-full text-xs font-semibold mb-4">
-              CREATIVE PRINT MARKETPLACE
+              Profesional Printing Services
             </div>
             <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
               Where your <span className="text-primary">visions</span> find their physical <span className="text-primary">edge.</span>
@@ -64,9 +62,9 @@ export default function Home() {
                 <span>Expert design support</span>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 text-sm">
               <Link href="/new-order">
-                <Button variant="primary" size="lg" icon="→" iconPosition="right">
+                <Button className='py-5' variant="primary" size="sm" icon="→" iconPosition="right">
                   Start Your First Order
                 </Button>
               </Link>
@@ -82,50 +80,50 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-4">
-              <div className="bg-dark-light rounded-lg p-4 aspect-square">
-                <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg"></div>
+              <div className="rounded-lg p-1 aspect-square">
+                <img className="" src="/images/dummy-images/image 4.png" alt="Sample Print 1" />
               </div>
-              <div className="bg-dark-light rounded-lg p-4 aspect-square">
-                <div className="w-full h-full bg-gradient-to-br from-blue-500/20 to-blue-500/5 rounded-lg"></div>
+              <div className="rounded-lg p-1 aspect-square">
+                <img className="" src="/images/dummy-images/image 3.png" alt="Sample Print 1" />
               </div>
             </div>
             <div className="space-y-4 pt-8">
-              <div className="bg-dark-light rounded-lg p-4 aspect-square">
-                <div className="w-full h-full bg-gradient-to-br from-green-500/20 to-green-500/5 rounded-lg"></div>
+              <div className="rounded-lg p-1 aspect-square">
+                <img className="" src="/images/dummy-images/image 1.png" alt="Sample Print 1" />
               </div>
-              <div className="bg-dark-light rounded-lg p-4 aspect-square">
-                <div className="w-full h-full bg-gradient-to-br from-yellow-500/20 to-yellow-500/5 rounded-lg"></div>
+              <div className="rounded-lg p-1 aspect-square -translate-y-20">
+                <img className="" src="/images/dummy-images/image 2.png" alt="Sample Print 1" />
               </div>
             </div>
+            <div className="rounded-lg inline-flex  items-center gap-1 px-2 flex -mt-[17rem] -ml-[2rem]">
+                <span className="text-primary ">⚡</span>
+                <span className="text-gray-300 text-[12px] ">Fast Delivery <br/>2-5 business days </span>
+            </div>
           </div>
-        </div>
-        <div className="mt-8 bg-dark-light rounded-lg p-4 inline-flex items-center gap-3">
-          <span className="text-primary">⚡</span>
-          <span className="text-gray-300">Fast Delivery 2-5 business days</span>
         </div>
       </section>
 
       {/* Print Solutions Section */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
+      <section className="max-w-7xl mx-auto px-20 py-20">
         <div className="flex items-center justify-between mb-12">
           <div>
             <h2 className="text-4xl font-bold text-white mb-2">Print Solutions</h2>
             <p className="text-gray-400">Curated tiers designed for operational efficiency and high emotional impact.</p>
           </div>
           <Link href="/collections">
-            <Button variant="outline">View Full Marketplace</Button>
+            <Button  variant="click">View Full Marketplace</Button>
           </Link>
         </div>
         <div className="grid md:grid-cols-3 gap-6">
           {[
-            { name: 'BRAND ESSENTIALS', desc: 'Foundational print materials every business needs to look professional.', icon: '👔' },
-            { name: 'MARKETING & PAPER', desc: 'High-impact paper prints designed to promote, inform, and convert.', icon: '📄' },
-            { name: 'PACKAGING & CARRY', desc: 'Custom packaging that elevates your product presentation.', icon: '📦' },
-            { name: 'LARGE FORMAT', desc: 'Bold, oversized prints designed for maximum dominance.', icon: '📊' },
-            { name: 'BOOKS & PUBLISHING', desc: 'Multi-page solutions for education and corporate storytelling.', icon: '📚' },
-            { name: 'BRANDED MERCHANDISE', desc: 'Promotional products that extend your brand beyond paper.', icon: '👕' },
+            { name: 'BRAND ESSENTIALS', desc: 'Foundational print materials every business needs to look professional.', icon: '👔', image: '/images/dummy-images/bg-1.png' },
+            { name: 'MARKETING & PAPER', desc: 'High-impact paper prints designed to promote, inform, and convert.', icon: '📄', image: '/images/dummy-images/bg-2.jpg' },
+            { name: 'PACKAGING & CARRY', desc: 'Custom packaging that elevates your product presentation.', icon: '📦', image: '/images/dummy-images/bg-3.jpg' },
+            { name: 'LARGE FORMAT', desc: 'Bold, oversized prints designed for maximum dominance.', icon: '📊', image: '/images/dummy-images/bg-4.jpg' },
+            { name: 'BOOKS & PUBLISHING', desc: 'Multi-page solutions for education and corporate storytelling.', icon: '📚', image: '/images/dummy-images/bg-5.jpg' },
+            { name: 'BRANDED MERCHANDISE', desc: 'Promotional products that extend your brand beyond paper.', icon: '👕', image: '/images/dummy-images/bg-6.jpg' },
           ].map((solution, idx) => (
-            <div key={idx} className="bg-dark-light rounded-lg p-6 border border-dark-lighter hover:border-primary/50 transition-all">
+            <div key={idx} className="rounded-lg p-6 border border-dark-lighter hover:border-primary/50 transition-all" style={{ backgroundImage: `url(${solution.image})` }}>
               <div className="flex items-start justify-between mb-4">
                 <span className="text-3xl">{solution.icon}</span>
                 <span className="text-xs text-gray-500">4-10 Days</span>
@@ -141,7 +139,7 @@ export default function Home() {
       </section>
 
       {/* How It Works Section */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
+      <section className="max-w-7xl mx-auto px-6 py-20 bg-[#232A37]">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-white mb-2">How It Works</h2>
           <p className="text-gray-400">Simple, straightforward process from order to delivery.</p>
