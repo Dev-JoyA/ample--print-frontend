@@ -17,16 +17,16 @@ const ProductCard = ({ product, onClick }) => {
 
   return (
     <div
-      className="bg-dark-light rounded-lg overflow-hidden border border-dark-lighter hover:border-primary/50 transition-all cursor-pointer group"
+      className="bg-slate-950 rounded-lg overflow-hidden border border-dark-lighter hover:border-primary/50 transition-all cursor-pointer group"
       onClick={onClick}
     >
       {/* Category Tag */}
       <div className="px-4 pt-4">
-        <span className="text-xs font-semibold text-primary uppercase">{category}</span>
+        <span className="text-[10px] px-3 py-1 font-medium bg-zinc-700 text-white border border-zinc-700 rounded-2xl uppercase">{category}</span>
       </div>
 
       {/* Product Image */}
-      <div className="relative w-full h-48 bg-dark overflow-hidden">
+      <div className="relative w-full h-48 bg-slate-900 overflow-hidden">
         {image ? (
           <Image
             src={image}
@@ -46,7 +46,7 @@ const ProductCard = ({ product, onClick }) => {
       {/* Product Info */}
       <div className="p-4 space-y-3">
         {/* Delivery Time */}
-        <div className="flex items-center gap-2 text-xs text-gray-400">
+        <div className="flex items-center gap-2 text-xs text-gray-300 ">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
@@ -59,12 +59,12 @@ const ProductCard = ({ product, onClick }) => {
         </h3>
 
         {/* Description */}
-        <p className="text-sm text-gray-400 line-clamp-2">
+        <p className="text-sm text-gray-400 line-clamp-2 ">
           {description}
         </p>
 
         {/* Details */}
-        <div className="flex items-center gap-4 text-xs text-gray-500">
+        <div className="flex items-center gap-4 text-xs font-bold text-gray-300 pt-2 border-t border-dark-lighter">
           <span>MOQ {moq}</span>
           {format && <span>FORMAT {format}</span>}
         </div>
@@ -72,7 +72,7 @@ const ProductCard = ({ product, onClick }) => {
         {/* Price */}
         <div className="flex items-center justify-between pt-2 border-t border-dark-lighter">
           <div>
-            <p className="text-xs text-gray-400">STARTING AT</p>
+            <p className="text-xs text-red-600 font-bold">STARTING AT</p>
             <p className="text-lg font-bold text-white">₦{price?.toLocaleString() || '0.00'}</p>
           </div>
           <button className="w-10 h-10 rounded-full bg-dark hover:bg-primary flex items-center justify-center transition-colors">
