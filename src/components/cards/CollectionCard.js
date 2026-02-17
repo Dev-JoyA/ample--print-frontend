@@ -6,11 +6,11 @@ const CollectionCard = ({ collection, onClick }) => {
 
   return (
     <div
-      className="bg-dark-light rounded-lg overflow-hidden border border-dark-lighter hover:border-primary/50 transition-all cursor-pointer group"
+      className="bg-slate-950 rounded-lg overflow-hidden border border-dark-lighter hover:border-primary/50 transition-all cursor-pointer group"
       onClick={onClick}
     >
       {/* Collection Image */}
-      <div className="relative w-full h-64 bg-dark overflow-hidden">
+      <div className="relative w-full h-64 bg-slate-900 overflow-hidden">
         {image ? (
           <Image
             src={image}
@@ -29,7 +29,7 @@ const CollectionCard = ({ collection, onClick }) => {
 
       {/* Collection Info */}
       <div className="p-4">
-        <h3 className="text-lg font-semibold text-white group-hover:text-primary transition-colors mb-1">
+        <h3 className="text-md font-semibold text-gray-100 group-hover:text-primary transition-colors mb-1">
           {name}
         </h3>
         {productCount !== undefined && (
