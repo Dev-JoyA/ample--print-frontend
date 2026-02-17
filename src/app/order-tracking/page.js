@@ -40,7 +40,7 @@ export default function OrderTrackingPage() {
         <h1 className="text-4xl font-bold text-white mb-8">Order Tracking</h1>
 
         {/* Search Order */}
-        <div className="bg-dark-light rounded-lg p-6 border border-dark-lighter mb-8">
+        <div className="bg-slate-950 rounded-lg p-6 border border-dark-lighter mb-8">
           <h2 className="text-xl font-semibold text-white mb-4">Track Your Order</h2>
           <div className="flex gap-4">
             <Input
