@@ -14,12 +14,12 @@ const OrderCard = ({ order, onClick }) => {
 
   return (
     <div
-      className="bg-dark-light rounded-lg p-4 border border-dark-lighter hover:border-primary/50 transition-all cursor-pointer group"
+      className="bg-slate-900 rounded-lg p-4 mr-2 border border-dark-lighter hover:border-primary/50 transition-all cursor-pointer group"
       onClick={onClick}
     >
       <div className="flex items-start gap-4">
         {/* Product Image/Icon */}
-        <div className="w-16 h-16 bg-dark rounded-lg flex items-center justify-center flex-shrink-0">
+        <div className="w-8 h-8 bg-dark rounded-lg flex items-center justify-center flex-shrink-0">
           {productImage ? (
             <Image
               src={productImage}
@@ -37,19 +37,19 @@ const OrderCard = ({ order, onClick }) => {
 
         {/* Order Details */}
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-white mb-1 group-hover:text-primary transition-colors">
+          <h3 className="text-[14px] font-semibold text-white mb-1 group-hover:text-primary transition-colors">
             {productName}
           </h3>
-          <p className="text-sm text-gray-400 mb-2">
+          <p className="text-[12px] text-gray-400 mb-2">
             {orderNumber} • Ordered on {orderedDate}
           </p>
-          <div className="flex items-center justify-between">
+        </div>
+        <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-500 mb-1">Total Amount</p>
-              <p className="text-lg font-bold text-white">₦{totalAmount?.toLocaleString() || '0.00'}</p>
+                <p className="text-[14px] font-bold mr-4 text-white">₦{totalAmount?.toLocaleString() || '0.00'}</p>
+                <p className="text-[14px] text-gray-500 mr-4 mb-1">Total Amount</p>
             </div>
             <StatusBadge status={status} type="order" />
-          </div>
         </div>
 
         {/* Arrow Icon */}

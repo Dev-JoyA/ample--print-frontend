@@ -47,15 +47,15 @@ export default function CustomerDashboard() {
 
   return (
     <DashboardLayout userRole="customer">
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto  mt-[40px] space-y-6">
         {/* Welcome Section */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">Welcome back, James</h1>
-            <p className="text-gray-400">You have 2 designs awaiting your approval today.</p>
+            <h1 className="text-4xl font-semibold text-white mb-2">Welcome back, James</h1>
+            <p className="text-gray-400 text-md">You have 2 designs awaiting your approval today.</p>
           </div>
           <Link href="/new-order">
-            <Button variant="primary" size="lg" icon="→" iconPosition="right">
+            <Button variant="primary" size="md" icon="→" iconPosition="right">
               Start a New Print Order
             </Button>
           </Link>
@@ -90,11 +90,11 @@ export default function CustomerDashboard() {
         </div>
 
         {/* Active Orders & Unpaid Invoices */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-[2fr_1fr] gap-2">
           {/* Active Orders */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-semibold text-white">Active Orders</h2>
+              <h2 className="text-xl font-semibold mt-5 text-white">Active Orders</h2>
               <Link href="/order-history" className="text-primary hover:text-primary-light text-sm">
                 View All →
               </Link>
@@ -109,7 +109,7 @@ export default function CustomerDashboard() {
           {/* Unpaid Invoices */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-semibold text-white">Unpaid Invoices</h2>
+              <h2 className="text-xl font-semibold mt-3 text-white">Unpaid Invoices</h2>
               <Link href="/invoices" className="text-primary hover:text-primary-light text-sm">
                 View All →
               </Link>

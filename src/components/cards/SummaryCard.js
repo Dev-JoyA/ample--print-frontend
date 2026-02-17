@@ -8,13 +8,13 @@ const SummaryCard = ({ title, value, icon, color = 'blue', onClick }) => {
 
   return (
     <div
-      className={`bg-dark-light rounded-lg p-6 border border-dark-lighter hover:border-${color}-500/50 transition-all cursor-pointer group`}
+      className={`bg-slate-900 rounded-lg p-6  border border-dark-lighter hover:border-${color}-500/50 transition-all cursor-pointer group`}
       onClick={onClick}
     >
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <p className="text-sm text-gray-400 mb-2">{title}</p>
-          <p className={`text-3xl font-bold ${colorClasses[color]}`}>{value}</p>
+          <p className={`text-xl font-bold ${colorClasses[color]}`}>{value}</p>
         </div>
         <div className={`w-12 h-12 rounded-full bg-${color}-500/20 flex items-center justify-center`}>
           <span className="text-2xl">{icon}</span>

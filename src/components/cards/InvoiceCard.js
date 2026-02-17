@@ -12,7 +12,7 @@ const InvoiceCard = ({ invoice, onPay }) => {
   } = invoice;
 
   return (
-    <div className="bg-dark-light rounded-lg p-4 border border-dark-lighter hover:border-primary/50 transition-all relative">
+    <div className="bg-slate-900 rounded-lg p-4 border border-dark-lighter hover:border-primary/50 transition-all relative">
       {/* Due Soon Badge */}
       {dueSoon && (
         <div className="absolute top-2 right-2">
@@ -23,16 +23,16 @@ const InvoiceCard = ({ invoice, onPay }) => {
       <div className="space-y-4">
         {/* Invoice Number */}
         <div>
-          <h3 className="text-lg font-semibold text-white mb-1">{invoiceNumber}</h3>
-          {status && (
+          <h3 className="text-lg font-medium text-white mb-1">{invoiceNumber}</h3>
+          {/* {status && (
             <StatusBadge status={status} type="invoice" />
-          )}
+          )} */}
         </div>
 
         {/* Balance */}
-        <div>
-          <p className="text-sm text-gray-400 mb-1">Balance</p>
-          <p className="text-2xl font-bold text-white">₦{balance?.toLocaleString() || '0.00'}</p>
+        <div className='flex space-x-2 items-center'>
+            <p className="text-xl font-bold text-white">₦{balance?.toLocaleString() || '0.00'}</p>
+            <p className="text-sm text-gray-400 mb-1">Balance</p>
         </div>
 
         {/* Due Date */}
@@ -41,7 +41,7 @@ const InvoiceCard = ({ invoice, onPay }) => {
         )}
 
         {/* Pay Button */}
-        {onPay && (
+        {/* {onPay && ( */}
           <Button
             variant="primary"
             size="sm"
@@ -50,7 +50,7 @@ const InvoiceCard = ({ invoice, onPay }) => {
           >
             Pay Invoice
           </Button>
-        )}
+        {/* )} */}
       </div>
     </div>
   );

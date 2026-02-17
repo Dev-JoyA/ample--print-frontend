@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 const Header = ({ onSearch, showSearch = true }) => {
   return (
-    <header className="sticky top-0 z-40 bg-dark border-b border-dark-light">
+    <header className="sticky top-0 z-40 bg-slate-950 border-b -ml-[10rem] border-dark-light">
       <div className="flex items-center justify-between px-6 py-4">
         {showSearch && (
           <SearchBar onSearch={onSearch} />
