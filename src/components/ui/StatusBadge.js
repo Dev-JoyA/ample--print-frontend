@@ -8,6 +8,7 @@ const StatusBadge = ({ status, type = 'order' }) => {
       'IN PRODUCTION': { label: 'IN PRODUCTION', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
       READY: { label: 'READY', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
       DELIVERED: { label: 'DELIVERED', color: 'bg-green-600/20 text-green-500 border-green-600/30' },
+      DESIGNING : { label: 'DESIGNING', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
     },
     payment: {
       UNPAID: { label: 'UNPAID', color: 'bg-red-500/20 text-red-400 border-red-500/30' },

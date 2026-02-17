@@ -49,26 +49,25 @@ const Sidebar = ({ userRole = 'customer' }) => {
   };
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-sidebar bg-dark flex flex-col z-50">
+    <aside className="fixed border-x border-dark-light left-0 bg-slate-950 top-0 h-screen w-[14rem] flex flex-col z-50">
       {/* Logo */}
-      <div className="p-6 border-b border-dark-light">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
-            <span className="text-white text-sm font-bold">A</span>
+      <div className="p-6 ">
+        <div className="flex items-center gap-2 ">
+          <div className="flex items-center gap-2">
+            <img className="w-17 h-17" src="/images/logo/logo.png" alt="Logo" />
           </div>
-          <span className="text-white text-xl font-bold">Ampleprinthub</span>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+      <nav className="flex-1 pt-10 pb-[10rem] pr-4 pb-4 overflow-y-auto">
         {navItems.map((item) => {
           const active = isActive(item.href);
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+              className={`flex items-center gap-3 px-4 py-2 font-semibold text-[14px] text-gray-50 rounded-lg transition-colors ${
                 active
                   ? 'bg-primary text-white'
                   : 'text-gray-300 hover:bg-dark-light hover:text-white'
