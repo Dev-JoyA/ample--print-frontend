@@ -54,10 +54,10 @@ export default function ProductDetailPage() {
           Back to Studio
         </button>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-8 ">
           {/* Product Images */}
           <div>
-            <div className="relative w-full aspect-square bg-dark-light rounded-lg overflow-hidden mb-4">
+            <div className="relative w-full aspect-square bg-slate-950 rounded-lg overflow-hidden mb-4">
               <Image
                 src={product.images[selectedView]}
                 alt={product.name}
