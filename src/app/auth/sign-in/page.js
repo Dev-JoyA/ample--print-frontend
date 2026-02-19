@@ -1,142 +1,80 @@
-"use client"
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Header from "../../ui/components/Header";
+"use client";
 import Link from "next/link";
+import Button from '@/components/ui/Button';
 
 const Page = () => {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: ""
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const router = useRouter();
+    return (
+        <div className="min-h-screen bg-slate-950 text-[#FFFFFF] pl-[4rem] pr-[4rem] pb-[3rem] flex flex-col">
+            <div className="max-w-2xl w-full mx-auto py-8 flex flex-col gap-8">
+                <div>
+                    <img className="" src="/images/logo/logo.png" alt="Logo" />
+                </div>
+                <div>
+                    <div >
+                        <h1 className="font-inter font-[700] text-[24px] leading-[25px]">Welcome back</h1>
+                        <p className="text-gray-300 text-[12px] pt-2 -mb-[1rem]">Sign in to continue printing with the highest industry standards.</p>
+                    </div>
+                    <div>
+                        <div className="flex flex-row justify-center border border-gray-700 rounded-lg px-4 py-1 my-[2rem] cursor-pointer hover:bg-gray-800">
+                            <img className="pr-[0.5rem]" src="/images/icons/google.png" alt="Google logo" />
+                            <p className="pl-[0.5rem] font-[700] ">Continue with Google</p>
+                        </div>
+                        <div className="flex items-center justify-center gap-4 -mt-3 mb-[2rem] w-full">
+                            <span className="h-px flex-1 bg-gray-600"></span>
+                            <p className="text-gray-400 text-sm whitespace-nowrap">
+                                OR CONTINUE WITH EMAIL
+                            </p>
+                            <span className="h-px flex-1 bg-gray-600"></span>
+                        </div>
+                       <div className="grid grid-cols-1 gap-4">
+                            <div className="flex flex-col">
+                                <label className="font-bold text-[12px]" htmlFor="email">Email or Username</label>
+                                <input className="bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-gray-600" type="text" id="email" name="email" placeholder="Enter your email or username" required />
+                            </div>
+                            <div className="flex flex-col">
+                                <label className="font-bold text-[12px]" htmlFor="password">Password</label>
+                                <input className="bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-gray-600" type="password" id="password" name="password" placeholder="Enter your password" required />
+                            </div>
+                            
+                            {/* Remember me and Forgot password row */}
+                            <div className="flex items-center justify-between mt-2">
+                                <div className="flex items-center gap-2">
+                                    <input className="w-4 h-4 border-gray-700 rounded flex-shrink-0" type="checkbox" id="remember" name="remember" />
+                                    <label htmlFor="remember" className="text-sm text-gray-300">
+                                        Remember me
+                                    </label>
+                                </div>
+                                <Link href="/forgot-password" className="text-sm text-red-600 hover:underline">
+                                    Forgot password?
+                                </Link>
+                            </div>
+                        </div>
+                       
+                       <div className="flex justify-center mt-6 w-full">
+                            <Button variant="primary" size="md" icon="→" iconPosition="right" className="w-full !justify-center">
+                                Sign In
+                            </Button>
+                        </div>
+                    </div>
+                    
+                    <p className="font-carlito text-sm sm:text-xs flex justify-center text-gray-600 mt-4">
+                        Don't have an account?{" "}
+                        <Link href="/sign-up" className="text-[#FF676A] hover:underline ml-1">
+                            Sign up
+                        </Link>
+                    </p>
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
-
-    try {
-      const response = await fetch("http://localhost:4001/auth/sign-in", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(formData)
-      });
-      const data = await response.json();
-      console.log("Response data:", data);
-      console.log("Response cookie:", response.headers.get("set-cookie"));
-      console.log("Response status:", response);
-      console.log("Response status text:", response.statusText);
-      if (!response.ok) {
-        setError(data.message || "Sign-in failed");
-        setIsLoading(false);
-      }
-      setFormData({
-        email: "",
-        password: ""
-      });
-      setError(data.message || "Sign-in successful");
-      setTimeout(() => {
-        if (data.role === "admin") {
-          router.push("/dashboards/admin-dashboard");
-        }else if (data.role === "superadmin") {
-          router.push("/dashboards/super-admin-dashboard");
-        }else {
-          router.push("/dashboards");
-        }
-      }, 1500);
-    } catch (error) {
-      console.log("Cannot fetch:", error);
-      setError(error.message || "Network error");  
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // if(error){
-  //   throw Error(error);
-  // }
-
-  return (
-       <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 mt-[-50px]">
-      <Header isLoading={isLoading} />
-      {/* Content */}
-      <div className="w-full max-w-lg rounded-lg p-6 sm:p-8 bg-white/95 backdrop-blur-sm shadow-lg">
-        <div className="flex flex-col items-center">
-          <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
-            {error && (
-              <div className={`text-sm text-center ${error.includes("successful") ? "text-green-500" : "text-red-500"}`}>
-                {error}
-              </div>
-            )}
-            <div className="flex flex-col gap-1">
-              <label className="font-carlito text-[15px] font-[600] text-[#1E1E1E]">
-                Email
-              </label>
-              <input
-                type="email"
-                name="email"
-                id="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={handleChange}
-                // required
-                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+                    {/* Optional: Add a demo credentials notice */}
+                    <p className="text-center text-gray-600 text-xs mt-6">
+                        By signing in, you agree to our{" "}
+                        <Link href="/terms-of-service" className="text-red-600 hover:underline">Terms</Link>
+                        {" "}and{" "}
+                        <Link href="/privacy-policy" className="text-red-600 hover:underline">Privacy Policy</Link>
+                    </p>
+                </div>
             </div>
-            <div className="flex flex-col gap-1">
-              <label className="font-carlito text-[15px] font-[600] text-[#1E1E1E]">
-                Password
-              </label>
-              <input
-                type="password"
-                name="password"
-                id="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-                // required
-                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="px-6 py-2 bg-[#000000] text-white font-carlito text-[18px] font-[600] rounded-md hover:bg-blue-700 transition disabled:opacity-50"
-            >
-              {isLoading ? "Signing in..." : "Sign in"}
-            </button>
-            <p className="font-carlito text-sm text-gray-600 text-center">
-              Don't have an account?{" "}
-              <Link href="/sign-up" className="text-[#FF676A] hover:underline">
-                Sign Up
-              </Link>
-            </p>
-          </form>
         </div>
-       <button
-          onClick={() => router.push("/forgot-password")}
-          disabled={isLoading}
-          type="submit"
-          className="w-full mt-4 py-2 bg-transparent text-[#FF676A] font-carlito text-[16px] font-[500] rounded-md hover:bg-[red] hover:text-white transition duration-300 disabled:opacity-50 border border-[#FF676A]"
-        >
-          Forgot Password?
-      </button>
-      </div>
-    </div>
-  );
-};
+    );
+}
 
 export default Page;
