@@ -36,7 +36,7 @@ export default function CustomerBriefsPage() {
 
         <div className="space-y-6">
           {briefs.map((brief) => (
-            <div key={brief.id} className="bg-dark-light rounded-lg p-6 border border-dark-lighter">
+            <div key={brief.id} className="bg-slate-900 rounded-lg p-6 border border-dark-lighter">
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h3 className="text-xl font-semibold text-white mb-1">{brief.productName}</h3>
