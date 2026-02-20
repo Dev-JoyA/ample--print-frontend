@@ -61,7 +61,7 @@ export default function CustomerBriefPage() {
         </button>
 
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Project Briefing</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">Project Briefing</h1>
           <p className="text-gray-400">Provide details for our designers to create exactly what you need.</p>
         </div>
 
@@ -70,20 +70,21 @@ export default function CustomerBriefPage() {
           <section>
             <h2 className="text-2xl font-semibold text-white mb-4">Design Instructions</h2>
             <Textarea
-              placeholder={`Describe your visions here... e.g., "Modern minimalistic look with a focus on our brand's primary red accent ..."`}
-              value={formData.designInstructions}
-              onChange={(e) => handleInputChange('designInstructions', e.target.value)}
-              rows={6}
-              className="bg-dark-light"
+                className="!bg-slate-900"
+                placeholder={`Describe your visions here... e.g., "Modern minimalistic look with a focus on our brand's primary red accent ..."`}
+                value={formData.designInstructions}
+                onChange={(e) => handleInputChange('designInstructions', e.target.value)}
+                rows={6}
             />
           </section>
 
           {/* Voice Briefing */}
           <section>
             <h2 className="text-2xl font-semibold text-white mb-4">Voice Briefing</h2>
-            <div className="bg-dark-light rounded-lg p-8 border border-dark-lighter relative">
-              <div className="absolute top-4 right-4 text-primary font-semibold">
-                {recordingTime.toFixed(2)}
+            <div className="bg-slate-900 rounded-xl p-8 border border-gray-700 relative">
+              <div className="absolute top-4 left-0 right-0 px-8 flex items-center justify-between">
+                <h2 className='font-bold text-[14px]'>AUDIO INTERFACE</h2>
+                <p className='font-semibold text-primary'>{recordingTime.toFixed(2)}</p>
               </div>
               <div className="flex items-center justify-center min-h-[200px]">
                 <button
@@ -138,7 +139,7 @@ export default function CustomerBriefPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
                   <p className="text-white font-medium mb-1">No Assets Attached</p>
-                  <p className="text-gray-400 text-sm">Upload additional assets</p>
+                  <p className="text-gray-400 text-sm">Upload additional image</p>
                 </label>
               </div>
             </div>
@@ -151,9 +152,9 @@ export default function CustomerBriefPage() {
           </section>
 
           {/* Technical Specifications */}
-          <section>
+          {/* <section>
             <h2 className="text-2xl font-semibold text-white mb-4">FULL TECHNICAL SPECIFICATIONS</h2>
-            <div className="bg-dark-light rounded-lg p-6 border border-dark-lighter space-y-4">
+            <div className="bg-slate-950 rounded-lg p-6 border border-dark-lighter space-y-4">
               <div>
                 <label className="text-gray-400 text-sm">BASE DIMENSIONS</label>
                 <Input
@@ -170,15 +171,16 @@ export default function CustomerBriefPage() {
                 <p className="text-white mt-1">20 Units</p>
               </div>
             </div>
-          </section>
+          </section> */}
 
           {/* Actions */}
-          <div className="flex gap-4">
+          <div className="flex w-full gap-4 mt-4">
             <Button
               variant="secondary"
               onClick={() => router.back()}
+              className='flex-1 !border !border-gray-700 '
             >
-              Save & Continue Later
+              Save Draft
             </Button>
             <Button
               variant="primary"
