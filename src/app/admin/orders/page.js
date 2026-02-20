@@ -68,7 +68,7 @@ export default function AdminOrdersPage() {
         {/* Order Detail Modal/Sidebar */}
         {selectedOrder && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-dark-light rounded-lg p-6 border border-dark-lighter max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-gray-900 rounded-lg p-6 border border-dark-lighter max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-semibold text-white">Order Details</h2>
                 <button

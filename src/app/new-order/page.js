@@ -45,8 +45,8 @@ export default function NewOrderPage() {
           <p className="text-gray-400 mb-6">The foundations of a professional corporate identity.</p>
           <div className="grid md:grid-cols-4 gap-6">
             {essentialSolutions.map((solution) => (
-              <div key={solution.id} className="bg-dark-light rounded-lg overflow-hidden border border-dark-lighter hover:border-primary/50 transition-all">
-                <div className="relative h-48 bg-dark">
+              <div key={solution.id} className="bg-slate-900 rounded-lg overflow-hidden border border-dark-lighter hover:border-primary/50 transition-all">
+                <div className="relative h-48 bg-slate-950">
                   {solution.image ? (
                     <img src={solution.image} alt={solution.name} className="w-full h-full object-cover" />
                   ) : (
@@ -70,7 +70,7 @@ export default function NewOrderPage() {
         </div>
 
         {/* Process Steps */}
-        <div className="bg-dark-light rounded-lg p-8 border border-dark-lighter">
+        <div className="bg-slate-900 rounded-lg p-8 border border-dark-lighter">
           <div className="grid md:grid-cols-3 gap-8">
             {[
               { step: 1, title: 'Choose Foundation', desc: 'Select from our library of premium materials and product types.' },

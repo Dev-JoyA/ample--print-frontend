@@ -1,4 +1,4 @@
-const StatusBadge = ({ status, type = 'order' }) => {
+const StatusBadge = ({ status, type = 'order', className = "" }) => {
   const statusConfig = {
     order: {
       PENDING: { label: 'PENDING', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
@@ -33,7 +33,7 @@ const StatusBadge = ({ status, type = 'order' }) => {
 
   return (
     <span
-      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${config.color}`}
+      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${config.color} ${className}`}
     >
       {config.label}
     </span>
