@@ -22,9 +22,9 @@ const Textarea = ({
         value={value}
         onChange={onChange}
         rows={rows}
-        className={`w-full px-4 py-2.5 bg-dark-light border ${
-          error ? 'border-red-500' : 'border-dark-lighter'
-        } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors resize-none`}
+        className={`w-full px-4 py-2.5 bg-slate-900 border ${
+          error ? 'border-red-500' : 'border-gray-700'
+        } rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors resize-none`}
         required={required}
         {...props}
       />
