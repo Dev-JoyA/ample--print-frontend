@@ -40,7 +40,7 @@ export default function InvoiceCreationPage() {
           <p className="text-gray-400">Generate invoices for orders</p>
         </div>
 
-        <div className="bg-dark-light rounded-lg p-6 border border-dark-lighter space-y-6">
+        <div className="bg-slate-950 rounded-lg p-6 border border-dark-lighter space-y-6">
           {/* Order Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -49,7 +49,7 @@ export default function InvoiceCreationPage() {
             <select
               value={selectedOrder}
               onChange={(e) => setSelectedOrder(e.target.value)}
-              className="w-full px-4 py-2.5 bg-dark border border-dark-lighter rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-4 py-2.5 bg-slate-900 border border-dark-lighter rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">Choose an order...</option>
               {orders.map((order) => (
@@ -77,6 +77,7 @@ export default function InvoiceCreationPage() {
                 <div key={index} className="grid grid-cols-12 gap-4">
                   <div className="col-span-5">
                     <Input
+                    className='[&_input]:bg-slate-900 '
                       placeholder="Description"
                       value={item.description}
                       onChange={(e) => {
@@ -88,6 +89,7 @@ export default function InvoiceCreationPage() {
                   </div>
                   <div className="col-span-3">
                     <Input
+                    className='[&_input]:bg-slate-900 '
                       type="number"
                       placeholder="Quantity"
                       value={item.quantity}
@@ -100,6 +102,7 @@ export default function InvoiceCreationPage() {
                   </div>
                   <div className="col-span-3">
                     <Input
+                    className='[&_input]:bg-slate-900 '
                       type="number"
                       placeholder="Unit Price"
                       value={item.unitPrice}
@@ -127,6 +130,7 @@ export default function InvoiceCreationPage() {
           {/* Discount */}
           <div>
             <Input
+            className='[&_input]:bg-slate-900 '
               label="Discount (₦)"
               type="number"
               value={discount}
@@ -137,6 +141,7 @@ export default function InvoiceCreationPage() {
           {/* Deposit */}
           <div>
             <Input
+            className='[&_input]:bg-slate-900 '
               label="Deposit Amount (₦)"
               type="number"
               value={deposit}
@@ -145,7 +150,7 @@ export default function InvoiceCreationPage() {
           </div>
 
           {/* Totals */}
-          <div className="bg-dark rounded-lg p-4 space-y-2">
+          <div className="bg-slate-900 rounded-lg p-4 space-y-2">
             <div className="flex justify-between text-gray-300">
               <span>Total Amount</span>
               <span>₦{calculateTotal().toLocaleString()}</span>
@@ -163,6 +168,7 @@ export default function InvoiceCreationPage() {
           {/* Actions */}
           <div className="flex gap-4">
             <Button
+            className='flex-1 !border border-gray-700'
               variant="secondary"
               onClick={() => {
                 setSelectedOrder('');

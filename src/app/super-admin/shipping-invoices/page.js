@@ -28,7 +28,7 @@ export default function ShippingInvoicePage() {
           <p className="text-gray-400">Create shipping invoices for orders</p>
         </div>
 
-        <div className="bg-dark-light rounded-lg p-6 border border-dark-lighter space-y-6">
+        <div className="bg-slate-950 rounded-lg p-6 border border-dark-lighter space-y-6">
           {/* Order Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -43,7 +43,7 @@ export default function ShippingInvoicePage() {
                   setShippingAddress(order.shippingAddress);
                 }
               }}
-              className="w-full px-4 py-2.5 bg-dark border border-dark-lighter rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-4 py-2.5 bg-slate-800 border-dark-lighter rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">Choose an order...</option>
               {orders.map((order) => (
@@ -57,6 +57,7 @@ export default function ShippingInvoicePage() {
           {/* Shipping Address */}
           <div>
             <Input
+                className='[&_input]:bg-slate-800 '
               label="Shipping Address"
               value={shippingAddress}
               onChange={(e) => setShippingAddress(e.target.value)}
@@ -67,6 +68,7 @@ export default function ShippingInvoicePage() {
           {/* Shipping Cost */}
           <div>
             <Input
+            className='[&_input]:bg-slate-800 '
               label="Shipping Cost (₦)"
               type="number"
               value={shippingCost}
@@ -78,6 +80,7 @@ export default function ShippingInvoicePage() {
           {/* Actions */}
           <div className="flex gap-4">
             <Button
+            className='flex-1 !border border-gray-700'
               variant="secondary"
               onClick={() => {
                 setSelectedOrder('');
