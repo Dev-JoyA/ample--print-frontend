@@ -25,15 +25,17 @@ export default function ShippingPage() {
 
   return (
     <DashboardLayout userRole="customer">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-4xl font-bold text-white mb-8">Shipping Selection</h1>
-
+      <div className="max-w-4xl mx-auto">
+        <div className='flex items-center gap-3 mb-6'>
+            <img src="/images/logo/shipping.png" alt="shipping logo" className="w-10 h-10 object-contain" />
+            <h1 className="text-4xl font-semibold text-white">Logistics</h1>
+        </div>
         <div className="space-y-6">
           {/* Shipping Options */}
-          <div className="bg-dark-light rounded-lg p-6 border border-dark-lighter">
+          <div className="p-6">
             <h2 className="text-xl font-semibold text-white mb-4">Select Shipping Option</h2>
             
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Pickup Option */}
               <div
                 onClick={() => setShippingOption('pickup')}
@@ -43,15 +45,13 @@ export default function ShippingPage() {
                     : 'border-dark-lighter hover:border-primary/50'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
-                      <span className="text-2xl">🏢</span>
-                    </div>
-                    <div>
-                      <h3 className="text-white font-semibold">Pickup</h3>
-                      <p className="text-gray-400 text-sm">Collect from our office</p>
-                    </div>
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-2">
+                    <span className="text-2xl">🏢</span>
+                  </div>
+                  <div className="mb-2">
+                    <h3 className="text-white font-semibold">Pickup</h3>
+                    <p className="text-gray-400 text-sm">Collect from our office</p>
                   </div>
                   <input
                     type="radio"
@@ -59,10 +59,10 @@ export default function ShippingPage() {
                     onChange={() => setShippingOption('pickup')}
                     className="w-5 h-5 text-primary"
                   />
+                  {shippingOption === 'pickup' && (
+                    <p className="mt-2 text-sm text-gray-400">No shipping cost</p>
+                  )}
                 </div>
-                {shippingOption === 'pickup' && (
-                  <p className="mt-2 text-sm text-gray-400">No shipping cost</p>
-                )}
               </div>
 
               {/* Delivery to Own Address */}
@@ -74,15 +74,13 @@ export default function ShippingPage() {
                     : 'border-dark-lighter hover:border-primary/50'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
-                      <span className="text-2xl">🏠</span>
-                    </div>
-                    <div>
-                      <h3 className="text-white font-semibold">Delivery to Own Address</h3>
-                      <p className="text-gray-400 text-sm">Use saved address</p>
-                    </div>
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-2">
+                    <span className="text-2xl">🏠</span>
+                  </div>
+                  <div className="mb-2">
+                    <h3 className="text-white font-semibold">Own Address</h3>
+                    <p className="text-gray-400 text-sm">Use saved address</p>
                   </div>
                   <input
                     type="radio"
@@ -102,15 +100,13 @@ export default function ShippingPage() {
                     : 'border-dark-lighter hover:border-primary/50'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
-                      <span className="text-2xl">📍</span>
-                    </div>
-                    <div>
-                      <h3 className="text-white font-semibold">Delivery to Another Address</h3>
-                      <p className="text-gray-400 text-sm">Enter new delivery address</p>
-                    </div>
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-2">
+                    <span className="text-2xl">📍</span>
+                  </div>
+                  <div className="mb-2">
+                    <h3 className="text-white font-semibold">New Address</h3>
+                    <p className="text-gray-400 text-sm">Enter new delivery address</p>
                   </div>
                   <input
                     type="radio"
@@ -125,7 +121,7 @@ export default function ShippingPage() {
 
           {/* Shipping Form */}
           {(shippingOption === 'other' || shippingOption === 'own') && (
-            <div className="bg-dark-light rounded-lg p-6 border border-dark-lighter space-y-4">
+            <div className="[&_input]:bg-slate-950 bg-slate-900 rounded-lg p-6 border border-dark-lighter space-y-4">
               <h3 className="text-white font-semibold mb-4">Shipping Details</h3>
               <Input
                 label="Phone Number"
@@ -169,9 +165,9 @@ export default function ShippingPage() {
 
           {/* Shipping Cost Estimate */}
           {shippingOption !== 'pickup' && (
-            <div className="bg-dark-light rounded-lg p-6 border border-dark-lighter">
+            <div className="bg-slate-950 rounded-lg p-6 border border-dark-lighter">
               <div className="flex justify-between items-center">
-                <span className="text-gray-400">Estimated Shipping Cost</span>
+                <span className="text-gray-50">Estimated Shipping Cost</span>
                 <span className="text-xl font-bold text-white">₦2,500.00</span>
               </div>
               <p className="text-sm text-gray-400 mt-2">Final shipping cost will be calculated and added to invoice</p>
@@ -183,6 +179,7 @@ export default function ShippingPage() {
             <Button
               variant="secondary"
               onClick={() => router.back()}
+              className="flex-1 !border border-gray-800"
             >
               Back
             </Button>
