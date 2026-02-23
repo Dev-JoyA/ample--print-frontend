@@ -37,10 +37,11 @@ export default function DiscountManagementPage() {
         </div>
 
         {/* Create Discount */}
-        <div className="bg-dark-light rounded-lg p-6 border border-dark-lighter mb-6">
+        <div className="bg-slate-950 rounded-lg p-6 border border-dark-lighter mb-6">
           <h2 className="text-xl font-semibold text-white mb-4">Create New Discount</h2>
           <div className="space-y-4">
             <Input
+            className='[&_input]:bg-slate-800 '
               label="Discount Code"
               value={newDiscount.code}
               onChange={(e) => setNewDiscount({ ...newDiscount, code: e.target.value })}
@@ -53,7 +54,7 @@ export default function DiscountManagementPage() {
               <select
                 value={newDiscount.type}
                 onChange={(e) => setNewDiscount({ ...newDiscount, type: e.target.value })}
-                className="w-full px-4 py-2.5 bg-dark border border-dark-lighter rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-4 py-2.5 bg-slate-800 border border-dark-lighter rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="percentage">Percentage</option>
                 <option value="amount">Fixed Amount</option>
@@ -61,6 +62,7 @@ export default function DiscountManagementPage() {
             </div>
             {newDiscount.type === 'percentage' ? (
               <Input
+              className='[&_input]:bg-slate-800 '
                 label="Percentage (%)"
                 type="number"
                 value={newDiscount.percentage}
@@ -69,6 +71,7 @@ export default function DiscountManagementPage() {
               />
             ) : (
               <Input
+              className='[&_input]:bg-slate-800 '
                 label="Amount (₦)"
                 type="number"
                 value={newDiscount.amount}
@@ -88,7 +91,7 @@ export default function DiscountManagementPage() {
         </div>
 
         {/* Existing Discounts */}
-        <div className="bg-dark-light rounded-lg p-6 border border-dark-lighter">
+        <div className="bg-slate-950 rounded-lg p-6 border border-dark-lighter">
           <h2 className="text-xl font-semibold text-white mb-4">Existing Discounts</h2>
           <div className="space-y-4">
             {discounts.map((discount) => (

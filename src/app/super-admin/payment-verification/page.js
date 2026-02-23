@@ -43,7 +43,7 @@ export default function PaymentVerificationPage() {
 
         <div className="space-y-6">
           {payments.map((payment) => (
-            <div key={payment.id} className="bg-dark-light rounded-lg p-6 border border-dark-lighter">
+            <div key={payment.id} className="bg-slate-950 rounded-lg p-6 border border-dark-lighter">
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h3 className="text-xl font-semibold text-white mb-1">Order {payment.orderNumber}</h3>
