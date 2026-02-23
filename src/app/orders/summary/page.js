@@ -199,43 +199,9 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Item 4 - Purchase Quantity */}
-            <div className="bg-slate-900 rounded-lg p-6 border border-dark-lighter">
+            <div className="bg-slate-900 rounded-lg p-6 border border-gray-800">
               <h2 className="text-xl font-bold text-white mb-4">Purchase Quantity</h2>
-              <div>
-                <h3 className="text-white font-semibold mb-2">
-                  PROJECT VOLUME
-                  <span className="text-primary ml-2 text-sm">
-                    Starting from {product.moq} units
-                  </span>
-                </h3>
-
-                <div className="flex items-center gap-2">
-                  {/* Decrement Button */}
-                  <button
-                    onClick={() => setQuantity((prev) => Math.max(product.moq, prev - 1))}
-                    className="px-3 py-2 bg-slate-800 text-gray-400 rounded-lg font-medium hover:text-white transition-colors"
-                  >
-                    &#x25BC;
-                  </button>
-
-                  {/* Display Quantity */}
-                  <span className="px-4 py-2 bg-slate-800 text-white font-medium rounded-lg w-16 text-center">
-                    {quantity}
-                  </span>
-
-                  {/* Increment Button */}
-                  <button
-                    onClick={() => setQuantity((prev) => prev + 1)}
-                    className="px-3 py-2 bg-slate-800 text-gray-400 rounded-lg font-medium hover:text-white transition-colors"
-                  >
-                    &#x25B2;
-                  </button>
-                </div>
-
-                <p className="text-sm text-gray-400 mt-3">
-                  Price per unit: ₦{product.price.toLocaleString()}
-                </p>
-              </div>
+              <p className="text-gray-400">Kindly confirm when goods have been recieved</p>
             </div>
           </div>
         </div>
