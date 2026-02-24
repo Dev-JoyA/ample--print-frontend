@@ -1,115 +1,65 @@
-"use client"
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Header from "../../ui/components/Header";
+// app/reset-password/page.tsx
 import Link from "next/link";
+import Button from '@/components/ui/Button';
 
-const Page = () => {
-  const [formData, setFormData] = useState({
-    password: "",
-    confirmPassword: ""
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const router = useRouter();
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
-
-    try {
-      const response = await fetch("http://localhost:4001/auth/reset-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(formData)
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        setError(data.message || "Reset password failed");
-        setIsLoading(false);
-        return;
-      }
-      setFormData({
-        password: "",
-        confirmPassword: ""
-      });
-      setError(data.message || "Reset password successful");
-      setTimeout(() => {
-        router.push("/sign-in");
-      }, 1500);
-    } catch (error) {
-      console.error("Cannot fetch:", error);
-      setError(error.message || "Network error");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 mt-[-100px]">
-        <Header isLoading={isLoading} />
-        {/* Content */}
-        <div className="w-full max-w-lg rounded-lg p-6 sm:p-8 bg-white/95 backdrop-blur-sm shadow-lg">
-            <div className="flex flex-col items-center">
-            <form onSubmit={handleSubmit} className="w-full max-w-md flex flex-col gap-4">
-                {error && (
-                <div className={`text-sm text-center ${error.includes("successful") ? "text-green-500" : "text-red-500"}`}>
-                    {error}
+const ResetPasswordPage = () => {
+    return (
+        <div className="min-h-screen bg-slate-950 text-[#FFFFFF] pl-[4rem] pr-[4rem] pb-[3rem] flex flex-col">
+            <div className="max-w-md w-full mx-auto py-8 flex flex-col gap-8">
+                <div>
+                    <img className="" src="/images/logo/logo.png" alt="Logo" />
                 </div>
-                )}
-                <div className="flex flex-col gap-1">
-                <label className="font-carlito text-[15px] font-[600] text-[#1E1E1E]">
-                    Password
-                </label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    placeholder="Enter new password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                </div>
-                <div className="flex flex-col gap-1">
-                <label className="font-carlito text-[15px] font-[600] text-[#1E1E1E]">
-                    Confirm Password
-                </label>
-                <input
-                    type="password"
-                    id="confirm-password"
-                    name="confirmPassword"
-                    placeholder="Confirm new password"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    required
-                    className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                </div>
-                <button
-                type="submit"
-                disabled={isLoading}
-                className="px-6 py-2 bg-[#000000] text-white font-carlito text-[18px] font-[600] rounded-md hover:bg-blue-700 transition disabled:opacity-50"
-                >
-                {isLoading ? "Setting..." : "Save Password"}
-                </button>
-            </form>
+                <div>
+                    <div className="mb-8">
+                        <h1 className="font-inter font-[700] text-[24px] leading-[25px]">Set new password</h1>
+                        <p className="text-gray-300 text-[12px] pt-2">
+                            Your new password must be different from previously used passwords.
+                        </p>
+                    </div>
+                    <div>
+                        <div className="flex flex-col gap-4">
+                            <div className="flex flex-col">
+                                <label className="font-bold text-[12px]" htmlFor="new-password">New Password</label>
+                                <input 
+                                    className="bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-gray-600" 
+                                    type="password" 
+                                    id="new-password" 
+                                    name="new-password" 
+                                    placeholder="Enter new password" 
+                                    required 
+                                />
+                                <p className="text-gray-500 text-[10px] mt-1">
+                                    Must be at least 8 characters
+                                </p>
+                            </div>
+                            <div className="flex flex-col">
+                                <label className="font-bold text-[12px]" htmlFor="confirm-password">Confirm Password</label>
+                                <input 
+                                    className="bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-gray-600" 
+                                    type="password" 
+                                    id="confirm-password" 
+                                    name="confirm-password" 
+                                    placeholder="Confirm new password" 
+                                    required 
+                                />
+                            </div>
+                        </div>
+                       
+                        <div className="flex justify-center mt-6 w-full">
+                            <Button variant="primary" size="md" className="w-full !justify-center">
+                                Reset Password
+                            </Button>
+                        </div>
+                    </div>
+                    <p className="font-carlito text-sm sm:text-xs flex justify-center text-gray-600 mt-6">
+                        <Link href="/sign-in" className="text-[#FF676A] hover:underline flex items-center gap-1">
+                            ← Back to Sign in
+                        </Link>
+                    </p>
+               </div>
             </div>
         </div>
-    </div>
-  );
-};
+    );
+}
 
-export default Page;
+export default ResetPasswordPage;
