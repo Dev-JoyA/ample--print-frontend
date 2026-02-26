@@ -1,114 +1,108 @@
 # Backend Integration Guide
 
-This guide provides instructions for integrating the frontend with your backend API.
+This guide describes how the frontend is integrated with the AMPLE Print Hub backend API.
 
-## API Base Configuration
+**How to test:** See **[INTEGRATION_TESTING.md](./INTEGRATION_TESTING.md)** for a step-by-step guide to testing all integration flows (auth, collections, products, orders, design, feedback, customer briefs) in order.
 
-Create an API configuration file:
+## Implemented Integration (Current)
 
-```javascript
-// src/lib/api.js
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-
-export const api = {
-  get: async (endpoint) => {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getToken()}`,
-      },
-    });
-    return response.json();
-  },
-  
-  post: async (endpoint, data) => {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getToken()}`,
-      },
-      body: JSON.stringify(data),
-    });
-    return response.json();
-  },
-  
-  put: async (endpoint, data) => {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getToken()}`,
-      },
-      body: JSON.stringify(data),
-    });
-    return response.json();
-  },
-  
-  delete: async (endpoint) => {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${getToken()}`,
-      },
-    });
-    return response.json();
-  },
-  
-  upload: async (endpoint, formData) => {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${getToken()}`,
-      },
-      body: formData,
-    });
-    return response.json();
-  },
-};
-
-function getToken() {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('authToken');
-  }
-  return null;
-}
-```
+- **API base:** `src/lib/api.js` – reusable client (`get`, `post`, `put`, `patch`, `delete`, `upload`) using `NEXT_PUBLIC_API_URL` (must include `/api/v1`).
+- **Constants:** `src/lib/constants.js` – `API_PATHS`, `COOKIE_NAMES`, `API_DEFAULTS` aligned with backend routes.
+- **Services:** `src/services/` – domain modules that use the API client:
+  - `authService.js` – sign-in, sign-up, admin/superadmin flows, forgot/effect-forgot-password, refresh token, logout.
+  - `userService.js` – get all, get by id, address, update profile, delete, role, activeness.
+  - `collectionService.js` – list, get by id, all products, create/update/delete collection, create product.
+  - `productService.js` – list, get by id, filter, search by name, update, delete.
+  - `orderService.js` – create, my orders, get/update/delete, status, superadmin create, list, filter, needing-invoice, search.
+  - `designService.js` – upload, update, delete, approve, get by id/user/order/product, all, filter.
+  - `attachmentService.js` – get download URL for attachments.
+  - `feedbackService.js` – create, my feedback, pending, get by id, respond, update status, by order, delete.
+  - `customerBriefService.js` – submit/update brief, my briefs, admin respond, admin briefs, by order/product, by id, status, filter, delete.
+- **Auth:** Token and refresh token are stored in **cookies** (`token`, `refreshToken`). `src/app/lib/auth.js` provides `protectRoute`, `useAuthCheck`, `refreshToken`, `setAuthCookies`. Middleware uses `NEXT_PUBLIC_API_URL` for token verification.
 
 ## Environment Variables
 
-Create a `.env.local` file:
+Create `.env.local` (see `.env.example`):
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
+# Backend base URL including /api/v1 (match backend PORT, e.g. 4001 or 8000)
+NEXT_PUBLIC_API_URL=http://localhost:4001/api/v1
 NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=your_paystack_public_key
 ```
 
-## API Endpoints Integration
+## API Base and Client
 
-### Authentication
+The client in `src/lib/api.js` reads the token from cookies (client-side) and sends it as `Authorization: Bearer <token>`. All service methods use this client. For server-side (e.g. middleware), the app uses `NEXT_PUBLIC_API_URL` and passes the token from request cookies.
+
+## Backend Path Reference (for custom usage)
+
+Backend base is `/api/v1`. Main paths:
+
+- **Auth:** `/auth/sign-in`, `/auth/sign-up`, `/auth/refresh-token`, `/auth/verify-token`, `/auth/forgot-password`, `/auth/effect-forgot-password`, `/auth/logout`, `/auth/admin-sign-up`, `/auth/superadmin-sign-up`, `/auth/deactivate-admin`, `/auth/reactivate-admin`, `/auth/reset-password/:userId`, etc.
+- **Users:** `/users`, `/users/:userId`, `/users/:userId/address`, `/users/:userId/profile`, PATCH `/users/:userId/role`, PATCH `/users/:userId/activeness`.
+- **Collections:** `/collections`, `/collections/:id`, `/collections/:collectionId/all-products`, POST `/collections/:collectionId/products`.
+- **Products:** `/products`, `/products/:id`, `/products/filter`, `/products/search/by-name`.
+- **Orders:** `/orders/create`, `/orders/my-orders`, `/orders/:id`, PATCH `/orders/:id/status`, `/orders/filter`, `/orders/needing-invoice`, `/orders/search/:orderNumber`, POST `/orders/super-admin/create/:customerId`.
+- **Design:** `/design/orders/:productId`, `/design/update/:designId`, `/design/delete/:designId`, PUT `/design/:designId/approve`, `/design/:designId`, `/design/users/:userId`, `/design/orders/:orderId`, `/design/products/:productId`, `/design/all`, `/design/filter`.
+- **Attachments:** `/attachments/download/:filename`.
+- **Feedback:** `/feedback`, `/feedback/user`, `/feedback/pending`, `/feedback/:feedbackId`, `/feedback/:feedbackId/respond`, PATCH `/feedback/:feedbackId/status`, `/feedback/order/:orderId`.
+- **Customer briefs:** `/customer-briefs/customer/orders/:orderId/products/:productId/brief`, `/customer-briefs/customer/briefs`, `/customer-briefs/admin/orders/:orderId/products/:productId/respond`, `/customer-briefs/admin/briefs`, `/customer-briefs/briefs/orders/:orderId/products/:productId`, `/customer-briefs/briefs/:briefId`, `/customer-briefs/briefs/status/:orderId/:productId`, `/customer-briefs/briefs/filter`.
+
+Full API docs: run the backend and open `/api-docs` (Swagger).
+
+## Example: Using Services in Pages
+
+### Authentication (sign-in)
 
 ```javascript
-// src/lib/auth.js
-import { api } from './api';
+import { authService } from '@/services/authService';
+import { setAuthCookies } from '@/app/lib/auth';
 
-export const auth = {
-  login: async (email, password) => {
-    return api.post('/auth/login', { email, password });
-  },
-  
-  register: async (userData) => {
-    return api.post('/auth/register', userData);
-  },
-  
-  logout: async () => {
-    return api.post('/auth/logout');
-  },
-  
-  getCurrentUser: async () => {
-    return api.get('/auth/me');
-  },
-};
+const result = await authService.signIn(email, password);
+setAuthCookies(result.token ?? result.accessToken, result.refreshToken);
+router.push('/dashboard');
+```
+
+### Collections and products
+
+```javascript
+import { collectionService, productService } from '@/services';
+
+const { data: collections } = await collectionService.getList({ page: 1, limit: 10 });
+const product = await productService.getById(productId);
+```
+
+### Orders
+
+```javascript
+import { orderService } from '@/services';
+
+const myOrders = await orderService.getMyOrders();
+await orderService.create({ ...orderData });
+```
+
+### Design upload (multipart)
+
+```javascript
+import { designService } from '@/services';
+
+const formData = new FormData();
+formData.append('file', file);
+await designService.upload(productId, formData);
+```
+
+## Legacy / Reference Section (pre-implementation)
+
+The following was the original suggested pattern; the app now uses the implemented `src/lib/api.js`, `src/lib/constants.js`, and `src/services/*` above.
+
+### Authentication (reference – use authService instead)
+
+```javascript
+// Use authService from @/services/authService
+// login -> authService.signIn(email, password)
+// register -> authService.signUp(userData)
+// logout -> authService.logout(refreshToken) and clear cookies
+// Token is in cookies; verify via /auth/verify-token (see app/lib/auth.js)
 ```
 
 ### Collections

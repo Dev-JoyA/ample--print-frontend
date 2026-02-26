@@ -1,8 +1,10 @@
-"use client"
+"use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import Header from "../../../ui/components/Header"
+import Header from "../../../ui/components/Header";
+import { authService } from "@/services/authService";
+import { setAuthCookies } from "@/app/lib/auth";
 
 const Page = () => {
   const router = useRouter();
@@ -31,35 +33,24 @@ const Page = () => {
     setError("");
 
     try {
-      const response = await fetch("https://ample-printhub-backend-latest.onrender.com/auth/sign-up", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(formData)
-      });
-      const data = await response.json();
-      
-       if (!response.ok) {
-        setError(data.message || "Registration failed");
-        return;
-      }
+      const data = await authService.signUp(formData);
       setFormData({
-          firstName: "",
-          lastName: "",
-          phoneNumber: "",
-          userName: "",
-          email: "",
-          password: "",
+        firstName: "",
+        lastName: "",
+        phoneNumber: "",
+        userName: "",
+        email: "",
+        password: "",
       });
-      setError(data.message || "Registration successful");
-      setTimeout(() => {
-          router.push("/sign-in");
-      }, 2000);
-
-    } catch (error) {
-      console.error("Registration error:", error);
-      setError(error.message || "Something went wrong");
+      if (data.token ?? data.accessToken) {
+        setAuthCookies(data.token ?? data.accessToken, data.refreshToken);
+        router.push("/dashboard");
+      } else {
+        setError(data.message || "Registration successful");
+        setTimeout(() => router.push("/auth/sign-in"), 2000);
+      }
+    } catch (err) {
+      setError(err?.data?.error ?? err?.message ?? "Registration failed");
     } finally {
       setIsLoading(false);
     }

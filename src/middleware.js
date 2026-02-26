@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
+import { COOKIE_NAMES } from "@/lib/constants";
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:4001/api/v1";
+const VERIFY_PATH = "/auth/verify-token";
 
 export async function middleware(request) {
-  const token = request.cookies.get("token")?.value;
+  const token = request.cookies.get(COOKIE_NAMES.TOKEN)?.value;
   const protectedRoutes = [
-    "/dashboards/super-admin-dashboards",
+    "/dashboards/super-admin-dashboard",
     "/dashboards/admin-dashboard",
     "/profile",
     "/settings",
@@ -20,15 +25,12 @@ export async function middleware(request) {
     }
 
     try {
-      const verifyResponse = await fetch(
-        `http://localhost:4001/auth/verify-token`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const verifyResponse = await fetch(`${API_BASE_URL}${VERIFY_PATH}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       if (!verifyResponse.ok) {
         throw new Error("Invalid token");
@@ -36,20 +38,19 @@ export async function middleware(request) {
 
       const { user } = await verifyResponse.json();
 
-      // Optional: Restrict super-admin routes to superadmin role
       if (
-        request.nextUrl.pathname.startsWith("/dashboards/super-admin-dashboards") &&
-        user.role !== "superadmin"
+        request.nextUrl.pathname.startsWith("/dashboards/super-admin-dashboard") &&
+        user?.role?.toLowerCase() !== "superadmin"
       ) {
         return NextResponse.redirect(new URL("/dashboards", request.url));
       }
     } catch (error) {
-      console.error("Middleware token verification failed:", error.message);
+      console.error("Middleware token verification failed:", error?.message);
       const response = NextResponse.redirect(
         new URL("/auth/sign-in", request.url)
       );
-      response.cookies.delete("token");
-      response.cookies.delete("refreshToken");
+      response.cookies.delete(COOKIE_NAMES.TOKEN);
+      response.cookies.delete(COOKIE_NAMES.REFRESH_TOKEN);
       return response;
     }
   }
