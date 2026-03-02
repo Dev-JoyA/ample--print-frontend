@@ -1,16 +1,17 @@
 /**
  * API path constants – aligned with backend routes (base: /api/v1).
  * Use with API_BASE_URL from env so full URL = API_BASE_URL + path.
+ * 
+ * IMPORTANT: Admin and SuperAdmin signup endpoints are NOT exposed here
+ * because they should only be accessible through protected routes.
+ * SuperAdmin accounts should be created via database seeding only.
  */
 export const API_PATHS = {
-  // Auth
+  // Auth - Public endpoints (accessible to everyone)
   AUTH: {
+    // Customer endpoints (public)
     SIGN_UP: "/auth/sign-up",
     SIGN_IN: "/auth/sign-in",
-    ADMIN_SIGN_UP: "/auth/admin-sign-up",
-    SUPERADMIN_SIGN_UP: "/auth/superadmin-sign-up",
-    DEACTIVATE_ADMIN: "/auth/deactivate-admin",
-    REACTIVATE_ADMIN: "/auth/reactivate-admin",
     FORGOT_PASSWORD: "/auth/forgot-password",
     EFFECT_FORGOT_PASSWORD: "/auth/effect-forgot-password",
     RESET_PASSWORD: (userId) => `/auth/reset-password/${userId}`,
@@ -22,7 +23,15 @@ export const API_PATHS = {
     GOOGLE: "/auth/google",
     GOOGLE_SUCCESS: "/auth/google/success",
     GOOGLE_FAILURE: "/auth/google/failure",
+    
+    // Admin management endpoints (protected - only accessible by super admin)
+    // These are kept but commented to show they exist but shouldn't be used directly
+    // ADMIN_SIGN_UP: "/auth/admin-sign-up", // Only use through adminService
+    // SUPERADMIN_SIGN_UP: "/auth/superadmin-sign-up", // Should NEVER be exposed - use database seeding only
+    DEACTIVATE_ADMIN: "/auth/deactivate-admin",
+    REACTIVATE_ADMIN: "/auth/reactivate-admin",
   },
+  
   // Users
   USERS: {
     LIST: "/users",
@@ -32,13 +41,15 @@ export const API_PATHS = {
     ROLE: (userId) => `/users/${userId}/role`,
     ACTIVENESS: (userId) => `/users/${userId}/activeness`,
   },
-  // Collections & products (productRoute mounted at /api/v1)
+  
+  // Collections & products
   COLLECTIONS: {
     LIST: "/collections",
     BY_ID: (id) => `/collections/${id}`,
     ALL_PRODUCTS: (collectionId) => `/collections/${collectionId}/all-products`,
     CREATE_PRODUCT: (collectionId) => `/collections/${collectionId}/products`,
   },
+  
   PRODUCTS: {
     LIST: "/products",
     BY_ID: (id) => `/products/${id}`,
@@ -47,10 +58,12 @@ export const API_PATHS = {
     UPDATE: (id) => `/products/${id}`,
     DELETE: (id) => `/products/${id}`,
   },
+  
   // Attachments
   ATTACHMENTS: {
     DOWNLOAD: (filename) => `/attachments/download/${filename}`,
   },
+  
   // Design
   DESIGN: {
     UPLOAD: (productId) => `/design/orders/${productId}`,
@@ -64,6 +77,7 @@ export const API_PATHS = {
     ALL: "/design/all",
     FILTER: "/design/filter",
   },
+  
   // Orders
   ORDERS: {
     CREATE: "/orders/create",
@@ -76,7 +90,8 @@ export const API_PATHS = {
     NEEDING_INVOICE: "/orders/needing-invoice",
     SEARCH: (orderNumber) => `/orders/search/${orderNumber}`,
   },
-  // Feedback (mounted at /api/v1)
+  
+  // Feedback
   FEEDBACK: {
     CREATE: "/feedback",
     USER_LIST: "/feedback/user",
@@ -86,7 +101,8 @@ export const API_PATHS = {
     STATUS: (feedbackId) => `/feedback/${feedbackId}/status`,
     BY_ORDER: (orderId) => `/feedback/order/${orderId}`,
   },
-  // Customer briefs (mounted at /api/v1/customer-briefs)
+  
+  // Customer briefs
   CUSTOMER_BRIEFS: {
     SUBMIT: (orderId, productId) =>
       `/customer-briefs/customer/orders/${orderId}/products/${productId}/brief`,

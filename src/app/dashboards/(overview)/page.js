@@ -1,148 +1,127 @@
-'use client'
+'use client';
 
-import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
-// import { FaUser, FaShoppingCart } from "react-icons/fa";
+import { useState } from 'react';
+import Link from 'next/link';
+import DashboardLayout from '@/components/layouts/DashboardLayout';
+import SummaryCard from '@/components/cards/SummaryCard';
+import OrderCard from '@/components/cards/OrderCard';
+import InvoiceCard from '@/components/cards/InvoiceCard';
+import Button from '@/components/ui/Button';
 
-const collections = [
-  { id: 1, name: "Bags", image: "/images/collections/bags.jpg" },
-  { id: 2, name: "Nylons", image: "/images/collections/nylons.jpg" },
-  { id: 3, name: "Branded Gift Items", image: "/images/collections/gifts.jpg" },
-  { id: 4, name: "Stationery", image: "/images/collections/stationery.jpg" },
-  { id: 5, name: "Apparel", image: "/images/collections/apparel.jpg" },
-];
+export default function CustomerDashboard() {
+  const [activeOrders] = useState([
+    {
+      id: 1,
+      orderNumber: 'ORD-7291',
+      productName: 'Premium A5 Marketing Flyers',
+      orderedDate: '2025-12-12',
+      totalAmount: 4000.00,
+      status: 'DESIGNING',
+    },
+    {
+      id: 2,
+      orderNumber: 'ORD-8822',
+      productName: 'Photo Books',
+      orderedDate: '2025-12-12',
+      totalAmount: 19200.00,
+      status: 'APPROVED',
+    },
+  ]);
 
-const Dashboard = () => {
-  const [activeCollection, setActiveCollection] = useState(null);
-  const [cart, setCart] = useState([]);
-  const carouselRef = useRef(null);
-  const [isPaused, setIsPaused] = useState(false);
-
-  // Auto-scroll carousel
-  useEffect(() => {
-    if (!isPaused && carouselRef.current) {
-      const interval = setInterval(() => {
-        if (carouselRef.current) {
-          carouselRef.current.scrollBy({ left: 200, behavior: "smooth" });
-          // Reset scroll position if at the end
-          if (
-            carouselRef.current.scrollLeft + carouselRef.current.clientWidth >=
-            carouselRef.current.scrollWidth
-          ) {
-            carouselRef.current.scrollTo({ left: 0, behavior: "smooth" });
-          }
-        }
-      }, 3000); // Adjust scroll speed here
-
-      return () => clearInterval(interval);
-    }
-  }, [isPaused]);
-
-  const handleCollectionClick = (collection) => {
-    setIsPaused(true); // Pause the carousel
-    setActiveCollection(collection);
-  };
-
-  const handleAddToCart = (item) => {
-    setCart([...cart, item]);
-    alert(`${item.name} added to cart!`);
-  };
-
-  const handleGoBack = () => {
-    setActiveCollection(null);
-    setIsPaused(false); // Resume the carousel
-  };
+  const [unpaidInvoices] = useState([
+    {
+      id: 1,
+      invoiceNumber: 'INV-1022',
+      balance: 4000.00,
+      status: 'SENT',
+      dueSoon: true,
+    },
+    {
+      id: 2,
+      invoiceNumber: 'INV-1023',
+      balance: 60000.00,
+      status: 'SENT',
+      dueSoon: true,
+    },
+  ]);
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      {/* Header */}
-      <header className="flex justify-between items-center mb-8">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-3xl font-bold text-blue-900">AMPLE PRINT HUB</h1>
-          <div className="bg-yellow-200 p-2 rounded-lg">
-            <p className="text-sm text-gray-700">🎉 New Promotion: 20% off on all bags!</p>
+    <DashboardLayout userRole="customer">
+      <div className="max-w-7xl mx-auto  mt-[40px] space-y-6">
+        {/* Welcome Section */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-semibold text-white mb-2">Welcome back, James</h1>
+            <p className="text-gray-400 text-md">You have 2 designs awaiting your approval today.</p>
+          </div>
+          <Link href="/new-order">
+            <Button variant="primary" size="md" icon="→" iconPosition="right">
+              Start a New Print Order
+            </Button>
+          </Link>
+        </div>
+
+        {/* Summary Cards */}
+        <div className="grid md:grid-cols-4 gap-6">
+          <SummaryCard
+            title="Active Orders"
+            value="04"
+            icon="📦"
+            color="blue"
+          />
+          <SummaryCard
+            title="Pending Invoices"
+            value="₦29,025"
+            icon="📄"
+            color="red"
+          />
+          <SummaryCard
+            title="Needs Approval"
+            value="02"
+            icon="✓"
+            color="yellow"
+          />
+          <SummaryCard
+            title="Completed"
+            value="148"
+            icon="✅"
+            color="green"
+          />
+        </div>
+
+        {/* Active Orders & Unpaid Invoices */}
+        <div className="grid md:grid-cols-[2fr_1fr] gap-2">
+          {/* Active Orders */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold mt-5 text-white">Active Orders</h2>
+              <Link href="/order-history" className="text-primary hover:text-primary-light text-sm">
+                View All →
+              </Link>
+            </div>
+            <div className="space-y-4">
+              {activeOrders.map((order) => (
+                <OrderCard key={order.id} order={order} />
+              ))}
+            </div>
+          </div>
+
+          {/* Unpaid Invoices */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold mt-3 text-white">Unpaid Invoices</h2>
+              <Link href="/invoices" className="text-primary hover:text-primary-light text-sm">
+                View All →
+              </Link>
+            </div>
+            <div className="space-y-4">
+              {unpaidInvoices.map((invoice) => (
+                <InvoiceCard key={invoice.id} invoice={invoice} />
+              ))}
+            </div>
           </div>
         </div>
-        {/* <div className="flex space-x-4">
-          <FaUser className="text-2xl text-gray-700 cursor-pointer" />
-          <div className="relative">
-            <FaShoppingCart className="text-2xl text-gray-700 cursor-pointer" />
-            {cart.length > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-2">
-                {cart.length}
-              </span>
-            )}
-          </div>
-        </div> */}
-      </header>
-
-      {/* Main Content */}
-      <main>
-        {activeCollection ? (
-          <div className="bg-white p-6 rounded-lg shadow-lg">
-            <button
-              onClick={handleGoBack}
-              className="mb-4 text-blue-500 hover:underline"
-            >
-              &larr; Back to Collections
-            </button>
-            <h2 className="text-2xl font-bold mb-4">{activeCollection.name}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3].map((item) => (
-                <div key={item} className="bg-gray-50 p-4 rounded-lg shadow-sm">
-                  <Image
-                    src={activeCollection.image}
-                    alt={activeCollection.name}
-                    width={300}
-                    height={200}
-                    className="rounded-lg"
-                  />
-                  <p className="mt-2 text-lg font-semibold">Item {item}</p>
-                  <button
-                    onClick={() =>
-                      handleAddToCart({ name: `Item ${item} - ${activeCollection.name}` })
-                    }
-                    className="mt-2 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
-                  >
-                    Add to Cart
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div>
-            <h2 className="text-2xl font-bold mb-6">Our Collections</h2>
-            <div
-              ref={carouselRef}
-              className="flex overflow-x-auto space-x-4 pb-4 scrollbar-hide"
-              onMouseEnter={() => setIsPaused(true)} // Pause on hover
-              onMouseLeave={() => setIsPaused(false)} // Resume on mouse leave
-            >
-              {collections.map((collection) => (
-                <div
-                  key={collection.id}
-                  onClick={() => handleCollectionClick(collection)}
-                  className="flex-shrink-0 w-64 bg-white p-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
-                >
-                  <Image
-                    src={collection.image}
-                    alt={collection.name}
-                    width={200}
-                    height={150}
-                    className="rounded-lg"
-                  />
-                  <p className="mt-2 text-lg font-semibold text-center">
-                    {collection.name}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
-};
-
-export default Dashboard;
+}
