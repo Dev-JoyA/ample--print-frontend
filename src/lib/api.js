@@ -5,18 +5,19 @@ const API_BASE_URL =
     ? process.env.NEXT_PUBLIC_API_URL || "http://localhost:4001/api/v1"
     : "http://localhost:4001/api/v1";
 
-/**
- * Get access token from cookie (client-side only).
- * For server-side, pass token explicitly via options.token.
- */
+console.log("🔧 API Base URL:", API_BASE_URL);
+
 function getToken() {
   if (typeof document === "undefined") return null;
   const match = document.cookie
     .split("; ")
     .find((row) => row.startsWith(`${COOKIE_NAMES.TOKEN}=`));
-  return match ? decodeURIComponent(match.split("=")[1]) : null;
+  const token = match ? decodeURIComponent(match.split("=")[1]) : null;
+  console.log("🔑 Token from cookie:", token ? "Present" : "Not found");
+  return token;
 }
 
+// Add back the getRefreshToken function
 function getRefreshToken() {
   if (typeof document === "undefined") return null;
   const match = document.cookie
@@ -30,15 +31,23 @@ function buildHeaders(customHeaders = {}, options = {}) {
   const headers = {
     ...customHeaders,
   };
-  if (token) headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+    console.log("📨 Request headers:", { ...headers, Authorization: 'Bearer [HIDDEN]' });
+  }
   return headers;
 }
 
 async function handleResponse(response) {
+  console.log(`📡 Response from ${response.url}: Status ${response.status}`);
+  
   const contentType = response.headers.get("content-type");
   const isJson =
     contentType && contentType.toLowerCase().includes("application/json");
   const data = isJson ? await response.json().catch(() => ({})) : await response.text();
+  
+  console.log("📦 Response data:", data);
+  
   if (!response.ok) {
     const err = new Error(data?.message || data?.error || `HTTP ${response.status}`);
     err.status = response.status;
@@ -56,6 +65,7 @@ export const api = {
   getBaseUrl: () => API_BASE_URL,
 
   get: async (endpoint, options = {}) => {
+    console.log(`🚀 GET Request to: ${API_BASE_URL}${endpoint}`);
     const headers = buildHeaders({ "Content-Type": "application/json" }, options);
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "GET",
@@ -67,6 +77,9 @@ export const api = {
   },
 
   post: async (endpoint, data, options = {}) => {
+    console.log(`🚀 POST Request to: ${API_BASE_URL}${endpoint}`);
+    console.log("📤 Request data:", data);
+    
     const isFormData = data instanceof FormData;
     const headers = buildHeaders(
       isFormData ? {} : { "Content-Type": "application/json" },
@@ -83,6 +96,9 @@ export const api = {
   },
 
   put: async (endpoint, data, options = {}) => {
+    console.log(`🚀 PUT Request to: ${API_BASE_URL}${endpoint}`);
+    console.log("📤 Request data:", data);
+    
     const isFormData = data instanceof FormData;
     const headers = buildHeaders(
       isFormData ? {} : { "Content-Type": "application/json" },
@@ -99,6 +115,9 @@ export const api = {
   },
 
   patch: async (endpoint, data, options = {}) => {
+    console.log(`🚀 PATCH Request to: ${API_BASE_URL}${endpoint}`);
+    console.log("📤 Request data:", data);
+    
     const headers = buildHeaders({ "Content-Type": "application/json" }, options);
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "PATCH",
@@ -111,6 +130,8 @@ export const api = {
   },
 
   delete: async (endpoint, options = {}) => {
+    console.log(`🚀 DELETE Request to: ${API_BASE_URL}${endpoint}`);
+    
     const headers = buildHeaders({}, options);
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "DELETE",
@@ -125,6 +146,8 @@ export const api = {
    * Upload file(s) via FormData. endpoint and formData required.
    */
   upload: async (endpoint, formData, options = {}) => {
+    console.log(`🚀 UPLOAD Request to: ${API_BASE_URL}${endpoint}`);
+    
     const headers = buildHeaders({}, options);
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "POST",
