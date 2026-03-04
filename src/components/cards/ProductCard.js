@@ -4,35 +4,73 @@ import StatusBadge from '../ui/StatusBadge';
 
 const ProductCard = ({ product, onClick }) => {
   const {
-    id,
+    _id,
     name,
     description,
     price,
     image,
-    category,
-    deliveryTime = '4-10 Days',
-    moq = '250 Units',
-    format,
+    images,
+    dimension,
+    minOrder,
+    deliveryDay,
+    material,
+    status,
+    collectionId
   } = product;
+
+  // Format delivery time - take first 3 characters and add " Days"
+  const formatDeliveryTime = (deliveryString) => {
+    if (!deliveryString) return '4-10 Days';
+    // Extract first 3 characters (e.g., "3-5" from "3-5 Business Days")
+    const days = deliveryString.substring(0, 3);
+    return `${days} Days`;
+  };
+
+  // Format dimensions
+  const formatDimensions = () => {
+    if (dimension?.width && dimension?.height) {
+      return `${dimension.width} x ${dimension.height}`;
+    }
+    return null;
+  };
+
+  // Get image URL
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    
+    if (imagePath.startsWith('http')) return imagePath;
+    
+    let filename = imagePath;
+    if (imagePath.includes('/')) {
+      filename = imagePath.split('/').pop();
+    }
+    
+    return `http://localhost:4001/api/v1/attachments/download/${filename}`;
+  };
 
   return (
     <div
       className="bg-slate-950 rounded-lg overflow-hidden border border-dark-lighter hover:border-primary/50 transition-all cursor-pointer group"
       onClick={onClick}
     >
-      {/* Category Tag */}
-      <div className="px-4 pt-4">
-        <span className="text-[10px] px-3 py-1 font-medium bg-zinc-700 text-white border border-zinc-700 rounded-2xl uppercase">{category}</span>
-      </div>
+      {/* Category Tag - Optional, can be enabled if needed */}
+      {/* <div className="px-4 pt-4">
+        <span className="text-[10px] px-3 py-1 font-medium bg-zinc-700 text-white border border-zinc-700 rounded-2xl uppercase">
+          {collectionId?.name || 'Product'}
+        </span>
+      </div> */}
 
       {/* Product Image */}
       <div className="relative w-full h-48 bg-slate-900 overflow-hidden">
-        {image ? (
-          <Image
-            src={image}
+        {image || images?.[0] ? (
+          <img
+            src={getImageUrl(image || images?.[0])}
             alt={name}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = 'https://via.placeholder.com/400x300?text=No+Image';
+            }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-500">
@@ -41,16 +79,23 @@ const ProductCard = ({ product, onClick }) => {
             </svg>
           </div>
         )}
+        
+        {/* Status Badge - Optional, can be enabled for admin view */}
+        {/* {status && status !== 'active' && (
+          <div className="absolute top-2 left-2">
+            <StatusBadge status={status} />
+          </div>
+        )} */}
       </div>
 
       {/* Product Info */}
       <div className="p-4 space-y-3">
         {/* Delivery Time */}
-        <div className="flex items-center gap-2 text-xs text-gray-300 ">
+        <div className="flex items-center gap-2 text-xs text-gray-300">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span>{deliveryTime}</span>
+          <span>{formatDeliveryTime(deliveryDay)}</span>
         </div>
 
         {/* Product Name */}
@@ -59,14 +104,14 @@ const ProductCard = ({ product, onClick }) => {
         </h3>
 
         {/* Description */}
-        <p className="text-sm text-gray-400 line-clamp-2 ">
-          {description}
+        <p className="text-sm text-gray-400 line-clamp-2">
+          {description || 'No description available'}
         </p>
 
-        {/* Details */}
+        {/* Details - MOQ and Format */}
         <div className="flex items-center gap-4 text-xs font-bold text-gray-300 pt-2 border-t border-dark-lighter">
-          <span>MOQ {moq}</span>
-          {format && <span>FORMAT {format}</span>}
+          <span>MOQ {minOrder || 1} Units</span>
+          {formatDimensions() && <span>FORMAT {formatDimensions()}</span>}
         </div>
 
         {/* Price */}

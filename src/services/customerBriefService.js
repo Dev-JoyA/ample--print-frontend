@@ -27,7 +27,12 @@ export const customerBriefService = {
   getByOrderAndProduct: (orderId, productId) =>
     api.get(API_PATHS.CUSTOMER_BRIEFS.BY_ORDER_PRODUCT(orderId, productId)),
 
-  getById: (briefId) => api.get(API_PATHS.CUSTOMER_BRIEFS.BY_ID(briefId)),
+  getById: (briefId) => {
+    if (!briefId) {
+      throw new Error('Brief ID is required');
+    }
+    return api.get(API_PATHS.CUSTOMER_BRIEFS.BY_ID(briefId));
+  },
 
   getStatus: (orderId, productId) =>
     api.get(API_PATHS.CUSTOMER_BRIEFS.STATUS(orderId, productId)),
