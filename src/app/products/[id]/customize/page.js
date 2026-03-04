@@ -151,28 +151,6 @@ export default function CustomerBriefPage() {
             </div>
           </section>
 
-          {/* Technical Specifications */}
-          {/* <section>
-            <h2 className="text-2xl font-semibold text-white mb-4">FULL TECHNICAL SPECIFICATIONS</h2>
-            <div className="bg-slate-950 rounded-lg p-6 border border-dark-lighter space-y-4">
-              <div>
-                <label className="text-gray-400 text-sm">BASE DIMENSIONS</label>
-                <Input
-                  placeholder="Enter dimensions"
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <label className="text-gray-400 text-sm">All Sizes (S-XXL)</label>
-                <p className="text-white mt-1">All Sizes (S-XXL)</p>
-              </div>
-              <div>
-                <label className="text-gray-400 text-sm">PRODUCTION MOQ</label>
-                <p className="text-white mt-1">20 Units</p>
-              </div>
-            </div>
-          </section> */}
-
           {/* Actions */}
           <div className="flex w-full gap-4 mt-4">
             <Button
