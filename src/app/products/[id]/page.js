@@ -28,8 +28,9 @@ export default function ProductDetailPage() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [showOrderModal, setShowOrderModal] = useState(false);
 
-  // Customer input fields - these will be added to description
+  // Customer input fields
   const [size, setSize] = useState('');
   const [color, setColor] = useState('');
   const [quantity, setQuantity] = useState(0);
@@ -45,6 +46,10 @@ export default function ProductDetailPage() {
   const [logoPreviews, setLogoPreviews] = useState([]);
   const [imageryPreviews, setImageryPreviews] = useState([]);
 
+  // Order selection
+  const [userActiveOrders, setUserActiveOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+
   // Check authentication on mount
   useEffect(() => {
     const token = document.cookie
@@ -56,6 +61,12 @@ export default function ProductDetailPage() {
   useEffect(() => {
     fetchProduct();
   }, [productId]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchUserActiveOrders();
+    }
+  }, [isAuthenticated]);
 
   const fetchProduct = async () => {
     try {
@@ -80,6 +91,30 @@ export default function ProductDetailPage() {
       setError('Failed to load product details');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUserActiveOrders = async () => {
+    try {
+      setLoadingOrders(true);
+      const response = await orderService.getUserActiveOrders();
+      console.log('Active orders response:', response);
+      
+      let orders = [];
+      if (response?.orders && Array.isArray(response.orders)) {
+        orders = response.orders;
+      } else if (Array.isArray(response)) {
+        orders = response;
+      } else if (response?.data?.orders) {
+        orders = response.data.orders;
+      }
+      
+      setUserActiveOrders(orders);
+      console.log('Active orders loaded:', orders.length);
+    } catch (err) {
+      console.error('Failed to fetch active orders:', err);
+    } finally {
+      setLoadingOrders(false);
     }
   };
 
@@ -139,13 +174,12 @@ export default function ProductDetailPage() {
     setRecordingTime(0);
     
     // Create a mock audio file
-    // In a real app, you'd get the actual recorded audio blob
     const mockAudioBlob = new Blob(['mock audio data'], { type: 'audio/webm' });
     const audioFile = new File([mockAudioBlob], 'voice-briefing.webm', { type: 'audio/webm' });
     setVoiceNote(audioFile);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmitClick = () => {
     // Check authentication first
     if (!isAuthenticated) {
       setShowAuthModal(true);
@@ -163,37 +197,68 @@ export default function ProductDetailPage() {
       quantity > 0;
 
     if (!hasCustomization) {
-      setError('Please provide at least one customization detail (description, files, size, color, or quantity)');
+      setError('Please provide at least one customization detail');
       return;
     }
 
+    // Clear any previous errors
+    setError('');
+
+    // If user has active orders, show modal to choose
+    if (userActiveOrders.length > 0) {
+      console.log('Showing order modal with', userActiveOrders.length, 'orders');
+      setShowOrderModal(true);
+    } else {
+      console.log('No active orders, submitting directly');
+      // No active orders, just submit directly
+      handleSubmit(null);
+    }
+  };
+
+  const handleSubmit = async (selectedOrderId) => {
     try {
       setSubmitting(true);
       setError('');
+      setShowOrderModal(false);
 
-      // STEP 1: Create the order first
-      const orderData = {
-        items: [
-          {
-            productId: product._id,
-            quantity: quantity
-          }
-        ]
-      };
+      let orderId;
+      
+      if (selectedOrderId) {
+        // Add to existing order
+        console.log('Adding to existing order:', selectedOrderId);
+        const addItemData = {
+          productId: product._id,
+          quantity: quantity
+        };
+        
+        const addResponse = await orderService.addItemToOrder(selectedOrderId, addItemData);
+        console.log('Item added to order:', addResponse);
+        
+        orderId = selectedOrderId;
+      } else {
+        // Create new order
+        const orderData = {
+          items: [
+            {
+              productId: product._id,
+              quantity: quantity
+            }
+          ]
+        };
 
-      console.log('Creating order with data:', orderData);
-      
-      const orderResponse = await orderService.create(orderData);
-      console.log('Order created successfully:', orderResponse);
-      
-      // Extract the order ID from the response (handle different response structures)
-      const orderId = orderResponse?.order?._id || orderResponse?.data?._id || orderResponse?._id;
-      
-      if (!orderId) {
-        throw new Error('Failed to create order - no order ID returned');
+        console.log('Creating new order with data:', orderData);
+        
+        const orderResponse = await orderService.create(orderData);
+        console.log('Order created successfully:', orderResponse);
+        
+        orderId = orderResponse?.order?._id || orderResponse?.data?._id || orderResponse?._id;
       }
 
-      // STEP 2: Create a comprehensive description that includes ALL specifications
+      if (!orderId) {
+        throw new Error('Failed to create/find order - no order ID returned');
+      }
+
+      // Create comprehensive description that includes ALL specifications
       const detailedDescription = `
 ===========================================
 PRODUCT CUSTOMIZATION BRIEF
@@ -232,35 +297,46 @@ SUBMISSION TIMESTAMP:
 ${new Date().toLocaleString()}
       `.trim();
 
-      console.log('Detailed description created');
+      console.log('Detailed description created, length:', detailedDescription.length);
 
-      // STEP 3: Create FormData for multipart upload
+      // Create FormData for multipart upload
       const formData = new FormData();
-      
-      // Add the comprehensive description
       formData.append('description', detailedDescription);
       
       // Add logo files - backend expects 'logo' field
       logos.forEach((logo) => {
+        console.log('Appending logo:', logo.name);
         formData.append('logo', logo);
       });
       
       // Add reference images - backend expects 'image' field
       imagery.forEach((image) => {
+        console.log('Appending image:', image.name);
         formData.append('image', image);
       });
       
       // Add voice note if exists - backend expects 'voiceNote' field
       if (voiceNote) {
+        console.log('Appending voice note');
         formData.append('voiceNote', voiceNote);
       }
 
-      // STEP 4: Submit the customer brief with the REAL order ID
+      // Log FormData entries for debugging
+      console.log('FormData entries:');
+      for (let pair of formData.entries()) {
+        if (pair[1] instanceof File) {
+          console.log(pair[0], 'File:', pair[1].name);
+        } else {
+          console.log(pair[0], 'Text:', pair[1].substring(0, 50) + '...');
+        }
+      }
+
+      // Submit customer brief
       const briefResponse = await customerBriefService.submit(orderId, product._id, formData);
       console.log('Customer brief submitted successfully:', briefResponse);
 
-      // STEP 5: Navigate to order summary with all IDs
-      router.push(`/orders/summary?productId=${productId}&orderId=${orderId}&briefId=${briefResponse._id}`);
+      // Navigate to order page
+      router.push(`/orders/${orderId}`);
     } catch (err) {
       console.error('Failed to submit order:', err);
       setError(err.message || 'Failed to submit your request. Please try again.');
@@ -276,7 +352,7 @@ ${new Date().toLocaleString()}
       <DashboardLayout userRole="customer">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="text-white">Loading...</div>
+            <div className="text-white">Loading product...</div>
           </div>
         </div>
       </DashboardLayout>
@@ -327,6 +403,68 @@ ${new Date().toLocaleString()}
           </div>
         )}
 
+        {/* Order Selection Modal */}
+        {showOrderModal && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+            <div className="bg-slate-900 rounded-xl border border-gray-800 p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
+              <h3 className="text-xl font-bold text-white mb-4">Choose Order Option</h3>
+              <p className="text-gray-400 mb-6">
+                Would you like to add this item to an existing order or create a new one?
+              </p>
+              
+              <div className="space-y-3 mb-4">
+                <button
+                  onClick={() => handleSubmit(null)}
+                  className="w-full text-left p-4 bg-slate-800 hover:bg-slate-700 rounded-lg transition border border-gray-700 hover:border-primary"
+                >
+                  <span className="text-white font-medium block">✨ Create New Order</span>
+                  <span className="text-xs text-gray-400">Start a fresh order with this item</span>
+                </button>
+                
+                <div className="relative py-2">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-700"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="bg-slate-900 px-2 text-gray-500">OR ADD TO EXISTING ORDER</span>
+                  </div>
+                </div>
+                
+                {loadingOrders ? (
+                  <div className="text-center py-4">
+                    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                    <p className="text-xs text-gray-400 mt-2">Loading your orders...</p>
+                  </div>
+                ) : userActiveOrders.length > 0 ? (
+                  userActiveOrders.map(order => (
+                    <button
+                      key={order._id}
+                      onClick={() => handleSubmit(order._id)}
+                      className="w-full text-left p-4 bg-slate-800 hover:bg-slate-700 rounded-lg transition border border-gray-700 hover:border-primary"
+                    >
+                      <span className="text-white font-medium block">Order #{order.orderNumber}</span>
+                      <span className="text-xs text-gray-400 mt-1 block">
+                        {order.items.length} item(s) • ₦{order.totalAmount?.toLocaleString()} • {order.status}
+                      </span>
+                    </button>
+                  ))
+                ) : (
+                  <p className="text-center text-gray-500 py-2">No active orders found</p>
+                )}
+              </div>
+              
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowOrderModal(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Error Display */}
         {error && (
           <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-200">
@@ -347,7 +485,7 @@ ${new Date().toLocaleString()}
         {/* Fullscreen Image Modal */}
         {showFullscreenImage && (
           <div 
-            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center"
+            className="fixed inset-0 bg-black/90 z-40 flex items-center justify-center"
             onClick={() => setShowFullscreenImage(false)}
           >
             <button
@@ -425,7 +563,7 @@ ${new Date().toLocaleString()}
                 />
               </div>
               
-              {/* View buttons - IMG 1, IMG 2, IMG 3 */}
+              {/* View buttons */}
               {images.length > 1 && (
                 <div className="bg-zinc-700/80 absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-1 p-1 rounded-3xl">
                   {images.map((_, index) => (
@@ -448,7 +586,7 @@ ${new Date().toLocaleString()}
               )}
             </div>
 
-            {/* Thumbnail images - all clickable to change main image */}
+            {/* Thumbnail images */}
             {images.length > 1 && (
               <div className="grid grid-cols-3 gap-2 mt-4 w-full">
                 {images.map((img, index) => (
@@ -489,9 +627,8 @@ ${new Date().toLocaleString()}
               </p>
             </div>
 
-            {/* Input Fields Row - These will be added to description */}
+            {/* Input Fields Row */}
             <div className="grid grid-cols-3 gap-3">
-              {/* Size Input */}
               <div>
                 <label className="block text-[10px] font-semibold text-gray-400 mb-1 uppercase tracking-wider">Size</label>
                 <input
@@ -503,7 +640,6 @@ ${new Date().toLocaleString()}
                 />
               </div>
 
-              {/* Color Input */}
               <div>
                 <label className="block text-[10px] font-semibold text-gray-400 mb-1 uppercase tracking-wider">Color</label>
                 <input
@@ -515,7 +651,6 @@ ${new Date().toLocaleString()}
                 />
               </div>
 
-              {/* Quantity Input */}
               <div>
                 <label className="block text-[10px] font-semibold text-gray-400 mb-1 uppercase tracking-wider">Quantity</label>
                 <input
@@ -540,6 +675,12 @@ ${new Date().toLocaleString()}
               </div>
             </div>
 
+            {/* Debug info - remove after testing */}
+            <div className="bg-yellow-900/30 p-2 rounded text-xs">
+              <p>Active Orders: {userActiveOrders.length}</p>
+              <p>Show Modal: {showOrderModal ? 'Yes' : 'No'}</p>
+            </div>
+
             {/* Design Instructions Link */}
             <div>
               <button
@@ -553,7 +694,7 @@ ${new Date().toLocaleString()}
               </button>
             </div>
 
-            {/* Upload Section - Shown when link is clicked */}
+            {/* Upload Section */}
             {showUploadSection && (
               <div className="space-y-6 border-t border-gray-800 pt-4">
                 {/* Design Instructions */}
@@ -695,10 +836,10 @@ ${new Date().toLocaleString()}
               variant="primary"
               size="lg"
               className="w-full mt-4"
-              onClick={handleSubmit}
+              onClick={handleSubmitClick}
               disabled={submitting || (!isAuthenticated)}
             >
-              {submitting ? 'Processing...' : 'Continue to Order Summary'}
+              {submitting ? 'Processing...' : 'Continue to Order'}
             </Button>
 
             {/* Authentication notice */}
@@ -714,7 +855,6 @@ ${new Date().toLocaleString()}
         <div className="mt-[3rem]">
           <h3 className="text-white font-bold text-[22px] mb-8">FULL TECHNICAL SPECIFICATIONS</h3>
           <div className="grid grid-cols-2 gap-x-8">
-            {/* Split specifications into two columns with dynamic values */}
             {[
               [
                 { 
