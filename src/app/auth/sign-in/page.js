@@ -31,7 +31,7 @@ const Page = () => {
           const role = userData.user?.role?.toLowerCase();
           if (role === "superadmin") router.push("/dashboards/super-admin-dashboard");
           else if (role === "admin") router.push("/dashboards/admin-dashboard");
-          else router.push("/dashboard");
+          else router.push("/dashboards");
         }
       } catch (err) {
         console.error('Failed to parse Google user data:', err);

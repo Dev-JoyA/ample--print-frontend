@@ -1,63 +1,71 @@
+'use client';
+
 import StatusBadge from '../ui/StatusBadge';
-import Image from 'next/image';
 
 const OrderCard = ({ order, onClick }) => {
-  const {
-    id,
-    orderNumber,
-    productName,
-    productImage,
-    orderedDate,
-    totalAmount,
-    status,
-  } = order;
-
   return (
     <div
-      className="bg-slate-900 rounded-lg p-4 mr-2 border border-dark-lighter hover:border-primary/50 transition-all cursor-pointer group"
       onClick={onClick}
+      className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-6 hover:border-primary/50 hover:shadow-xl transition cursor-pointer group"
     >
-      <div className="flex items-start gap-4">
-        {/* Product Image/Icon */}
-        <div className="w-8 h-8 bg-dark rounded-lg flex items-center justify-center flex-shrink-0">
-          {productImage ? (
-            <Image
-              src={productImage}
-              alt={productName}
-              width={64}
-              height={64}
-              className="object-cover rounded-lg"
-            />
-          ) : (
-            <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          )}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        {/* Left Section */}
+        <div className="flex items-center gap-4">
+          {/* Product Image */}
+          <div className="w-16 h-16 bg-slate-800 rounded-lg overflow-hidden flex-shrink-0">
+            {order.productImage ? (
+              <img
+                src={order.productImage}
+                alt={order.productName}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = 'https://via.placeholder.com/64?text=📦';
+                }}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-2xl">
+                📦
+              </div>
+            )}
+          </div>
+
+          {/* Order Info */}
+          <div>
+            <h3 className="text-lg font-semibold text-white group-hover:text-primary transition">
+              {order.orderNumber}
+            </h3>
+            <p className="text-sm text-gray-400 mt-1">
+              {order.productName} • {order.itemsCount > 1 ? `${order.itemsCount} items` : '1 item'}
+            </p>
+          </div>
         </div>
 
-        {/* Order Details */}
-        <div className="flex-1 min-w-0">
-          <h3 className="text-[14px] font-semibold text-white mb-1 group-hover:text-primary transition-colors">
-            {productName}
-          </h3>
-          <p className="text-[12px] text-gray-400 mb-2">
-            {orderNumber} • Ordered on {orderedDate}
-          </p>
+        {/* Right Section */}
+        <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
+          <div className="text-right">
+            <p className="text-sm text-gray-400">Order Date</p>
+            <p className="text-white font-medium">{order.orderedDate}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-gray-400">Total Amount</p>
+            <p className="text-lg font-bold text-primary">
+              ₦{order.totalAmount?.toLocaleString()}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <StatusBadge status={order.status} />
+            {order.paymentStatus && (
+              <span className={`text-xs px-2 py-1 rounded-full ${
+                order.paymentStatus === 'Completed' ? 'bg-green-600/20 text-green-400' :
+                order.paymentStatus === 'PartPayment' ? 'bg-yellow-600/20 text-yellow-400' :
+                'bg-gray-600/20 text-gray-400'
+              }`}>
+                {order.paymentStatus}
+              </span>
+            )}
+          </div>
         </div>
-        <div className="flex items-center justify-between">
-            <div>
-                <p className="text-[14px] font-bold mr-4 text-white">₦{totalAmount?.toLocaleString() || '0.00'}</p>
-                <p className="text-[14px] text-gray-500 mr-4 mb-1">Total Amount</p>
-            </div>
-            <StatusBadge status={status} type="order" />
-        </div>
-
-        {/* Arrow Icon */}
-        <button className="w-8 h-8 rounded-full bg-dark hover:bg-primary flex items-center justify-center transition-colors flex-shrink-0">
-          <svg className="w-5 h-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
       </div>
     </div>
   );

@@ -8,7 +8,7 @@ const Sidebar = ({ userRole = 'customer' }) => {
   const pathname = usePathname();
 
   const customerNavItems = [
-    { name: 'Dashboard', href: '/dashboard', icon: '📊' },
+    { name: 'Dashboard', href: '/dashboards', icon: '📊' },
     { name: 'New Order', href: '/new-order', icon: '➕' },
     { name: 'Collections', href: '/collections', icon: '📁' },
     { name: 'Design Approval', href: '/design-approval', icon: '✓' },
@@ -18,14 +18,14 @@ const Sidebar = ({ userRole = 'customer' }) => {
   ];
 
   const adminNavItems = [
-    { name: 'Dashboard', href: '/admin-dashboard', icon: '📊' },
-    { name: 'Orders', href: '/admin/orders', icon: '📦' },
-    { name: 'Customer Briefs', href: '/admin/customer-briefs', icon: '📝' },
-    { name: 'Design Upload', href: '/admin/design-upload', icon: '🎨' },
+    { name: 'Dashboard', href: '/dashboards/admin-dashboard', icon: '📊' },
+    { name: 'Orders', href: '/dashboards/admin-dashboard/orders', icon: '📦' },
+    { name: 'Customer Briefs', href: '/dashboards/admin-dashboard/customer-briefs', icon: '📝' },
+    { name: 'Design Upload', href: '/dashboards/admin-dashboard/design-upload', icon: '🎨' },
   ];
 
   const superAdminNavItems = [
-    { name: 'Dashboard', href: '/super-admin-dashboard', icon: '📊' },
+    { name: 'Dashboard', href: '/dashboards/super-admin-dashboard', icon: '📊' },
     { name: 'Invoices', href: '/super-admin/invoices', icon: '📄' },
     { name: 'Shipping Invoices', href: '/super-admin/shipping-invoices', icon: '🚚' },
     { name: 'Discounts', href: '/super-admin/discounts', icon: '💰' },
@@ -42,7 +42,7 @@ const Sidebar = ({ userRole = 'customer' }) => {
   const navItems = getNavItems();
 
   const isActive = (href) => {
-    if (href === '/dashboard' || href === '/admin-dashboard' || href === '/super-admin-dashboard') {
+    if (href === '/dashboards' || href === '/dashboards/admin-dashboard' || href === '/dashboards/super-admin-dashboard') {
       return pathname === href || pathname.startsWith(href + '/');
     }
     return pathname === href || pathname.startsWith(href);
