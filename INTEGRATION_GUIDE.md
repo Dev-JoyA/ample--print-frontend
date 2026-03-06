@@ -60,7 +60,7 @@ import { setAuthCookies } from '@/app/lib/auth';
 
 const result = await authService.signIn(email, password);
 setAuthCookies(result.token ?? result.accessToken, result.refreshToken);
-router.push('/dashboard');
+router.push('/dashboards');
 ```
 
 ### Collections and products

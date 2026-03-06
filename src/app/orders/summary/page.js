@@ -9,100 +9,72 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import { useAuthCheck } from '@/app/lib/auth';
 import { orderService } from '@/services/orderService';
 import { customerBriefService } from '@/services/customerBriefService';
-import { productService } from '@/services/productService';
 
 export default function OrderSummaryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  // Check authentication first
   useAuthCheck();
   
-  const productId = searchParams.get('productId');
   const orderId = searchParams.get('orderId');
-  const briefId = searchParams.get('briefId');
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [order, setOrder] = useState(null);
-  const [brief, setBrief] = useState(null);
-  const [product, setProduct] = useState(null);
-  const [expandedSections, setExpandedSections] = useState({
-    order: true,
-    specifications: true,
-    assets: true
-  });
+  const [briefs, setBriefs] = useState({});
 
   useEffect(() => {
-    // Validate required params
-    if (!productId || !orderId || !briefId) {
-      setError('Missing required information');
+    if (!orderId) {
+      setError('No order ID provided');
       setLoading(false);
       return;
     }
 
-    fetchSummaryData();
-  }, [productId, orderId, briefId]);
+    fetchOrderData();
+  }, [orderId]);
 
-  const fetchSummaryData = async () => {
+  const fetchOrderData = async () => {
     try {
       setLoading(true);
       
-      console.log('Fetching data with:', { productId, orderId, briefId });
-
-      // Fetch all data in parallel with better error handling
-      const promises = [
-        productService.getById(productId).catch(err => {
-          console.error('Product fetch error:', err);
-          return null;
-        }),
-        orderService.getById(orderId).catch(err => {
-          console.error('Order fetch error:', err);
-          return null;
-        }),
-        customerBriefService.getById(briefId).catch(err => {
-          console.error('Brief fetch error:', err);
-          return null;
-        })
-      ];
-
-      const [productRes, orderRes, briefRes] = await Promise.all(promises);
-
-      console.log('Product response:', productRes);
-      console.log('Order response:', orderRes);
-      console.log('Brief response:', briefRes);
-
-      // Check if any requests failed
-      if (!productRes && !orderRes && !briefRes) {
-        throw new Error('Failed to load order information');
-      }
-
-      // Extract data from responses
-      if (productRes) {
-        setProduct(productRes?.product || productRes?.data || productRes);
-      }
+      // Fetch order details
+      const orderResponse = await orderService.getById(orderId);
+      console.log('Order response:', orderResponse);
       
-      if (orderRes) {
-        setOrder(orderRes?.order || orderRes?.data || orderRes);
-      }
-      
-      if (briefRes) {
-        setBrief(briefRes?.data || briefRes);
+      const orderData = orderResponse?.order || orderResponse?.data || orderResponse;
+      setOrder(orderData);
+
+      // Fetch briefs for each item in the order
+      if (orderData?.items) {
+        const briefPromises = orderData.items.map(async (item) => {
+          const productId = item.productId._id || item.productId;
+          try {
+            const briefResponse = await customerBriefService.getByOrderAndProduct(orderId, productId);
+            return {
+              productId,
+              brief: briefResponse?.data || briefResponse
+            };
+          } catch (err) {
+            console.log(`No brief found for product ${productId}`);
+            return null;
+          }
+        });
+
+        const briefResults = await Promise.all(briefPromises);
+        const briefMap = briefResults.filter(b => b !== null).reduce((acc, curr) => {
+          acc[curr.productId] = curr.brief;
+          return acc;
+        }, {});
+        
+        setBriefs(briefMap);
       }
 
     } catch (err) {
-      console.error('Failed to fetch summary data:', err);
-      setError(err.message || 'Failed to load order summary');
+      console.error('Failed to fetch order:', err);
+      setError('Failed to load order summary');
     } finally {
       setLoading(false);
     }
-  };
-
-  const toggleSection = (section) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
   };
 
   const getImageUrl = (imagePath) => {
@@ -115,9 +87,13 @@ export default function OrderSummaryPage() {
     return `http://localhost:4001/api/v1/attachments/download/${filename}`;
   };
 
+  const formatCurrency = (amount) => {
+    return `₦${amount?.toLocaleString() || '0'}`;
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleString('en-US', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -126,403 +102,149 @@ export default function OrderSummaryPage() {
     });
   };
 
-  const formatCurrency = (amount) => {
-    return `₦${amount?.toLocaleString() || '0'}`;
-  };
-
-  // Parse the detailed description from the brief
-  const parseDescription = (description) => {
-    if (!description) return {};
-    
-    const sections = {};
-    const lines = description.split('\n');
-    let currentSection = '';
-    
-    lines.forEach(line => {
-      if (line.includes('PRODUCT INFORMATION:')) {
-        currentSection = 'product';
-      } else if (line.includes('CUSTOMER SPECIFICATIONS:')) {
-        currentSection = 'specs';
-      } else if (line.includes('DESIGN INSTRUCTIONS:')) {
-        currentSection = 'design';
-      } else if (line.includes('ADDITIONAL REQUIREMENTS:')) {
-        currentSection = 'assets';
-      } else if (line.includes('DELIVERY EXPECTATIONS:')) {
-        currentSection = 'delivery';
-      } else if (line.trim() && !line.includes('=') && !line.includes('-')) {
-        if (!sections[currentSection]) sections[currentSection] = [];
-        sections[currentSection].push(line.trim());
-      }
-    });
-    
-    return sections;
-  };
-
   if (loading) {
     return (
       <DashboardLayout userRole="customer">
         <div className="min-h-[60vh] flex items-center justify-center">
           <div className="text-center">
             <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-400">Loading your order summary...</p>
+            <p className="text-gray-400">Processing your order...</p>
           </div>
         </div>
       </DashboardLayout>
     );
   }
 
-  if (error || (!product && !order && !brief)) {
+  if (error || !order) {
     return (
       <DashboardLayout userRole="customer">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="bg-red-900/30 border border-red-700 rounded-xl p-8 text-center">
             <div className="text-6xl mb-4">😕</div>
-            <h2 className="text-2xl font-bold text-white mb-2">Oops! Something went wrong</h2>
+            <h2 className="text-2xl font-bold text-white mb-2">Order Not Found</h2>
             <p className="text-gray-400 mb-6">{error || 'Unable to load order summary'}</p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button variant="primary" onClick={() => router.push('/collections')}>
-                Browse Collections
-              </Button>
-              <Button variant="secondary" onClick={() => window.location.reload()}>
-                Try Again
-              </Button>
-            </div>
+            <Button variant="primary" onClick={() => router.push('/collections')}>
+              Browse Collections
+            </Button>
           </div>
         </div>
       </DashboardLayout>
     );
   }
 
-  const parsedBrief = brief ? parseDescription(brief.description) : {};
+  const totalItems = order.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
 
   return (
     <DashboardLayout userRole="customer">
       <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-          {/* Header */}
-          <div className="mb-6 sm:mb-8">
-            <button
-              onClick={() => router.back()}
-              className="flex items-center gap-2 text-gray-400 hover:text-white mb-4 transition-colors text-sm sm:text-base"
-            >
-              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Success Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-green-600/20 rounded-full mb-4">
+              <svg className="w-10 h-10 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              Back
-            </button>
-            
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">Order Summary</h1>
-                <p className="text-sm sm:text-base text-gray-400 mt-1">
-                  Review your order details before proceeding
-                </p>
-              </div>
-              {order && (
-                <div className="flex gap-2 sm:gap-3">
-                  <Button variant="secondary" size="sm" onClick={() => router.push(`/products/${productId}`)}>
-                    Edit Order
-                  </Button>
-                  <Button variant="primary" size="sm" onClick={() => router.push('/checkout')}>
-                    Proceed to Checkout
-                  </Button>
-                </div>
-              )}
             </div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Order Confirmed!</h1>
+            <p className="text-gray-400">Thank you for your order. We'll start working on it right away.</p>
           </div>
 
-          {/* Order Status Cards */}
-          {order && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
-              <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-4">
-                <p className="text-xs text-gray-500 mb-1">Order Number</p>
-                <p className="text-sm sm:text-base font-mono text-white break-all">{order.orderNumber}</p>
-              </div>
-              <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-4">
-                <p className="text-xs text-gray-500 mb-1">Order Date</p>
-                <p className="text-sm sm:text-base text-white">{formatDate(order.createdAt)}</p>
-              </div>
-              <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-4">
-                <p className="text-xs text-gray-500 mb-1">Order Status</p>
-                <StatusBadge status={order.status || 'Pending'} className="text-xs sm:text-sm" />
+          {/* Order Summary Card */}
+          <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl border border-gray-800 overflow-hidden mb-6">
+            <div className="p-6 border-b border-gray-800">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">Order Number</p>
+                  <p className="text-xl font-mono text-white font-semibold">{order.orderNumber}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-gray-400 mb-1">Order Date</p>
+                  <p className="text-white">{formatDate(order.createdAt)}</p>
+                </div>
               </div>
             </div>
-          )}
 
-          {/* Main Content */}
-          <div className="space-y-4 sm:space-y-6">
-            {/* Product Summary Card */}
-            {product && (
-              <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 overflow-hidden">
-                <div 
-                  className="p-4 sm:p-6 cursor-pointer hover:bg-slate-800/50 transition-colors flex items-center justify-between"
-                  onClick={() => toggleSection('order')}
-                >
-                  <h2 className="text-lg sm:text-xl font-semibold text-white">Product Details</h2>
-                  <svg 
-                    className={`w-5 h-5 text-gray-400 transform transition-transform ${expandedSections.order ? 'rotate-180' : ''}`}
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-                
-                {expandedSections.order && (
-                  <div className="p-4 sm:p-6 pt-0 sm:pt-0 border-t border-gray-800">
-                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                      {/* Product Image */}
-                      <div className="w-full sm:w-32 h-32 bg-slate-800 rounded-lg overflow-hidden flex-shrink-0">
-                        {product?.image || product?.images?.[0] ? (
-                          <img
-                            src={getImageUrl(product.image || product.images[0])}
-                            alt={product.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src = 'https://via.placeholder.com/200x200?text=Product';
-                            }}
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <span className="text-3xl text-gray-700">📦</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Product Info */}
-                      <div className="flex-1 space-y-3">
-                        <div>
-                          <h3 className="text-base sm:text-lg font-semibold text-white">{product.name}</h3>
-                          <p className="text-xs sm:text-sm text-gray-400 mt-1">{product.description?.substring(0, 100)}...</p>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                          <div>
-                            <p className="text-xs text-gray-500">Unit Price</p>
-                            <p className="text-sm font-medium text-white">{formatCurrency(product.price)}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500">Quantity</p>
-                            <p className="text-sm font-medium text-white">{order?.items?.[0]?.quantity || 'N/A'}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500">Total</p>
-                            <p className="text-sm font-bold text-primary">
-                              {formatCurrency(product.price * (order?.items?.[0]?.quantity || 1))}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500">MOQ</p>
-                            <p className="text-sm font-medium text-white">{product.minOrder} units</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Specifications Summary */}
-            {brief && Object.keys(parsedBrief).length > 0 && (
-              <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 overflow-hidden">
-                <div 
-                  className="p-4 sm:p-6 cursor-pointer hover:bg-slate-800/50 transition-colors flex items-center justify-between"
-                  onClick={() => toggleSection('specifications')}
-                >
-                  <h2 className="text-lg sm:text-xl font-semibold text-white">Customization Details</h2>
-                  <svg 
-                    className={`w-5 h-5 text-gray-400 transform transition-transform ${expandedSections.specifications ? 'rotate-180' : ''}`}
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-                
-                {expandedSections.specifications && (
-                  <div className="p-4 sm:p-6 pt-0 sm:pt-0 border-t border-gray-800">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Customer Specifications */}
-                      {parsedBrief.specs && (
-                        <div>
-                          <h3 className="text-sm font-medium text-primary mb-3">CUSTOMER SPECIFICATIONS</h3>
-                          <div className="space-y-3">
-                            {parsedBrief.specs.map((spec, index) => {
-                              const [key, ...valueParts] = spec.split(':');
-                              const value = valueParts.join(':').trim();
-                              return (
-                                <div key={index} className="flex justify-between items-center py-2 border-b border-gray-800">
-                                  <span className="text-xs text-gray-400">{key.replace('•', '').trim()}</span>
-                                  <span className="text-sm font-medium text-white">{value || 'Not specified'}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Design Instructions */}
-                      {parsedBrief.design && (
-                        <div>
-                          <h3 className="text-sm font-medium text-primary mb-3">DESIGN INSTRUCTIONS</h3>
-                          <div className="bg-slate-800/50 rounded-lg p-4">
-                            <p className="text-sm text-gray-300 whitespace-pre-wrap">
-                              {parsedBrief.design.join('\n').replace('DESIGN INSTRUCTIONS:', '').trim()}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Delivery Expectations */}
-                    {parsedBrief.delivery && (
-                      <div className="mt-6 pt-6 border-t border-gray-800">
-                        <h3 className="text-sm font-medium text-primary mb-3">DELIVERY EXPECTATIONS</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {parsedBrief.delivery.map((item, index) => {
-                            const [key, ...valueParts] = item.split(':');
-                            const value = valueParts.join(':').trim();
-                            if (!value) return null;
-                            return (
-                              <div key={index} className="flex justify-between items-center">
-                                <span className="text-xs text-gray-400">{key.replace('•', '').trim()}</span>
-                                <span className="text-sm font-medium text-white">{value}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Assets Summary */}
-            {brief && (brief.logo || brief.image || brief.voiceNote || brief.video) && (
-              <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 overflow-hidden">
-                <div 
-                  className="p-4 sm:p-6 cursor-pointer hover:bg-slate-800/50 transition-colors flex items-center justify-between"
-                  onClick={() => toggleSection('assets')}
-                >
-                  <h2 className="text-lg sm:text-xl font-semibold text-white">Uploaded Assets</h2>
-                  <svg 
-                    className={`w-5 h-5 text-gray-400 transform transition-transform ${expandedSections.assets ? 'rotate-180' : ''}`}
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-                
-                {expandedSections.assets && (
-                  <div className="p-4 sm:p-6 pt-0 sm:pt-0 border-t border-gray-800">
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      {brief.logo && (
-                        <a 
-                          href={getImageUrl(brief.logo)} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="flex flex-col items-center gap-2 p-3 bg-slate-800/50 rounded-lg hover:bg-slate-800 transition"
-                        >
-                          <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
-                            <span className="text-xl">🎨</span>
-                          </div>
-                          <span className="text-xs text-gray-300">Logo</span>
-                        </a>
-                      )}
-                      
-                      {brief.image && (
-                        <a 
-                          href={getImageUrl(brief.image)} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="flex flex-col items-center gap-2 p-3 bg-slate-800/50 rounded-lg hover:bg-slate-800 transition"
-                        >
-                          <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                            <span className="text-xl">🖼️</span>
-                          </div>
-                          <span className="text-xs text-gray-300">Reference</span>
-                        </a>
-                      )}
-                      
-                      {brief.voiceNote && (
-                        <a 
-                          href={getImageUrl(brief.voiceNote)} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="flex flex-col items-center gap-2 p-3 bg-slate-800/50 rounded-lg hover:bg-slate-800 transition"
-                        >
-                          <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
-                            <span className="text-xl">🎤</span>
-                          </div>
-                          <span className="text-xs text-gray-300">Voice Note</span>
-                        </a>
-                      )}
-                      
-                      {brief.video && (
-                        <a 
-                          href={getImageUrl(brief.video)} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="flex flex-col items-center gap-2 p-3 bg-slate-800/50 rounded-lg hover:bg-slate-800 transition"
-                        >
-                          <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
-                            <span className="text-xl">🎥</span>
-                          </div>
-                          <span className="text-xs text-gray-300">Video</span>
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            {order && (
-              <>
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8">
-                  <Button
-                    variant="secondary"
-                    size="lg"
-                    className="flex-1"
-                    onClick={() => router.push(`/products/${productId}`)}
-                  >
-                    <span className="flex items-center justify-center gap-2">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                      </svg>
-                      Back to Edit
-                    </span>
-                  </Button>
+            <div className="p-6">
+              <h2 className="text-lg font-semibold text-white mb-4">Order Items</h2>
+              <div className="space-y-4">
+                {order.items?.map((item, index) => {
+                  const productId = item.productId._id || item.productId;
+                  const brief = briefs[productId];
                   
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    className="flex-1"
-                    onClick={() => router.push('/checkout')}
-                  >
-                    <span className="flex items-center justify-center gap-2">
-                      Proceed to Checkout
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                      </svg>
-                    </span>
-                  </Button>
-                </div>
+                  return (
+                    <div key={index} className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-slate-800/30 rounded-xl">
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-white font-medium">{item.productName}</h3>
+                          <p className="text-primary font-semibold">{formatCurrency(item.price * item.quantity)}</p>
+                        </div>
+                        <div className="flex flex-wrap gap-3 text-sm">
+                          <span className="text-gray-400">Qty: {item.quantity}</span>
+                          <span className="text-gray-400">Unit Price: {formatCurrency(item.price)}</span>
+                          {brief && (
+                            <span className="inline-flex items-center gap-1 text-green-400">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              Brief Submitted
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
 
-                <p className="text-xs text-gray-500 text-center mt-4">
-                  Need to make changes? You can edit your order or contact our support team for assistance.
-                </p>
-              </>
-            )}
+              {/* Order Total */}
+              <div className="mt-6 pt-6 border-t border-gray-800">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Subtotal ({totalItems} items)</span>
+                  <span className="text-white font-semibold">{formatCurrency(order.totalAmount)}</span>
+                </div>
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-gray-400">Amount Paid</span>
+                  <span className="text-green-400 font-semibold">{formatCurrency(order.amountPaid)}</span>
+                </div>
+                <div className="flex justify-between items-center mt-2 text-lg font-bold">
+                  <span className="text-white">Total</span>
+                  <span className="text-primary">{formatCurrency(order.totalAmount)}</span>
+                </div>
+              </div>
+            </div>
           </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={() => router.push(`/orders/${orderId}`)}
+              className="gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              View Order Details
+            </Button>
+            
+            <Button
+              variant="secondary"
+              size="lg"
+              onClick={() => router.push('/order-history')}
+              className="gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14v-6a4 4 0 00-4-4h-1" />
+              </svg>
+              View All Orders
+            </Button>
+          </div>
+
+          <p className="text-center text-sm text-gray-500 mt-6">
+            A confirmation email has been sent to your email address.
+          </p>
         </div>
       </div>
     </DashboardLayout>

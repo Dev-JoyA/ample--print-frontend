@@ -42,34 +42,11 @@ export const orderService = {
   addItemToOrder: (orderId, data) => 
   api.post(`/orders/${orderId}/items`, data),
 
-//    getUserActiveOrders: (params = {}) => {
-//     const q = new URLSearchParams(params).toString();
-//     return api.get(`/orders/my-active-orders${q ? `?${q}` : ''}`);
-//     },
+   getUserActiveOrders: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return api.get(`/orders/my-active-orders${q ? `?${q}` : ''}`);
+    },
 
-// Change this temporarily for testing
-getUserActiveOrders: async (params = {}) => {
-  // Use getMyOrders instead to see all orders
-  const response = await orderService.getMyOrders();
-  console.log('All user orders:', response);
-  
-  // Filter on frontend for active statuses
-  let orders = [];
-  if (response?.orders && Array.isArray(response.orders)) {
-    orders = response.orders;
-  } else if (Array.isArray(response)) {
-    orders = response;
-  } else if (response?.data?.orders) {
-    orders = response.data.orders;
-  }
-  
-  // Filter for orders that can still accept items
-  const activeStatuses = ['OrderReceived', 'Pending', 'FilesUploaded'];
-  const activeOrders = orders.filter(order => 
-    activeStatuses.includes(order.status)
-  );
-  
-  return { orders: activeOrders };
-},
+
     
 };

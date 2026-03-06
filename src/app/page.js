@@ -15,7 +15,7 @@ export default function Home() {
           <nav className="hidden md:flex items-center gap-6">
             <Link href="/" className="font-[600] text-gray-400 hover:text-white transition-colors">Home</Link>
             <Link href="/collections" className="font-[600] text-gray-400 hover:text-white transition-colors">Collections</Link>
-            <Link href="/dashboard" className="font-[600] text-gray-400 hover:text-white transition-colors">My Orders</Link>
+            <Link href="/dashboards" className="font-[600] text-gray-400 hover:text-white transition-colors">My Orders</Link>
             <Link href="/how-it-works" className="font-[600] text-gray-400 hover:text-white transition-colors">How It Works</Link>
             <Link href="/testimonials" className="font-[600] text-gray-400 hover:text-white transition-colors">Testimonials</Link>
             <Link href="/contact" className="font-[600] text-gray-400 hover:text-white transition-colors">Contact</Link>
