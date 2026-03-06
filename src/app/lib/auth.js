@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { useEffect } from "react";
+import { useState,useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { COOKIE_NAMES } from "@/lib/constants";
 
@@ -143,4 +143,41 @@ export function setAuthCookies(token, refreshToken) {
   if (refreshToken) {
     document.cookie = `${COOKIE_NAMES.REFRESH_TOKEN}=${encodeURIComponent(refreshToken)}; path=/; max-age=604800; ${secure ? "secure;" : ""} sameSite=strict`;
   }
+}
+
+
+
+export function useAuth() {
+  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = document.cookie
+        .split('; ')
+        .find(row => row.startsWith(`${COOKIE_NAMES.TOKEN}=`))
+        ?.split('=')[1];
+
+      if (token) {
+        try {
+          const decoded = JSON.parse(atob(token.split('.')[1]));
+          setUser(decoded);
+          setIsAuthenticated(true);
+        } catch (e) {
+          console.error('Failed to decode token:', e);
+          setIsAuthenticated(false);
+          setUser(null);
+        }
+      } else {
+        setIsAuthenticated(false);
+        setUser(null);
+      }
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, []);
+
+  return { user, isAuthenticated, loading };
 }
