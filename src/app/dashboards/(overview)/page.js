@@ -71,12 +71,12 @@ export default function CustomerDashboard() {
           />
           <SummaryCard
             title="Pending Invoices"
-            value="₦29,025"
+            value=""
             icon="📄"
             color="red"
           />
           <SummaryCard
-            title="Needs Approval"
+            title="Approve Designs"
             value="02"
             icon="✓"
             color="yellow"
