@@ -1,56 +1,40 @@
-import StatusBadge from '../ui/StatusBadge';
-import Button from '../ui/Button';
+'use client';
 
-const InvoiceCard = ({ invoice, onPay }) => {
-  const {
-    id,
-    invoiceNumber,
-    balance,
-    status,
-    dueDate,
-    dueSoon = false,
-  } = invoice;
+import StatusBadge from '../ui/StatusBadge';
+
+const InvoiceCard = ({ invoice, onClick }) => {
+  const getDueStatus = () => {
+    if (invoice.dueSoon) {
+      return <span className="text-xs text-yellow-400 ml-2">Due soon</span>;
+    }
+    return null;
+  };
 
   return (
-    <div className="bg-slate-900 rounded-lg p-4 border border-dark-lighter hover:border-primary/50 transition-all relative">
-      {/* Due Soon Badge */}
-      {dueSoon && (
-        <div className="absolute top-2 right-2">
-          <StatusBadge status="DUE SOON" type="due" />
-        </div>
-      )}
-
-      <div className="space-y-4">
-        {/* Invoice Number */}
+    <div
+      onClick={onClick}
+      className="bg-slate-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-5 hover:border-primary/50 hover:shadow-lg transition cursor-pointer group"
+    >
+      <div className="flex items-start justify-between mb-3">
         <div>
-          <h3 className="text-lg font-medium text-white mb-1">{invoiceNumber}</h3>
-          {/* {status && (
-            <StatusBadge status={status} type="invoice" />
-          )} */}
+          <p className="text-sm font-mono text-primary">{invoice.invoiceNumber}</p>
+          <div className="flex items-center mt-1">
+            <StatusBadge status={invoice.status} className="text-xs" />
+            {getDueStatus()}
+          </div>
         </div>
-
-        {/* Balance */}
-        <div className='flex space-x-2 items-center'>
-            <p className="text-xl font-bold text-white">₦{balance?.toLocaleString() || '0.00'}</p>
-            <p className="text-sm text-gray-400 mb-1">Balance</p>
+        <div className="text-right">
+          <p className="text-sm text-gray-400">Balance</p>
+          <p className="text-lg font-bold text-primary">
+            ₦{invoice.balance?.toLocaleString()}
+          </p>
         </div>
+      </div>
 
-        {/* Due Date */}
-        {dueDate && (
-          <p className="text-xs text-gray-500">Due: {dueDate}</p>
-        )}
-
-        {/* Pay Button */}
-        {/* {onPay && ( */}
-          <Button
-            variant="primary"
-            size="sm"
-            className="w-full"
-            onClick={() => onPay(invoice)}
-          >
-            Pay Invoice
-          </Button>
-        {/* )} */}
+      <div className="flex justify-end">
+        <button className="text-sm text-primary group-hover:text-primary-dark transition">
+          Pay Now →
+        </button>
       </div>
     </div>
   );

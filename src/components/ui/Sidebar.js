@@ -26,11 +26,11 @@ const Sidebar = ({ userRole = 'customer' }) => {
 
   const superAdminNavItems = [
     { name: 'Dashboard', href: '/dashboards/super-admin-dashboard', icon: '📊' },
-    { name: 'Invoices', href: '/super-admin/invoices', icon: '📄' },
-    { name: 'Shipping Invoices', href: '/super-admin/shipping-invoices', icon: '🚚' },
-    { name: 'Discounts', href: '/super-admin/discounts', icon: '💰' },
-    { name: 'Payment Verification', href: '/super-admin/payment-verification', icon: '✅' },
-    { name: 'Financial Records', href: '/super-admin/financial-records', icon: '📊' },
+    { name: 'Invoices', href: '/dashboards/super-admin-dashboard/invoices', icon: '📄' },
+    { name: 'Shipping Invoices', href: '/dashboards/super-admin-dashboard/shipping-invoices', icon: '🚚' },
+    { name: 'Discounts', href: '/dashboards/super-admin-dashboard/discounts', icon: '💰' },
+    { name: 'Payment Verification', href: '/dashboards/super-admin-dashboard/payment-verification', icon: '✅' },
+    { name: 'Financial Records', href: '/dashboards/super-admin-dashboard/financial-records', icon: '📊' },
   ];
 
   const getNavItems = () => {

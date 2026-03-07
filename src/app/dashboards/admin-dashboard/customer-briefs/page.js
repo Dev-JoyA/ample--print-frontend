@@ -153,27 +153,23 @@ export default function CustomerBriefsPage() {
     setUpdatingBrief(null);
   };
 
-  const handleMarkAsViewed = async (briefId) => {
+    const handleMarkAsViewed = async (briefId) => {
     try {
-      setMarkingViewed(true);
-      // This would be an API call to mark as viewed
-      // await customerBriefService.markAsViewed(briefId);
-      
-      // Update local state
-      setBriefs(prev => prev.map(b => 
-        b._id === briefId ? { ...b, viewed: true } : b
-      ));
-      
-      // Refresh the list
-      await fetchBriefs();
-      
+        setMarkingViewed(true);
+        
+        // Call the API to mark as viewed
+        await customerBriefService.markAsViewed(briefId);
+        
+        // Refresh the list
+        await fetchBriefs();
+        
     } catch (err) {
-      console.error('Failed to mark as viewed:', err);
-      alert('Failed to mark brief as viewed');
+        console.error('Failed to mark as viewed:', err);
+        alert('Failed to mark brief as viewed');
     } finally {
-      setMarkingViewed(false);
+        setMarkingViewed(false);
     }
-  };
+    };
 
   const handleCloseModal = () => {
     setSelectedBrief(null);

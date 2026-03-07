@@ -1,194 +1,233 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import Textarea from '@/components/ui/Textarea';
 import StatusBadge from '@/components/ui/StatusBadge';
+import { invoiceService } from '@/services/invoiceService';
 
-export default function InvoiceCreationPage() {
-  const [orders] = useState([
-    { id: 1, orderNumber: 'ORD-7291', total: 4000.00, status: 'PAID' },
-    { id: 2, orderNumber: 'ORD-8822', total: 19200.00, status: 'PENDING' },
-  ]);
+export default function InvoicesPage() {
+  const router = useRouter();
+  const [invoices, setInvoices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [filter, setFilter] = useState('all');
 
-  const [selectedOrder, setSelectedOrder] = useState('');
-  const [invoiceItems, setInvoiceItems] = useState([]);
-  const [discount, setDiscount] = useState(0);
-  const [deposit, setDeposit] = useState(0);
+  useEffect(() => {
+    fetchInvoices();
+  }, [filter]);
 
-  const handleCreateInvoice = () => {
-    console.log('Create invoice:', { selectedOrder, invoiceItems, discount, deposit });
-    // In real app, this would create the invoice
+  const fetchInvoices = async () => {
+    try {
+      setLoading(true);
+      const params = { limit: 50 };
+      if (filter !== 'all') {
+        params.status = filter;
+      }
+      const response = await invoiceService.getAll(params);
+      setInvoices(response?.invoices || []);
+    } catch (err) {
+      console.error('Failed to fetch invoices:', err);
+      setError('Failed to load invoices');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const calculateTotal = () => {
-    const itemsTotal = invoiceItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
-    return itemsTotal - discount;
+  const getStatusColor = (status) => {
+    const colors = {
+      'Draft': 'gray',
+      'Sent': 'blue',
+      'PartiallyPaid': 'yellow',
+      'Paid': 'green',
+      'Overdue': 'red',
+      'Cancelled': 'gray'
+    };
+    return colors[status] || 'gray';
   };
 
-  const calculateRemaining = () => {
-    return calculateTotal() - deposit;
+  const formatCurrency = (amount) => {
+    return `₦${amount?.toLocaleString() || '0'}`;
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   return (
     <DashboardLayout userRole="super-admin">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Create Invoice</h1>
-          <p className="text-gray-400">Generate invoices for orders</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-white mb-2">Invoices</h1>
+            <p className="text-gray-400">Manage and track all invoices</p>
+          </div>
+          <Link href="/dashboards/super-admin-dashboard/invoices/ready">
+            <Button variant="primary" className="gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              New Invoice
+            </Button>
+          </Link>
         </div>
 
-        <div className="bg-slate-950 rounded-lg p-6 border border-dark-lighter space-y-6">
-          {/* Order Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Select Order
-            </label>
-            <select
-              value={selectedOrder}
-              onChange={(e) => setSelectedOrder(e.target.value)}
-              className="w-full px-4 py-2.5 bg-slate-900 border border-dark-lighter rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="">Choose an order...</option>
-              {orders.map((order) => (
-                <option key={order.id} value={order.id}>
-                  {order.orderNumber} - ₦{order.total.toLocaleString()}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Invoice Items */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-white font-semibold">Invoice Items</h3>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setInvoiceItems([...invoiceItems, { description: '', quantity: 1, unitPrice: 0 }])}
-              >
-                Add Item
-              </Button>
-            </div>
-            <div className="space-y-4">
-              {invoiceItems.map((item, index) => (
-                <div key={index} className="grid grid-cols-12 gap-4">
-                  <div className="col-span-5">
-                    <Input
-                    className='[&_input]:bg-slate-900 '
-                      placeholder="Description"
-                      value={item.description}
-                      onChange={(e) => {
-                        const newItems = [...invoiceItems];
-                        newItems[index].description = e.target.value;
-                        setInvoiceItems(newItems);
-                      }}
-                    />
-                  </div>
-                  <div className="col-span-3">
-                    <Input
-                    className='[&_input]:bg-slate-900 '
-                      type="number"
-                      placeholder="Quantity"
-                      value={item.quantity}
-                      onChange={(e) => {
-                        const newItems = [...invoiceItems];
-                        newItems[index].quantity = parseInt(e.target.value) || 0;
-                        setInvoiceItems(newItems);
-                      }}
-                    />
-                  </div>
-                  <div className="col-span-3">
-                    <Input
-                    className='[&_input]:bg-slate-900 '
-                      type="number"
-                      placeholder="Unit Price"
-                      value={item.unitPrice}
-                      onChange={(e) => {
-                        const newItems = [...invoiceItems];
-                        newItems[index].unitPrice = parseFloat(e.target.value) || 0;
-                        setInvoiceItems(newItems);
-                      }}
-                    />
-                  </div>
-                  <div className="col-span-1">
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => setInvoiceItems(invoiceItems.filter((_, i) => i !== index))}
-                    >
-                      ✕
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Discount */}
-          <div>
-            <Input
-            className='[&_input]:bg-slate-900 '
-              label="Discount (₦)"
-              type="number"
-              value={discount}
-              onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
-            />
-          </div>
-
-          {/* Deposit */}
-          <div>
-            <Input
-            className='[&_input]:bg-slate-900 '
-              label="Deposit Amount (₦)"
-              type="number"
-              value={deposit}
-              onChange={(e) => setDeposit(parseFloat(e.target.value) || 0)}
-            />
-          </div>
-
-          {/* Totals */}
-          <div className="bg-slate-900 rounded-lg p-4 space-y-2">
-            <div className="flex justify-between text-gray-300">
-              <span>Total Amount</span>
-              <span>₦{calculateTotal().toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between text-gray-300">
-              <span>Deposit</span>
-              <span>₦{deposit.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between text-xl font-bold text-white pt-2 border-t border-dark-lighter">
-              <span>Remaining Amount</span>
-              <span>₦{calculateRemaining().toLocaleString()}</span>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-4">
-            <Button
-            className='flex-1 !border border-gray-700'
-              variant="secondary"
-              onClick={() => {
-                setSelectedOrder('');
-                setInvoiceItems([]);
-                setDiscount(0);
-                setDeposit(0);
-              }}
-            >
-              Clear
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleCreateInvoice}
-              disabled={!selectedOrder || invoiceItems.length === 0}
-              className="flex-1"
-            >
-              Generate Invoice
-            </Button>
-          </div>
+        {/* Filters */}
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setFilter('all')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+              filter === 'all' ? 'bg-primary text-white' : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setFilter('Draft')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+              filter === 'Draft' ? 'bg-gray-600 text-white' : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
+            }`}
+          >
+            Draft
+          </button>
+          <button
+            onClick={() => setFilter('Sent')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+              filter === 'Sent' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
+            }`}
+          >
+            Sent
+          </button>
+          <button
+            onClick={() => setFilter('PartiallyPaid')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+              filter === 'PartiallyPaid' ? 'bg-yellow-600 text-white' : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
+            }`}
+          >
+            Partially Paid
+          </button>
+          <button
+            onClick={() => setFilter('Paid')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+              filter === 'Paid' ? 'bg-green-600 text-white' : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
+            }`}
+          >
+            Paid
+          </button>
+          <button
+            onClick={() => setFilter('Overdue')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+              filter === 'Overdue' ? 'bg-red-600 text-white' : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
+            }`}
+          >
+            Overdue
+          </button>
         </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-200">
+            {error}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : invoices.length === 0 ? (
+          <div className="text-center py-16 bg-slate-900/30 rounded-xl border border-gray-800">
+            <div className="text-6xl mb-4">📄</div>
+            <h3 className="text-xl font-semibold text-white mb-2">No invoices found</h3>
+            <p className="text-gray-400 mb-6">Create your first invoice to get started</p>
+            <Link href="/dashboards/super-admin-dashboard/invoices/ready">
+              <Button variant="primary">Create Invoice</Button>
+            </Link>
+          </div>
+        ) : (
+          <div className="bg-slate-900/50 backdrop-blur-sm border border-gray-800 rounded-xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-slate-800/50">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Invoice #
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Customer
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Order #
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Amount
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Due Date
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-800">
+                  {invoices.map((invoice) => (
+                    <tr key={invoice._id} className="hover:bg-slate-800/30 transition">
+                      <td className="px-6 py-4">
+                        <span className="text-white font-mono text-sm">
+                          {invoice.invoiceNumber}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-white">
+                          {invoice.userId?.email?.split('@')[0] || 'N/A'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-gray-300 font-mono text-sm">
+                          {invoice.orderId?.orderNumber || 'N/A'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-white font-medium">
+                          {formatCurrency(invoice.totalAmount)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium bg-${getStatusColor(invoice.status)}-600/20 text-${getStatusColor(invoice.status)}-400`}>
+                          {invoice.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`text-sm ${
+                          invoice.status === 'Overdue' ? 'text-red-400' : 'text-gray-400'
+                        }`}>
+                          {formatDate(invoice.dueDate)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <Link href={`/dashboards/super-admin-dashboard/invoices/${invoice._id}`}>
+                          <button className="text-primary hover:text-primary-dark text-sm">
+                            View
+                          </button>
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

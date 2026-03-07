@@ -45,8 +45,5 @@ export const orderService = {
    getUserActiveOrders: (params = {}) => {
     const q = new URLSearchParams(params).toString();
     return api.get(`/orders/my-active-orders${q ? `?${q}` : ''}`);
-    },
-
-
-    
+    },    
 };

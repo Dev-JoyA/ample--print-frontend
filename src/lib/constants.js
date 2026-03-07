@@ -103,23 +103,53 @@ export const API_PATHS = {
   },
   
   // Customer briefs
-  CUSTOMER_BRIEFS: {
+    CUSTOMER_BRIEFS: {
     SUBMIT: (orderId, productId) =>
-      `/customer-briefs/customer/orders/${orderId}/products/${productId}/brief`,
+        `/customer-briefs/customer/orders/${orderId}/products/${productId}/brief`,
     UPDATE: (orderId, productId) =>
-      `/customer-briefs/customer/orders/${orderId}/products/${productId}/brief`,
+        `/customer-briefs/customer/orders/${orderId}/products/${productId}/brief`,
     MY_BRIEFS: "/customer-briefs/customer/briefs",
     ADMIN_RESPOND: (orderId, productId) =>
-      `/customer-briefs/admin/orders/${orderId}/products/${productId}/respond`,
+        `/customer-briefs/admin/orders/${orderId}/products/${productId}/respond`,
     ADMIN_BRIEFS: "/customer-briefs/admin/briefs",
     BY_ORDER_PRODUCT: (orderId, productId) =>
-      `/customer-briefs/briefs/orders/${orderId}/products/${productId}`,
+        `/customer-briefs/briefs/orders/${orderId}/products/${productId}`,
     BY_ID: (briefId) => `/customer-briefs/briefs/${briefId}`,
     STATUS: (orderId, productId) =>
-      `/customer-briefs/briefs/status/${orderId}/${productId}`,
+        `/customer-briefs/briefs/status/${orderId}/${productId}`,
     FILTER: "/customer-briefs/briefs/filter",
     DELETE: (briefId) => `/customer-briefs/briefs/${briefId}`,
+    MARK_AS_VIEWED: (briefId) => `/customer-briefs/briefs/${briefId}/view`,
+    ORDER_STATUS: (orderId) => `/customer-briefs/briefs/order/${orderId}/status`,
+    },
+
+   INVOICE: {
+    CREATE_FOR_ORDER: (orderId) => `/invoices/order/${orderId}`,
+    CREATE_SHIPPING: (orderId, shippingId) => `/invoices/shipping/order/${orderId}/shipping/${shippingId}`,
+    UPDATE: (invoiceId) => `/invoices/${invoiceId}`,
+    SEND: (invoiceId) => `/invoices/${invoiceId}/send`,
+    DELETE: (invoiceId) => `/invoices/${invoiceId}`,
+    ALL: "/invoices/all",
+    BY_ID: (invoiceId) => `/invoices/id/${invoiceId}`,
+    BY_NUMBER: (invoiceNumber) => `/invoices/number/${invoiceNumber}`,
+    BY_ORDER_ID: (orderId) => `/invoices/order-id/${orderId}`,
+    BY_ORDER_NUMBER: (orderNumber) => `/invoices/order-number/${orderNumber}`,
+    MY_INVOICES: "/invoices/my-invoices",
+    FILTER: "/invoices/filter",
   },
+
+  // Payments
+  PAYMENTS: {
+    PAYSTACK_INITIALIZE: "/payments/paystack/initialize",
+    PAYSTACK_VERIFY: "/payments/paystack/verify",
+    BANK_TRANSFER_UPLOAD: "/payments/bank-transfer/upload-receipt",
+    BANK_TRANSFER_VERIFY: (transactionId) => `/payments/bank-transfer/verify/${transactionId}`,
+    BANK_TRANSFER_PENDING: "/payments/bank-transfer/pending",
+    BY_ORDER: (orderId) => `/payments/order/${orderId}`,
+    BY_INVOICE: (invoiceId) => `/payments/invoice/${invoiceId}`,
+    MY_TRANSACTIONS: "/payments/my-transactions",
+  }
+
 };
 
 /** Cookie names used by the app */
