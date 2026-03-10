@@ -9,7 +9,7 @@ const Sidebar = ({ userRole = 'customer' }) => {
 
   const customerNavItems = [
     { name: 'Dashboard', href: '/dashboards', icon: '📊' },
-    { name: 'New Order', href: '/new-order', icon: '➕' },
+    { name: 'Notifications', href: '/notifications', icon: '➕' },
     { name: 'Collections', href: '/collections', icon: '📁' },
     { name: 'Design Approval', href: '/design-approval', icon: '✓' },
     { name: 'Invoices', href: '/invoices', icon: '📄' },

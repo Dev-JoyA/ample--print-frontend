@@ -235,9 +235,6 @@ export default function ProductDetailPage() {
       }
 
       const detailedDescription = `
-===========================================
-PRODUCT CUSTOMIZATION BRIEF
-===========================================
 
 PRODUCT INFORMATION:
 -------------------

@@ -24,10 +24,7 @@ export const API_PATHS = {
     GOOGLE_SUCCESS: "/auth/google/success",
     GOOGLE_FAILURE: "/auth/google/failure",
     
-    // Admin management endpoints (protected - only accessible by super admin)
-    // These are kept but commented to show they exist but shouldn't be used directly
-    // ADMIN_SIGN_UP: "/auth/admin-sign-up", // Only use through adminService
-    // SUPERADMIN_SIGN_UP: "/auth/superadmin-sign-up", // Should NEVER be exposed - use database seeding only
+    // Admin management endpoints
     DEACTIVATE_ADMIN: "/auth/deactivate-admin",
     REACTIVATE_ADMIN: "/auth/reactivate-admin",
   },
@@ -37,7 +34,7 @@ export const API_PATHS = {
     LIST: "/users",
     BY_ID: (userId) => `/users/${userId}`,
     ADDRESS: (userId) => `/users/${userId}/address`,
-    PROFILE: (userId) => `/users/${userId}/profile`,
+    UPDATE_PROFILE: (userId) => `/users/${userId}/profile`,
     ROLE: (userId) => `/users/${userId}/role`,
     ACTIVENESS: (userId) => `/users/${userId}/activeness`,
   },
@@ -66,7 +63,7 @@ export const API_PATHS = {
   
   // Design
   DESIGN: {
-    UPLOAD: (productId) => `/design/orders/${productId}`,
+    UPLOAD: (orderId) => `/design/orders/${orderId}`,
     UPDATE: (designId) => `/design/update/${designId}`,
     DELETE: (designId) => `/design/delete/${designId}`,
     APPROVE: (designId) => `/design/${designId}/approve`,
@@ -76,6 +73,7 @@ export const API_PATHS = {
     BY_PRODUCT: (productId) => `/design/products/${productId}`,
     ALL: "/design/all",
     FILTER: "/design/filter",
+    MY_DESIGNS: "/design/my-designs",
   },
   
   // Orders
@@ -89,6 +87,7 @@ export const API_PATHS = {
     FILTER: "/orders/filter",
     NEEDING_INVOICE: "/orders/needing-invoice",
     SEARCH: (orderNumber) => `/orders/search/${orderNumber}`,
+    MY_ACTIVE_ORDERS: "/orders/my-active-orders",
   },
   
   // Feedback
@@ -102,28 +101,24 @@ export const API_PATHS = {
     BY_ORDER: (orderId) => `/feedback/order/${orderId}`,
   },
   
-  // Customer briefs
     CUSTOMER_BRIEFS: {
-    SUBMIT: (orderId, productId) =>
-        `/customer-briefs/customer/orders/${orderId}/products/${productId}/brief`,
-    UPDATE: (orderId, productId) =>
-        `/customer-briefs/customer/orders/${orderId}/products/${productId}/brief`,
+    SUBMIT: (orderId, productId) => `/customer-briefs/customer/orders/${orderId}/products/${productId}/brief`,
+    UPDATE: (orderId, productId) => `/customer-briefs/customer/orders/${orderId}/products/${productId}/brief`,
     MY_BRIEFS: "/customer-briefs/customer/briefs",
-    ADMIN_RESPOND: (orderId, productId) =>
-        `/customer-briefs/admin/orders/${orderId}/products/${productId}/respond`,
+    ADMIN_RESPOND: (orderId, productId) => `/customer-briefs/admin/orders/${orderId}/products/${productId}/respond`,
     ADMIN_BRIEFS: "/customer-briefs/admin/briefs",
-    BY_ORDER_PRODUCT: (orderId, productId) =>
-        `/customer-briefs/briefs/orders/${orderId}/products/${productId}`,
+    BY_ORDER_PRODUCT: (orderId, productId) => `/customer-briefs/briefs/orders/${orderId}/products/${productId}`,
     BY_ID: (briefId) => `/customer-briefs/briefs/${briefId}`,
-    STATUS: (orderId, productId) =>
-        `/customer-briefs/briefs/status/${orderId}/${productId}`,
+    STATUS: (orderId, productId) => `/customer-briefs/briefs/status/${orderId}/${productId}`,
     FILTER: "/customer-briefs/briefs/filter",
     DELETE: (briefId) => `/customer-briefs/briefs/${briefId}`,
     MARK_AS_VIEWED: (briefId) => `/customer-briefs/briefs/${briefId}/view`,
     ORDER_STATUS: (orderId) => `/customer-briefs/briefs/order/${orderId}/status`,
+    ORDER_ALL: (orderId) => `/customer-briefs/briefs/order/${orderId}/all`,
     },
 
-   INVOICE: {
+  // Invoices
+  INVOICES: {
     CREATE_FOR_ORDER: (orderId) => `/invoices/order/${orderId}`,
     CREATE_SHIPPING: (orderId, shippingId) => `/invoices/shipping/order/${orderId}/shipping/${shippingId}`,
     UPDATE: (invoiceId) => `/invoices/${invoiceId}`,
@@ -149,7 +144,6 @@ export const API_PATHS = {
     BY_INVOICE: (invoiceId) => `/payments/invoice/${invoiceId}`,
     MY_TRANSACTIONS: "/payments/my-transactions",
   }
-
 };
 
 /** Cookie names used by the app */
@@ -161,5 +155,5 @@ export const COOKIE_NAMES = {
 /** Default request timeouts / limits */
 export const API_DEFAULTS = {
   PAGINATION_PAGE: 1,
-  PAGINATION_LIMIT: 10,
+  PAGINATION_LIMIT: 10
 };
