@@ -8,11 +8,56 @@ import OrderCard from '@/components/cards/OrderCard';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { orderService } from '@/services/orderService';
-import { useAuthCheck } from '@/app/lib/auth';
+import { useAuth, useAuthCheck } from '@/app/lib/auth';
+
+// Complete OrderStatus enum based on your backend
+const OrderStatus = {
+  Pending: 'Pending',
+  OrderReceived: 'OrderReceived',
+  FilesUploaded: 'FilesUploaded',
+  AwaitingInvoice: 'AwaitingInvoice',
+  InvoiceSent: 'InvoiceSent',
+  DesignUploaded: 'DesignUploaded',
+  UnderReview: 'UnderReview',
+  Approved: 'Approved',
+  AwaitingPartPayment: 'AwaitingPartPayment',
+  PartPaymentMade: 'PartPaymentMade',
+  InProduction: 'InProduction',
+  Completed: 'Completed',
+  AwaitingFinalPayment: 'AwaitingFinalPayment',
+  FinalPaid: 'FinalPaid',
+  ReadyForShipping: 'ReadyForShipping',
+  Shipped: 'Shipped',
+  Cancelled: 'Cancelled',
+  Delivered: 'Delivered',
+};
+
+// Status display names (for UI)
+const StatusDisplayNames = {
+  Pending: 'Pending',
+  OrderReceived: 'Order Received',
+  FilesUploaded: 'Files Uploaded',
+  AwaitingInvoice: 'Awaiting Invoice',
+  InvoiceSent: 'Invoice Sent',
+  DesignUploaded: 'Design Uploaded',
+  UnderReview: 'Under Review',
+  Approved: 'Approved',
+  AwaitingPartPayment: 'Awaiting Part Payment',
+  PartPaymentMade: 'Part Payment Made',
+  InProduction: 'In Production',
+  Completed: 'Completed',
+  AwaitingFinalPayment: 'Awaiting Final Payment',
+  FinalPaid: 'Final Paid',
+  ReadyForShipping: 'Ready For Shipping',
+  Shipped: 'Shipped',
+  Cancelled: 'Cancelled',
+  Delivered: 'Delivered',
+};
 
 export default function OrderHistoryPage() {
   const router = useRouter();
-  useAuthCheck();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
+  useAuthCheck(); // This will redirect to login if not authenticated
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,12 +69,38 @@ export default function OrderHistoryPage() {
   const [totalOrders, setTotalOrders] = useState(0);
   const [searchTimeout, setSearchTimeout] = useState(null);
 
-  // Fetch orders when page, filter, or search changes
+  // Wait for auth to be ready before fetching orders
   useEffect(() => {
-    fetchOrders();
-  }, [currentPage, filterStatus, searchTerm]);
+    if (!authLoading && isAuthenticated) {
+      fetchOrders();
+    }
+  }, [authLoading, isAuthenticated, currentPage, filterStatus]);
+
+  // Handle search with debounce
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+      
+      const timeout = setTimeout(() => {
+        setCurrentPage(1);
+        fetchOrders();
+      }, 500);
+      
+      setSearchTimeout(timeout);
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [searchTerm, authLoading, isAuthenticated]);
 
   const fetchOrders = async () => {
+    // Don't fetch if not authenticated
+    if (!isAuthenticated) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       
@@ -56,44 +127,43 @@ export default function OrderHistoryPage() {
       
       // Extract orders from response
       let ordersData = [];
+      let total = 0;
+      let limit = 10;
+      
       if (response?.order && Array.isArray(response.order)) {
         ordersData = response.order;
-        setTotalOrders(response.total || ordersData.length);
-        setTotalPages(Math.ceil((response.total || ordersData.length) / (response.limit || 10)) || 1);
+        total = response.total || ordersData.length;
+        limit = response.limit || 10;
       } else if (Array.isArray(response)) {
         ordersData = response;
-        setTotalOrders(ordersData.length);
-        setTotalPages(1);
+        total = ordersData.length;
+      } else if (response?.data?.order) {
+        ordersData = response.data.order;
+        total = response.data.total || ordersData.length;
+        limit = response.data.limit || 10;
       }
       
       setOrders(ordersData);
+      setTotalOrders(total);
+      setTotalPages(Math.ceil(total / limit) || 1);
       setError('');
     } catch (err) {
       console.error('Failed to fetch orders:', err);
-      setError('Failed to load order history');
+      
+      // Handle 401 Unauthorized error
+      if (err.status === 401) {
+        // Auth check will handle redirect
+        console.log('Unauthorized, will redirect to login');
+      } else {
+        setError('Failed to load order history');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handleSearchChange = (e) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-    setCurrentPage(1); // Reset to first page on new search
-    
-    // Debounce search to avoid too many API calls
-    if (searchTimeout) {
-      clearTimeout(searchTimeout);
-    }
-    
-    // Wait 500ms after user stops typing before searching
-    const timeout = setTimeout(() => {
-      if (value.trim() !== searchTerm.trim() || value === '') {
-        fetchOrders();
-      }
-    }, 500);
-    
-    setSearchTimeout(timeout);
+    setSearchTerm(e.target.value);
   };
 
   const handleFilterChange = (e) => {
@@ -116,21 +186,48 @@ export default function OrderHistoryPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Calculate stats from filtered orders
+  // Calculate stats from ACTUAL orders data
   const stats = {
     total: totalOrders,
     delivered: orders.filter(o => o.status === 'Delivered').length,
-    processing: orders.filter(o => ['InProduction', 'DesignUploaded', 'Approved'].includes(o.status)).length,
-    pending: orders.filter(o => ['Pending', 'OrderReceived', 'FilesUploaded'].includes(o.status)).length
+    inProduction: orders.filter(o => 
+      ['InProduction', 'DesignUploaded', 'Approved'].includes(o.status)
+    ).length,
+    pending: orders.filter(o => 
+      ['Pending', 'OrderReceived', 'FilesUploaded', 'AwaitingInvoice', 'InvoiceSent', 'UnderReview'].includes(o.status)
+    ).length,
+    paymentPending: orders.filter(o => 
+      o.paymentStatus === 'Pending' || 
+      o.paymentStatus === 'PartPayment' || 
+      o.paymentStatus === 'AwaitingPartPayment' ||
+      o.paymentStatus === 'AwaitingFinalPayment'
+    ).length
   };
 
-  if (loading && orders.length === 0) {
+  // Show loading while auth is being checked
+  if (authLoading) {
     return (
-      <DashboardLayout userRole="customer">
+      <DashboardLayout userRole={user?.role}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
-              <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-400">Checking authentication...</p>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Show loading while orders are being fetched
+  if (loading && orders.length === 0) {
+    return (
+      <DashboardLayout userRole={user?.role}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center">
+              <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
               <p className="text-gray-400">Loading your order history...</p>
             </div>
           </div>
@@ -140,7 +237,7 @@ export default function OrderHistoryPage() {
   }
 
   return (
-    <DashboardLayout userRole="customer">
+    <DashboardLayout userRole={user?.role}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
@@ -148,7 +245,7 @@ export default function OrderHistoryPage() {
             <h1 className="text-4xl font-bold text-white mb-2">Order History</h1>
             <p className="text-gray-400">View all your past and current orders</p>
           </div>
-          <Link href="/collections">
+          <Link href="/collections/all/products">
             <Button variant="primary" className="gap-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -158,23 +255,27 @@ export default function OrderHistoryPage() {
           </Link>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-4">
+        {/* Stats Cards - Now showing actual counts */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+          <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-4 hover:border-gray-700 transition-all">
             <p className="text-sm text-gray-400 mb-1">Total Orders</p>
             <p className="text-2xl font-bold text-white">{stats.total}</p>
           </div>
-          <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-4">
+          <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-4 hover:border-gray-700 transition-all">
             <p className="text-sm text-gray-400 mb-1">Delivered</p>
             <p className="text-2xl font-bold text-green-400">{stats.delivered}</p>
           </div>
-          <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-4">
+          <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-4 hover:border-gray-700 transition-all">
             <p className="text-sm text-gray-400 mb-1">In Production</p>
-            <p className="text-2xl font-bold text-yellow-400">{stats.processing}</p>
+            <p className="text-2xl font-bold text-yellow-400">{stats.inProduction}</p>
           </div>
-          <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-4">
+          <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-4 hover:border-gray-700 transition-all">
             <p className="text-sm text-gray-400 mb-1">Pending</p>
             <p className="text-2xl font-bold text-blue-400">{stats.pending}</p>
+          </div>
+          <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-4 hover:border-gray-700 transition-all">
+            <p className="text-sm text-gray-400 mb-1">Payment Due</p>
+            <p className="text-2xl font-bold text-orange-400">{stats.paymentPending}</p>
           </div>
         </div>
 
@@ -186,22 +287,36 @@ export default function OrderHistoryPage() {
               value={searchTerm}
               onChange={handleSearchChange}
               className="w-full"
+              icon={
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              }
             />
           </div>
           <select
             value={filterStatus}
             onChange={handleFilterChange}
-            className="bg-slate-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary"
+            className="bg-slate-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-600 min-w-[200px]"
           >
             <option value="all">All Orders</option>
             <option value="Pending">Pending</option>
             <option value="OrderReceived">Order Received</option>
             <option value="FilesUploaded">Files Uploaded</option>
+            <option value="AwaitingInvoice">Awaiting Invoice</option>
+            <option value="InvoiceSent">Invoice Sent</option>
             <option value="DesignUploaded">Design Uploaded</option>
             <option value="UnderReview">Under Review</option>
             <option value="Approved">Approved</option>
+            <option value="AwaitingPartPayment">Awaiting Part Payment</option>
+            <option value="PartPaymentMade">Part Payment Made</option>
             <option value="InProduction">In Production</option>
             <option value="Completed">Completed</option>
+            <option value="AwaitingFinalPayment">Awaiting Final Payment</option>
+            <option value="FinalPaid">Final Paid</option>
+            <option value="ReadyForShipping">Ready For Shipping</option>
+            <option value="Shipped">Shipped</option>
+            <option value="Cancelled">Cancelled</option>
             <option value="Delivered">Delivered</option>
           </select>
         </div>
@@ -211,13 +326,13 @@ export default function OrderHistoryPage() {
           <div className="flex items-center gap-2 mb-4 text-sm">
             <span className="text-gray-400">Active filters:</span>
             {searchTerm && (
-              <span className="px-2 py-1 bg-primary/20 text-primary rounded-full text-xs">
+              <span className="px-2 py-1 bg-red-900/30 text-red-400 rounded-full text-xs border border-red-800">
                 Search: "{searchTerm}"
               </span>
             )}
             {filterStatus !== 'all' && (
-              <span className="px-2 py-1 bg-primary/20 text-primary rounded-full text-xs">
-                Status: {filterStatus}
+              <span className="px-2 py-1 bg-red-900/30 text-red-400 rounded-full text-xs border border-red-800">
+                Status: {StatusDisplayNames[filterStatus] || filterStatus}
               </span>
             )}
             <button
@@ -243,7 +358,7 @@ export default function OrderHistoryPage() {
         {/* Loading Indicator */}
         {loading && orders.length > 0 && (
           <div className="flex justify-center py-4">
-            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-6 h-6 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
 
@@ -252,11 +367,11 @@ export default function OrderHistoryPage() {
           <div className="space-y-4">
             {/* Search Result Summary */}
             {(searchTerm || filterStatus !== 'all') && (
-              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-4">
+              <div className="bg-red-900/10 border border-red-800/30 rounded-lg p-4 mb-4">
                 <p className="text-gray-300">
-                  Found <span className="text-primary font-bold">{orders.length}</span> orders 
-                  {searchTerm && <span> matching "<span className="text-primary font-medium">{searchTerm}</span>"</span>}
-                  {filterStatus !== 'all' && <span> with status <span className="text-primary font-medium">{filterStatus}</span></span>}
+                  Found <span className="text-red-400 font-bold">{orders.length}</span> orders 
+                  {searchTerm && <span> matching "<span className="text-red-400 font-medium">{searchTerm}</span>"</span>}
+                  {filterStatus !== 'all' && <span> with status <span className="text-red-400 font-medium">{StatusDisplayNames[filterStatus] || filterStatus}</span></span>}
                   {totalOrders > orders.length && (
                     <span> (showing page {currentPage} of {totalPages})</span>
                   )}
@@ -296,7 +411,7 @@ export default function OrderHistoryPage() {
                 : 'Start by creating your first order'}
             </p>
             {!searchTerm && filterStatus === 'all' && (
-              <Link href="/collections">
+              <Link href="/collections/all/products">
                 <Button variant="primary">Browse Products</Button>
               </Link>
             )}
@@ -305,52 +420,55 @@ export default function OrderHistoryPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-8">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                  currentPage === 1
-                    ? 'text-gray-600 cursor-not-allowed'
-                    : 'text-white hover:bg-slate-800'
-                }`}
-              >
-                ← Previous
-              </button>
-              
-              <div className="flex items-center gap-1">
-                {[...Array(totalPages)].map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handlePageChange(i + 1)}
-                    className={`w-8 h-8 rounded-lg text-sm font-medium transition ${
-                      currentPage === i + 1
-                        ? 'bg-primary text-white'
-                        : 'text-gray-400 hover:bg-slate-800'
-                    }`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                  currentPage === totalPages
-                    ? 'text-gray-600 cursor-not-allowed'
-                    : 'text-white hover:bg-slate-800'
-                }`}
-              >
-                Next →
-              </button>
-            </div>
+          <div className="flex justify-center items-center gap-4 mt-8">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                currentPage === 1
+                  ? 'text-gray-600 cursor-not-allowed'
+                  : 'text-white hover:bg-slate-800'
+              }`}
+            >
+              ← Previous
+            </button>
             
-            <span className="text-sm text-gray-500">
-              Page {currentPage} of {totalPages}
-            </span>
+            <div className="flex items-center gap-2">
+              {[...Array(Math.min(totalPages, 5))].map((_, i) => {
+                let pageNum = i + 1;
+                if (totalPages > 5 && currentPage > 3) {
+                  pageNum = currentPage - 3 + i;
+                }
+                if (pageNum <= totalPages) {
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`w-10 h-10 rounded-lg text-sm font-medium transition ${
+                        currentPage === pageNum
+                          ? 'bg-red-600 text-white'
+                          : 'text-gray-400 hover:bg-slate-800'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                }
+                return null;
+              })}
+            </div>
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                currentPage === totalPages
+                  ? 'text-gray-600 cursor-not-allowed'
+                  : 'text-white hover:bg-slate-800'
+              }`}
+            >
+              Next →
+            </button>
           </div>
         )}
       </div>

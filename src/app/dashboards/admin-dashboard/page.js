@@ -61,7 +61,7 @@ export default function AdminDashboard() {
       try {
         const briefsResponse = await customerBriefService.getAdminBriefs({ 
           hasResponded: false,
-          limit: 5
+          limit: 2
         });
         
         let briefs = [];
