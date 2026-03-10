@@ -1,44 +1,65 @@
-const Input = ({
-  label,
-  type = 'text',
-  placeholder,
-  value,
-  onChange,
-  error,
+'use client';
+
+const Input = ({ 
+  label, 
+  name, 
+  value, 
+  onChange, 
+  type = 'text', 
+  placeholder, 
+  required = false, 
+  disabled = false,
+  textarea = false,
   icon,
+  rows = 3,
   className = '',
-  required = false,
-  ...props
+  ...props 
 }) => {
+  const baseClasses = "w-full bg-slate-800 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed";
+  
+  const iconClasses = icon ? "pl-10" : "";
+
   return (
-    <div className={`w-full ${className}`}>
+    <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-gray-300 mb-2">
-          {label}
-          {required && <span className="text-primary ml-1">*</span>}
+        <label htmlFor={name} className="block text-sm font-medium text-gray-300 mb-2">
+          {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}
       <div className="relative">
         {icon && (
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             {icon}
           </div>
         )}
-        <input
-          type={type}
-          placeholder={placeholder}
-          value={value}
-          onChange={onChange}
-          className={`w-full px-4 ${icon ? 'pl-10' : ''} py-2.5 bg-dark-light border ${
-            error ? 'border-red-500' : 'border-dark-lighter'
-          } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors`}
-          required={required}
-          {...props}
-        />
+        {textarea ? (
+          <textarea
+            id={name}
+            name={name}
+            value={value}
+            onChange={onChange}
+            placeholder={placeholder}
+            required={required}
+            disabled={disabled}
+            rows={rows}
+            className={`${baseClasses} ${iconClasses} ${className}`}
+            {...props}
+          />
+        ) : (
+          <input
+            type={type}
+            id={name}
+            name={name}
+            value={value}
+            onChange={onChange}
+            placeholder={placeholder}
+            required={required}
+            disabled={disabled}
+            className={`${baseClasses} ${iconClasses} ${className}`}
+            {...props}
+          />
+        )}
       </div>
-      {error && (
-        <p className="mt-1 text-sm text-red-400">{error}</p>
-      )}
     </div>
   );
 };

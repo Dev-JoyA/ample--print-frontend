@@ -36,8 +36,18 @@ export const orderService = {
     return api.get(q ? `${API_PATHS.ORDERS.NEEDING_INVOICE}?${q}` : API_PATHS.ORDERS.NEEDING_INVOICE);
   },
 
-  searchByOrderNumber: (orderNumber) =>
-    api.get(API_PATHS.ORDERS.SEARCH(orderNumber)),
+   searchByOrderNumber: async (orderNumber) => {
+    console.log(`🔍 Searching for order: ${orderNumber}`);
+    try {
+      // The endpoint is /orders/search/:orderNumber
+      const response = await api.get(`/orders/search/${orderNumber}`);
+      console.log('Search response:', response);
+      return response;
+    } catch (error) {
+      console.error('Failed to search order:', error);
+      throw error;
+    }
+  },
 
   addItemToOrder: (orderId, data) => 
   api.post(`/orders/${orderId}/items`, data),

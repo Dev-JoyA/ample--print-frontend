@@ -1,16 +1,24 @@
 'use client';
 
-import { useState } from 'react';
-import Image from 'next/image';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import { useAuth } from '@/app/lib/auth';
 import SearchBar from './SearchBar';
 import NotificationBell from './NotificationBell';
-import { useNotifications } from '@/components/providers/NotificationProvider';
+import CartIcon from './CartIcon';
+import ProfileDropdown from './ProfileDropdown';
 
-const Header = ({ onSearch, showSearch = true, userRole }) => {
-  const router = useRouter();
-  const { unreadCount } = useNotifications();
+const Header = ({ onSearch, showSearch = true }) => {
+  const pathname = usePathname();
+  const { isAuthenticated, loading } = useAuth();
+  
+  // Don't show header on auth pages or if not authenticated
+  const isAuthPage = pathname?.startsWith('/auth/');
+  
+  if (isAuthPage || !isAuthenticated || loading) {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-40 bg-slate-950 border-b border-gray-800">
@@ -30,56 +38,14 @@ const Header = ({ onSearch, showSearch = true, userRole }) => {
         )}
         
         <div className="flex items-center gap-4 ml-auto">
-          {/* Notifications - Using the NotificationBell component */}
+          {/* Notifications */}
           <NotificationBell />
 
           {/* Shopping Cart - Only for customers */}
-          {userRole?.toLowerCase() === 'customer' && (
-            <button 
-              onClick={() => router.push('/cart')}
-              className="p-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors relative"
-              aria-label="Shopping cart"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full text-xs flex items-center justify-center text-white">
-                0
-              </span>
-            </button>
-          )}
+          <CartIcon />
 
           {/* User Profile Dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => router.push('/profile')}
-              className="flex items-center gap-2 p-1 rounded-lg hover:bg-gray-800 transition-colors"
-            >
-              <div className="w-10 h-10 rounded-full bg-primary overflow-hidden">
-                <Image
-                  src="/images/logo/logo.png"
-                  alt="User"
-                  width={40}
-                  height={40}
-                  className="object-cover w-full h-full"
-                />
-              </div>
-              <div className="hidden md:block text-left">
-                <p className="text-sm text-white">Account</p>
-                <p className="text-xs text-gray-400">{userRole}</p>
-              </div>
-            </button>
-          </div>
+          <ProfileDropdown />
         </div>
       </div>
     </header>

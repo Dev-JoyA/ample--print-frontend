@@ -27,16 +27,6 @@ export default function NewOrderPage() {
           <p className="text-gray-400 text-lg mb-8 max-w-2xl">
             From foundational Brand Essentials to elite Large Format signage. Experience the highest standard of industrial printing precision.
           </p>
-          <div className="flex gap-4">
-            <Link href="/collections">
-              <Button variant="primary" size="lg" icon="→" iconPosition="right">
-                Explore Print Solutions
-              </Button>
-            </Link>
-            <Button variant="outline" size="lg">
-              Start Custom Brief
-            </Button>
-          </div>
         </div>
 
         {/* Essential Solutions */}
