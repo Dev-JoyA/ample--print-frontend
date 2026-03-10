@@ -7,39 +7,43 @@ class SocketService {
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
     this.isConnecting = false;
+    this.userId = null;
+    this.userRole = null;
   }
 
-  connect(token, userRole) {
+  connect(token, userRole, userId) {
     // Prevent multiple connection attempts
-    if (this.socket?.connected || this.isConnecting) return;
+    if (this.socket?.connected || this.isConnecting) {
+      console.log('Socket already connected or connecting');
+      return;
+    }
 
     this.isConnecting = true;
+    this.userRole = userRole;
+    this.userId = userId;
     
     const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4001';
+    console.log('Connecting to socket at:', SOCKET_URL);
+    console.log('With userId:', userId);
     
     try {
       this.socket = io(SOCKET_URL, {
-        transports: ['websocket'],
+        transports: ['websocket', 'polling'],
         query: { token },
         reconnection: true,
         reconnectionAttempts: this.maxReconnectAttempts,
         reconnectionDelay: 1000,
-        forceNew: true
+        forceNew: true,
+        timeout: 20000
       });
 
       this.socket.on('connect', () => {
-        console.log('✅ Socket connected');
+        console.log('✅ Socket connected successfully with ID:', this.socket.id);
         this.reconnectAttempts = 0;
         this.isConnecting = false;
         
-        // Join appropriate room based on user role
-        if (userRole && this.socket) {
-          this.socket.emit('joinRoom', userRole);
-          console.log(`📡 Joined ${userRole} room`);
-        }
-        
-        // Re-register all listeners after reconnect
-        this.reRegisterListeners();
+        // Join appropriate rooms
+        this.joinRooms();
       });
 
       this.socket.on('disconnect', (reason) => {
@@ -48,12 +52,16 @@ class SocketService {
       });
 
       this.socket.on('connect_error', (error) => {
-        console.error('Socket connection error:', error);
+        console.error('Socket connection error:', error.message);
         this.reconnectAttempts++;
         this.isConnecting = false;
       });
 
-      // Set up event listeners after socket is created
+      this.socket.on('error', (error) => {
+        console.error('Socket error:', error);
+      });
+
+      // Set up event listeners AFTER connection is established
       this.setupEventListeners();
       
     } catch (error) {
@@ -62,85 +70,198 @@ class SocketService {
     }
   }
 
-  setupEventListeners() {
-    if (!this.socket) return;
+  joinRooms() {
+    if (!this.socket) {
+      console.log('Cannot join rooms - socket not connected');
+      return;
+    }
 
-    // Customer events
-    this.socket.on('admin-brief-response', (data) => {
-      this.notifyListeners('admin-brief-response', data);
-    });
+    // Join role-based room
+    if (this.userRole) {
+      this.socket.emit('joinRoom', this.userRole);
+      console.log(`📡 Joined ${this.userRole} room`);
+    }
 
-    this.socket.on('feedback-response', (data) => {
-      this.notifyListeners('feedback-response', data);
-    });
-
-    this.socket.on('order-status-updated', (data) => {
-      this.notifyListeners('order-status-updated', data);
-    });
-
-    // Admin events
-    this.socket.on('new-order', (data) => {
-      console.log('📦 New order received via socket:', data);
-      this.notifyListeners('new-order', data);
-    });
-
-    this.socket.on('new-customer-brief', (data) => {
-      console.log('📝 New brief received via socket:', data);
-      this.notifyListeners('new-customer-brief', data);
-    });
-
-    this.socket.on('new-feedback', (data) => {
-      this.notifyListeners('new-feedback', data);
-    });
-
-    this.socket.on('designUploaded', (data) => {
-      console.log('🎨 Design uploaded via socket:', data);
-      this.notifyListeners('designUploaded', data);
-    });
-
-    this.socket.on('order-ready-for-shipping', (data) => {
-      this.notifyListeners('order-ready-for-shipping', data);
-    });
-
-    // Super Admin events
-    this.socket.on('payment-verified', (data) => {
-      this.notifyListeners('payment-verified', data);
-    });
-
-    this.socket.on('invoice-generated', (data) => {
-      this.notifyListeners('invoice-generated', data);
-    });
+    // Join user-specific room for direct messages
+    if (this.userId) {
+      this.socket.emit('joinRoom', `user-${this.userId}`);
+      console.log(`📡 Joined user-${this.userId} room`);
+    }
   }
 
-  // Re-register all listeners after reconnection
-  reRegisterListeners() {
-    if (!this.socket) return;
+  // In socketService.js, update the setupEventListeners method:
+
+setupEventListeners() {
+  if (!this.socket) {
+    console.log('Cannot setup listeners - socket not connected');
+    return;
+  }
+
+  console.log('Setting up socket event listeners for user:', this.userId);
+
+  // Listen to user-specific room events with a named listener
+  const userRoomName = `user-${this.userId}`;
+  this.socket.on(userRoomName, (data) => {
+    console.log(`📨 Message received in room ${userRoomName}:`, data);
+    this.notifyListeners('user-message', data);
     
-    // Re-attach all custom event listeners
-    this.listeners.forEach((callbacks, event) => {
-      this.socket?.off(event); // Remove existing listeners
-      callbacks.forEach(callback => {
-        this.socket?.on(event, callback);
-      });
-    });
-  }
+    // Also notify specific event types based on data
+    if (data.type) {
+      this.notifyListeners(data.type, data);
+    }
+    
+    // Check for brief response
+    if (data.briefId || (data.message && data.message.includes('brief'))) {
+      console.log('📝 Detected brief response, notifying listeners');
+      this.notifyListeners('admin-brief-response', data);
+    }
+    
+    // Check for design upload
+    if (data.designId || data.designUrl) {
+      console.log('🎨 Detected design upload, notifying listeners');
+      this.notifyListeners('designUploaded', data);
+    }
+    
+    // Check for order status update
+    if (data.status) {
+      console.log('🔄 Detected status update, notifying listeners');
+      this.notifyListeners('order-status-updated', data);
+    }
+  });
+
+  // Keep the generic listeners as fallback
+  this.socket.on('order-status-updated', (data) => {
+    console.log('📨 Order status updated event:', data);
+    this.notifyListeners('order-status-updated', data);
+  });
+
+  this.socket.on('designUploaded', (data) => {
+    console.log('🎨 Design uploaded event:', data);
+    this.notifyListeners('designUploaded', data);
+  });
+
+  this.socket.on('admin-brief-response', (data) => {
+    console.log('📝 Admin brief response event:', data);
+    this.notifyListeners('admin-brief-response', data);
+  });
+
+  this.socket.on('feedback-response', (data) => {
+    console.log('💬 Feedback response event:', data);
+    this.notifyListeners('feedback-response', data);
+  });
+
+  this.socket.on('brief-deleted', (data) => {
+    console.log('🗑️ Brief deleted event:', data);
+    this.notifyListeners('brief-deleted', data);
+  });
+
+  this.socket.on('order-ready-for-invoice', (data) => {
+    console.log('💰 Order ready for invoice event:', data);
+    this.notifyListeners('order-ready-for-invoice', data);
+  });
+
+  this.socket.on('new-order', (data) => {
+    console.log('📦 New order event:', data);
+    this.notifyListeners('new-order', data);
+  });
+
+  this.socket.on('new-customer-brief', (data) => {
+    console.log('📝 New customer brief event:', data);
+    this.notifyListeners('new-customer-brief', data);
+  });
+}
+
+//   setupEventListeners() {
+//     if (!this.socket) {
+//       console.log('Cannot setup listeners - socket not connected');
+//       return;
+//     }
+
+//     console.log('Setting up socket event listeners for user:', this.userId);
+
+//     // Listen to user-specific room events
+//     this.socket.on(`user-${this.userId}`, (data) => {
+//       console.log('📨 User-specific message received:', data);
+//       this.notifyListeners('user-message', data);
+      
+//       // Also notify specific event types based on data
+//       if (data.type) {
+//         this.notifyListeners(data.type, data);
+//       } else if (data.briefId) {
+//         this.notifyListeners('admin-brief-response', data);
+//       } else if (data.designId || data.designUrl) {
+//         this.notifyListeners('designUploaded', data);
+//       } else if (data.status) {
+//         this.notifyListeners('order-status-updated', data);
+//       }
+//     });
+
+//     // Listen to generic events
+//     this.socket.on('order-status-updated', (data) => {
+//       console.log('📨 Order status updated event:', data);
+//       this.notifyListeners('order-status-updated', data);
+//     });
+
+//     this.socket.on('designUploaded', (data) => {
+//       console.log('🎨 Design uploaded event:', data);
+//       this.notifyListeners('designUploaded', data);
+//     });
+
+//     this.socket.on('admin-brief-response', (data) => {
+//       console.log('📝 Admin brief response event:', data);
+//       this.notifyListeners('admin-brief-response', data);
+//     });
+
+//     this.socket.on('feedback-response', (data) => {
+//       console.log('💬 Feedback response event:', data);
+//       this.notifyListeners('feedback-response', data);
+//     });
+
+//     this.socket.on('brief-deleted', (data) => {
+//       console.log('🗑️ Brief deleted event:', data);
+//       this.notifyListeners('brief-deleted', data);
+//     });
+
+//     this.socket.on('order-ready-for-invoice', (data) => {
+//       console.log('💰 Order ready for invoice event:', data);
+//       this.notifyListeners('order-ready-for-invoice', data);
+//     });
+
+//     this.socket.on('new-order', (data) => {
+//       console.log('📦 New order event:', data);
+//       this.notifyListeners('new-order', data);
+//     });
+
+//     this.socket.on('new-customer-brief', (data) => {
+//       console.log('📝 New customer brief event:', data);
+//       this.notifyListeners('new-customer-brief', data);
+//     });
+//   }
 
   on(event, callback) {
+    console.log(`Registering listener for event: ${event}`);
+    
     if (!this.listeners.has(event)) {
       this.listeners.set(event, []);
     }
     this.listeners.get(event).push(callback);
     
-    // Also set up socket listener if socket exists
+    // If socket exists, set up the listener immediately
     if (this.socket) {
       this.socket.on(event, callback);
     }
   }
 
   off(event, callback) {
+    console.log(`Removing listener for event: ${event}`);
+    
     if (this.listeners.has(event)) {
       const callbacks = this.listeners.get(event).filter(cb => cb !== callback);
-      this.listeners.set(event, callbacks);
+      if (callbacks.length > 0) {
+        this.listeners.set(event, callbacks);
+      } else {
+        this.listeners.delete(event);
+      }
     }
     if (this.socket) {
       this.socket.off(event, callback);
@@ -148,6 +269,8 @@ class SocketService {
   }
 
   notifyListeners(event, data) {
+    console.log(`Notifying ${this.listeners.get(event)?.length || 0} listeners for ${event}`, data);
+    
     if (this.listeners.has(event)) {
       const callbacks = this.listeners.get(event);
       callbacks.forEach(callback => {
@@ -162,6 +285,7 @@ class SocketService {
 
   emit(event, data) {
     if (this.socket) {
+      console.log(`Emitting event: ${event}`, data);
       this.socket.emit(event, data);
     } else {
       console.warn('Cannot emit event, socket not connected:', event);
@@ -169,11 +293,14 @@ class SocketService {
   }
 
   disconnect() {
+    console.log('Disconnecting socket');
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;
       this.listeners.clear();
       this.isConnecting = false;
+      this.userId = null;
+      this.userRole = null;
     }
   }
 

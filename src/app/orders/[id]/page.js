@@ -9,7 +9,7 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import { useAuthCheck } from '@/app/lib/auth';
 import { orderService } from '@/services/orderService';
 import { customerBriefService } from '@/services/customerBriefService';
-import { productService } from '@/services/productService';
+import ProductBriefPreview from '@/app/briefs/productBriefPreview';
 
 export default function OrderDetailPage() {
   const params = useParams();
@@ -20,6 +20,7 @@ export default function OrderDetailPage() {
 
   const [order, setOrder] = useState(null);
   const [briefs, setBriefs] = useState({});
+  const [allBriefs, setAllBriefs] = useState([]); // Store all briefs for this order
   const [products, setProducts] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -40,11 +41,10 @@ export default function OrderDetailPage() {
       setOrder(orderData);
 
       if (orderData?.items) {
-        // Fetch briefs and products for each item
+        // Fetch briefs for each item (original logic)
         const briefPromises = orderData.items.map(async (item) => {
           const productId = item.productId._id || item.productId;
           
-          // Fetch brief
           try {
             const briefResponse = await customerBriefService.getByOrderAndProduct(orderId, productId);
             return {
@@ -64,6 +64,9 @@ export default function OrderDetailPage() {
         }, {});
         
         setBriefs(briefMap);
+        
+        // NEW: Fetch ALL briefs for this order (including admin responses)
+        await fetchAllOrderBriefs(orderId);
       }
 
     } catch (err) {
@@ -73,6 +76,28 @@ export default function OrderDetailPage() {
       setLoading(false);
     }
   };
+
+  // NEW: Function to fetch ALL briefs for this order
+const fetchAllOrderBriefs = async (orderId) => {
+  try {
+    // Use the new endpoint to get all briefs for this order
+    const response = await customerBriefService.getAllBriefsByOrderId(orderId);
+    
+    if (response?.data) {
+      setAllBriefs(response.data);
+    } else if (response?.briefs) {
+      setAllBriefs(response.briefs);
+    }
+  } catch (error) {
+    console.error('Failed to fetch all briefs:', error);
+    
+    // Fallback: If the new endpoint doesn't exist yet, use the existing briefs
+    if (Object.keys(briefs).length > 0) {
+      const briefArray = Object.values(briefs);
+      setAllBriefs(briefArray);
+    }
+  }
+};
 
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
@@ -111,6 +136,21 @@ export default function OrderDetailPage() {
     ];
     const currentIndex = steps.indexOf(status);
     return currentIndex >= 0 ? ((currentIndex + 1) / steps.length) * 100 : 0;
+  };
+
+  // Helper to determine if a brief is from admin
+  const isAdminBrief = (brief) => {
+    return brief?.role === 'Admin' || brief?.role === 'SuperAdmin';
+  };
+
+  // Helper to get the product name from brief
+  const getProductNameFromBrief = (brief) => {
+    if (brief.productId?.name) return brief.productId.name;
+    
+    // Try to find in order items
+    const productId = brief.productId?._id || brief.productId;
+    const item = order?.items?.find(i => (i.productId._id || i.productId) === productId);
+    return item?.productName || 'Unknown Product';
   };
 
   if (loading) {
@@ -256,7 +296,7 @@ export default function OrderDetailPage() {
                     : 'border-transparent text-gray-400 hover:text-gray-300'
                 }`}
               >
-                Customization Briefs
+                Customization Briefs {allBriefs.length > 0 && `(${allBriefs.length})`}
               </button>
               <button
                 onClick={() => setActiveTab('payment')}
@@ -356,42 +396,46 @@ export default function OrderDetailPage() {
               </div>
             )}
 
-            {/* Briefs Tab */}
-            {activeTab === 'briefs' && (
-              <div className="space-y-4">
-                {Object.keys(briefs).length > 0 ? (
-                  Object.entries(briefs).map(([productId, brief]) => {
-                    const item = order.items?.find(i => (i.productId._id || i.productId) === productId);
-                    
-                    return (
-                      <div key={productId} className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-6">
-                        <div className="flex items-center gap-4 mb-4">
-                          <div>
-                            <h3 className="text-white font-medium">{item?.productName}</h3>
-                            <p className="text-xs text-gray-500">Brief ID: {brief._id?.slice(-8)}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="bg-slate-800/30 rounded-lg p-4">
-                          <pre className="text-sm text-gray-300 whitespace-pre-wrap font-sans">
-                            {brief.description}
-                          </pre>
-                        </div>
-                        
-                        <div className="mt-4 text-xs text-gray-500">
-                          Submitted: {formatDate(brief.createdAt)}
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="text-center py-12 bg-slate-900/30 rounded-xl border border-gray-800">
-                    <div className="text-4xl mb-3">📝</div>
-                    <p className="text-gray-400">No customization briefs found for this order.</p>
-                  </div>
-                )}
-              </div>
-            )}
+        
+
+        {/* Briefs Tab */}
+        {activeTab === 'briefs' && (
+        <div className="space-y-8">
+            {order.items?.map((item) => {
+            const productId = item.productId._id || item.productId;
+            
+            return (
+                <div key={productId} className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 overflow-hidden">
+                {/* Product Header */}
+                <div className="bg-slate-800/50 p-4 border-b border-gray-700">
+                    <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="text-lg font-semibold text-white">{item.productName}</h3>
+                        <p className="text-sm text-gray-400">Quantity: {item.quantity}</p>
+                    </div>
+                    <Link href={`/orders/${orderId}/products/${productId}/briefs`}>
+                        <Button variant="secondary" size="sm" className="gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        View All Briefs
+                        </Button>
+                    </Link>
+                    </div>
+                </div>
+                
+                {/* Product Brief Preview */}
+                <ProductBriefPreview 
+                    orderId={orderId} 
+                    productId={productId} 
+                    productName={item.productName}
+                />
+                </div>
+            );
+            })}
+        </div>
+        )}
 
             {/* Payment Tab */}
             {activeTab === 'payment' && (
