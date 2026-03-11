@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import Button from '@/components/ui/Button';
@@ -10,13 +10,14 @@ import { orderService } from '@/services/orderService';
 import { customerBriefService } from '@/services/customerBriefService';
 import { discountService } from '@/services/discountService';
 
-export default function CreateInvoicePage() {
+export default function EditInvoicePage() {
+  const params = useParams();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const orderId = searchParams.get('orderId');
+  const invoiceId = params.id;
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [invoice, setInvoice] = useState(null);
   const [order, setOrder] = useState(null);
   const [items, setItems] = useState([]);
   const [error, setError] = useState('');
@@ -24,7 +25,6 @@ export default function CreateInvoicePage() {
   const [briefConversation, setBriefConversation] = useState(null);
   const [loadingBrief, setLoadingBrief] = useState(false);
   const [availableDiscounts, setAvailableDiscounts] = useState([]);
-  const [playingAudio, setPlayingAudio] = useState(null);
 
   // Invoice form state
   const [paymentType, setPaymentType] = useState('full');
@@ -40,17 +40,14 @@ export default function CreateInvoicePage() {
   const [totalAmount, setTotalAmount] = useState(0);
 
   useEffect(() => {
-    if (!orderId) {
-      router.push('/dashboards/super-admin-dashboard/invoices/ready');
-      return;
+    if (invoiceId) {
+      fetchInvoiceAndOrder();
+      fetchAvailableDiscounts();
     }
-
-    fetchOrderDetails();
-    fetchAvailableDiscounts();
-  }, [orderId]);
+  }, [invoiceId]);
 
   useEffect(() => {
-    if (order) {
+    if (invoice) {
       calculateTotals();
     }
   }, [items, selectedDiscount, customDiscount, discountType]);
@@ -61,66 +58,91 @@ export default function CreateInvoicePage() {
     }
   }, [paymentType, totalAmount]);
 
-  const fetchOrderDetails = async () => {
+  const fetchInvoiceAndOrder = async () => {
     try {
       setLoading(true);
       
-      // First, get orders ready for invoice to verify this order is eligible
-      // But we'll just get the order directly since we have the ID
-      const orderResponse = await orderService.getById(orderId);
+      // Fetch invoice
+      const invoiceResponse = await invoiceService.getById(invoiceId);
+      const invoiceData = invoiceResponse?.data || invoiceResponse?.invoice || invoiceResponse;
       
-      // Handle response structure based on your backend
-      const orderData = orderResponse?.data || orderResponse?.order || orderResponse;
-      
-      if (!orderData) {
-        throw new Error('Order not found');
+      if (!invoiceData) {
+        throw new Error('Invoice not found');
       }
       
-      // Initialize items with editable totals
-      if (orderData?.items && orderData.items.length > 0) {
-        const itemsWithBriefStatus = await Promise.all(
-          orderData.items.map(async (item) => {
-            const productId = item.productId?._id || item.productId;
-            
-            // Get brief conversation for this product using customerBriefService
-            try {
-              // Using the correct endpoint from your briefs service
-              const briefResponse = await customerBriefService.getByOrderAndProduct(orderId, productId);
-              const briefData = briefResponse?.data || briefResponse;
+      
+      setInvoice(invoiceData);
+      
+      // Set form state from invoice data
+      setPaymentType(invoiceData.depositAmount > 0 ? 'part' : 'full');
+      setDepositAmount(invoiceData.depositAmount || 0);
+      setNotes(invoiceData.notes || '');
+      
+      // Set discount
+      if (invoiceData.discount > 0) {
+        setCustomDiscount(invoiceData.discount);
+        // You might want to detect if it's percentage or fixed
+        // For now, assume it's fixed if it matches item prices
+        const isPercentage = (invoiceData.discount / invoiceData.subtotal) * 100 < 100;
+        setDiscountType(isPercentage ? 'percentage' : 'fixed');
+      }
+      
+      // Fetch order details
+      if (invoiceData.orderId) {
+        const orderId = typeof invoiceData.orderId === 'object' 
+          ? invoiceData.orderId._id 
+          : invoiceData.orderId;
+        
+        const orderResponse = await orderService.getById(orderId);
+        const orderData = orderResponse?.order || orderResponse?.data || orderResponse;
+        setOrder(orderData);
+        
+        // Initialize items with invoice prices
+        if (orderData?.items && orderData.items.length > 0) {
+          const itemsWithBriefStatus = await Promise.all(
+            orderData.items.map(async (orderItem) => {
+              const productId = orderItem.productId?._id || orderItem.productId;
               
-              return {
-                ...item,
-                editableTotal: item.price * item.quantity,
-                originalPrice: item.price,
-                originalTotal: item.price * item.quantity,
-                hasBrief: !!briefData?.customer,
-                hasAdminResponse: !!briefData?.admin,
-                briefId: briefData?.customer?._id,
-                briefConversation: briefData
-              };
-            } catch (err) {
-              console.log(`No brief found for product ${productId}`);
-              return {
-                ...item,
-                editableTotal: item.price * item.quantity,
-                originalPrice: item.price,
-                originalTotal: item.price * item.quantity,
-                hasBrief: false,
-                hasAdminResponse: false,
-                briefId: null,
-                briefConversation: null
-              };
-            }
-          })
-        );
-        setItems(itemsWithBriefStatus);
+              // Find corresponding invoice item to get the price
+              const invoiceItem = invoiceData.items?.find(
+                item => item.description === orderItem.productName
+              );
+              
+              try {
+                const briefResponse = await customerBriefService.getByOrderAndProduct(orderId, productId);
+                const briefData = briefResponse?.data || briefResponse;
+                
+                return {
+                  ...orderItem,
+                  editableTotal: invoiceItem?.total || (orderItem.price * orderItem.quantity),
+                  originalPrice: orderItem.price,
+                  originalTotal: orderItem.price * orderItem.quantity,
+                  hasBrief: !!briefData?.customer,
+                  hasAdminResponse: !!briefData?.admin,
+                  briefId: briefData?.customer?._id,
+                  briefConversation: briefData
+                };
+              } catch (err) {
+                return {
+                  ...orderItem,
+                  editableTotal: invoiceItem?.total || (orderItem.price * orderItem.quantity),
+                  originalPrice: orderItem.price,
+                  originalTotal: orderItem.price * orderItem.quantity,
+                  hasBrief: false,
+                  hasAdminResponse: false,
+                  briefId: null,
+                  briefConversation: null
+                };
+              }
+            })
+          );
+          setItems(itemsWithBriefStatus);
+        }
       }
-      
-      setOrder(orderData);
       
     } catch (err) {
-      console.error('Failed to fetch order details:', err);
-      setError(err.message || 'Failed to load order details');
+      console.error('Failed to fetch invoice:', err);
+      setError(err.message || 'Failed to load invoice');
     } finally {
       setLoading(false);
     }
@@ -139,7 +161,6 @@ export default function CreateInvoicePage() {
     const updatedItems = [...items];
     const total = parseFloat(newTotal) || 0;
     updatedItems[index].editableTotal = total;
-    // Calculate per-unit price for reference
     updatedItems[index].calculatedUnitPrice = total / updatedItems[index].quantity;
     setItems(updatedItems);
   };
@@ -180,40 +201,29 @@ export default function CreateInvoicePage() {
     setSubmitting(true);
     setError('');
 
-    const invoiceData = {
+    const updateData = {
       paymentType,
-      depositAmount: paymentType === 'part' ? depositAmount : undefined,
+      depositAmount: paymentType === 'part' ? depositAmount : 0,
       discount: discountAmount,
-      dueDate: new Date(),
       notes: notes || undefined,
-      paymentInstructions: '',
-      items: items.map(item => ({  // Send the items with custom totals
+      customItems: items.map(item => ({
         productId: item.productId?._id || item.productId,
         productName: item.productName,
         quantity: item.quantity,
-        totalPrice: item.editableTotal,
-        originalTotal: item.originalTotal
+        totalPrice: item.editableTotal
       }))
     };
 
-    console.log('Creating invoice with data:', invoiceData);
+    console.log('Updating invoice with data:', updateData);
+
+    const response = await invoiceService.update(invoiceId, updateData);
     
-    const response = await invoiceService.createForOrder(orderId, invoiceData);
-    
-    const invoiceId = response?.data?._id || 
-                      response?.data?.invoice?._id || 
-                      response?.invoice?._id || 
-                      response?._id;
-    
-    if (invoiceId) {
-      router.push(`/dashboards/super-admin-dashboard/invoices/${invoiceId}`);
-    } else {
-      throw new Error('No invoice ID returned from server');
-    }
+    // Redirect to invoice view
+    router.push(`/dashboards/super-admin-dashboard/invoices/${invoiceId}`);
     
   } catch (err) {
-    console.error('Failed to create invoice:', err);
-    setError(err.message || 'Failed to create invoice');
+    console.error('Failed to update invoice:', err);
+    setError(err.message || 'Failed to update invoice');
   } finally {
     setSubmitting(false);
   }
@@ -223,9 +233,10 @@ export default function CreateInvoicePage() {
     return `₦${amount?.toLocaleString() || '0'}`;
   };
 
-  const getCustomerName = (order) => {
+  const getCustomerName = () => {
     if (order?.userId?.fullname) return order.userId.fullname;
     if (order?.userId?.email) return order.userId.email.split('@')[0];
+    if (invoice?.userId?.email) return invoice.userId.email.split('@')[0];
     return 'Customer';
   };
 
@@ -237,7 +248,6 @@ export default function CreateInvoicePage() {
     const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(fileExtension || '');
     const isAudio = ['mp3', 'wav', 'ogg', 'm4a'].includes(fileExtension || '');
     const isVideo = ['mp4', 'webm', 'mov', 'avi'].includes(fileExtension || '');
-    const isPdf = fileExtension === 'pdf';
     
     if (isImage) {
       return (
@@ -273,16 +283,7 @@ export default function CreateInvoicePage() {
           </video>
         </div>
       );
-    } else if (isPdf) {
-      return (
-        <a href={url} target="_blank" rel="noopener noreferrer"
-           className="flex items-center gap-2 p-2 bg-slate-700/50 rounded hover:bg-slate-700 transition group">
-          <span className="text-red-400">📄</span>
-          <span className="text-xs text-gray-300 group-hover:text-white">{label}</span>
-        </a>
-      );
     } else {
-      // Generic file download
       return (
         <a href={url} target="_blank" rel="noopener noreferrer"
            className="flex items-center gap-2 p-2 bg-slate-700/50 rounded hover:bg-slate-700 transition group">
@@ -297,20 +298,23 @@ export default function CreateInvoicePage() {
     return (
       <DashboardLayout userRole="super-admin">
         <div className="flex justify-center items-center min-h-[60vh]">
-          <div className="text-white">Loading order details...</div>
+          <div className="text-white">Loading invoice...</div>
         </div>
       </DashboardLayout>
     );
   }
 
-  if (!order) {
+  if (error) {
     return (
       <DashboardLayout userRole="super-admin">
         <div className="text-center py-16">
-          <p className="text-gray-400">Order not found</p>
-          <Link href="/dashboards/super-admin-dashboard/orders" className="mt-4 text-primary hover:text-primary-dark inline-block">
-            Back to Orders
-          </Link>
+          <p className="text-red-400">{error}</p>
+          <button
+            onClick={() => router.back()}
+            className="mt-4 text-primary hover:text-primary-dark"
+          >
+            Go Back
+          </button>
         </div>
       </DashboardLayout>
     );
@@ -331,10 +335,11 @@ export default function CreateInvoicePage() {
             Back
           </button>
           
-          <h1 className="text-4xl font-bold text-white mb-2">Create Invoice</h1>
+          <h1 className="text-4xl font-bold text-white mb-2">Edit Invoice</h1>
           <p className="text-gray-400">
-            Order #{order.orderNumber} • {getCustomerName(order)}
+            Invoice #{invoice?.invoiceNumber} • {getCustomerName()}
           </p>
+          <p className="text-xs text-yellow-400 mt-2">Only draft invoices can be edited</p>
         </div>
 
         {error && (
@@ -348,7 +353,7 @@ export default function CreateInvoicePage() {
           {/* Order Number Display */}
           <div className="bg-slate-800/30 rounded-lg p-4">
             <p className="text-gray-400 text-sm">Order Number</p>
-            <p className="text-2xl font-bold text-white">{order.orderNumber}</p>
+            <p className="text-2xl font-bold text-white">{order?.orderNumber || invoice?.orderNumber || 'N/A'}</p>
           </div>
 
           {/* Products List with Editable Total Prices */}
@@ -439,7 +444,7 @@ export default function CreateInvoicePage() {
             </div>
           </div>
 
-          {/* Deposit Amount (for part payment) - Now editable */}
+          {/* Deposit Amount (for part payment) */}
           {paymentType === 'part' && (
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -455,7 +460,7 @@ export default function CreateInvoicePage() {
                 placeholder="Enter deposit amount"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Amount customer needs to pay upfront (suggested: 30% of total)
+                Amount customer needs to pay upfront
               </p>
             </div>
           )}
@@ -571,7 +576,7 @@ export default function CreateInvoicePage() {
               disabled={submitting}
               className="flex-1"
             >
-              {submitting ? 'Creating...' : 'Create Invoice'}
+              {submitting ? 'Saving...' : 'Save Changes'}
             </Button>
             <Button
               variant="secondary"
@@ -585,7 +590,7 @@ export default function CreateInvoicePage() {
         </div>
       </div>
 
-      {/* Brief Modal - Shows full conversation with playable media */}
+      {/* Brief Modal */}
       {showBriefModal && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-slate-900 rounded-xl border border-gray-800 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
@@ -622,7 +627,6 @@ export default function CreateInvoicePage() {
                         {briefConversation.customer.description || 'No description provided'}
                       </p>
                       
-                      {/* Customer Attachments */}
                       {(briefConversation.customer.image || briefConversation.customer.logo || 
                         briefConversation.customer.voiceNote || briefConversation.customer.video) && (
                         <div className="mt-3 space-y-2">
@@ -651,7 +655,6 @@ export default function CreateInvoicePage() {
                         {briefConversation.admin.description || 'No response description'}
                       </p>
                       
-                      {/* Admin Attachments */}
                       {(briefConversation.admin.image || briefConversation.admin.designId) && (
                         <div className="mt-3 space-y-2">
                           <p className="text-xs text-gray-400 mb-2">Admin Attachments:</p>
@@ -669,25 +672,6 @@ export default function CreateInvoicePage() {
                         </div>
                       )}
                     </div>
-                  )}
-
-                  {/* Super Admin Response (if any) */}
-                  {briefConversation.superAdmin && (
-                    <div className="bg-slate-800/50 rounded-lg p-4 border-l-4 border-purple-500">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-xs font-medium text-purple-400 bg-purple-900/30 px-2 py-1 rounded-full">Super Admin</span>
-                        <span className="text-xs text-gray-500">
-                          {new Date(briefConversation.superAdmin.createdAt).toLocaleString()}
-                        </span>
-                      </div>
-                      <p className="text-white text-sm whitespace-pre-line">
-                        {briefConversation.superAdmin.description || 'No response description'}
-                      </p>
-                    </div>
-                  )}
-
-                  {!briefConversation.customer && !briefConversation.admin && !briefConversation.superAdmin && (
-                    <p className="text-center text-gray-400 py-8">No brief details available</p>
                   )}
                 </div>
               ) : (

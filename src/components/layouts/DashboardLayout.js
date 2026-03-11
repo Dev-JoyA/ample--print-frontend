@@ -17,17 +17,37 @@ const DashboardLayout = ({ children, userRole = 'customer', showSearch = true })
     
     if (token) {
       setIsAuthenticated(true);
+      
+      // Try to decode token to get role
       try {
-        const decoded = JSON.parse(atob(token.split('.')[1]));
-        setUserRoleState(decoded?.role?.toLowerCase() || userRole);
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const decoded = JSON.parse(window.atob(base64));
+        
+        // Check different possible role field names
+        const role = decoded?.role || decoded?.userRole || decoded?.user?.role;
+        
+        if (role) {
+          // Normalize role to lowercase for comparison
+          const normalizedRole = role.toLowerCase();
+          console.log('Decoded role from token:', normalizedRole);
+          setUserRoleState(normalizedRole);
+        } else {
+          // If no role in token, use the prop
+          console.log('No role in token, using prop:', userRole);
+          setUserRoleState(userRole);
+        }
       } catch (e) {
         console.error('Failed to decode token:', e);
+        // Fallback to prop if token decode fails
+        setUserRoleState(userRole);
       }
     } else {
+      console.log('No token found, user not authenticated');
       setIsAuthenticated(false);
       setUserRoleState('guest');
     }
-  }, [userRole]);
+  }, [userRole]); // Re-run when userRole prop changes
 
   // If not authenticated, render without sidebar
   if (!isAuthenticated) {
@@ -40,6 +60,8 @@ const DashboardLayout = ({ children, userRole = 'customer', showSearch = true })
       </div>
     );
   }
+
+  console.log('DashboardLayout rendering with role:', userRoleState);
 
   // Authenticated view with sidebar
   return (

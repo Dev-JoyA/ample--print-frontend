@@ -127,9 +127,56 @@ setupEventListeners() {
       console.log('🔄 Detected status update, notifying listeners');
       this.notifyListeners('order-status-updated', data);
     }
+    
+    // Check for invoice events
+    if (data.invoiceId) {
+      console.log('💰 Detected invoice event:', data);
+      if (data.message && data.message.includes('created')) {
+        this.notifyListeners('invoice-created', data);
+      } else if (data.message && data.message.includes('updated')) {
+        this.notifyListeners('invoice-updated', data);
+      } else if (data.message && data.message.includes('deleted')) {
+        this.notifyListeners('invoice-deleted', data);
+      } else if (data.message && data.message.includes('sent')) {
+        this.notifyListeners('invoice-sent', data);
+      } else if (data.message && data.message.includes('payment')) {
+        this.notifyListeners('invoice-payment-updated', data);
+      }
+    }
   });
 
-  // Keep the generic listeners as fallback
+  // Invoice-related event listeners
+  this.socket.on('new-invoice', (data) => {
+    console.log('💰 New invoice event:', data);
+    this.notifyListeners('new-invoice', data);
+  });
+
+  this.socket.on('invoice-created', (data) => {
+    console.log('💰 Invoice created event:', data);
+    this.notifyListeners('invoice-created', data);
+  });
+
+  this.socket.on('invoice-updated', (data) => {
+    console.log('💰 Invoice updated event:', data);
+    this.notifyListeners('invoice-updated', data);
+  });
+
+  this.socket.on('invoice-deleted', (data) => {
+    console.log('💰 Invoice deleted event:', data);
+    this.notifyListeners('invoice-deleted', data);
+  });
+
+  this.socket.on('invoice-sent', (data) => {
+    console.log('💰 Invoice sent event:', data);
+    this.notifyListeners('invoice-sent', data);
+  });
+
+  this.socket.on('invoice-payment-updated', (data) => {
+    console.log('💰 Invoice payment updated event:', data);
+    this.notifyListeners('invoice-payment-updated', data);
+  });
+
+  // Keep the existing event listeners
   this.socket.on('order-status-updated', (data) => {
     console.log('📨 Order status updated event:', data);
     this.notifyListeners('order-status-updated', data);
@@ -170,73 +217,6 @@ setupEventListeners() {
     this.notifyListeners('new-customer-brief', data);
   });
 }
-
-//   setupEventListeners() {
-//     if (!this.socket) {
-//       console.log('Cannot setup listeners - socket not connected');
-//       return;
-//     }
-
-//     console.log('Setting up socket event listeners for user:', this.userId);
-
-//     // Listen to user-specific room events
-//     this.socket.on(`user-${this.userId}`, (data) => {
-//       console.log('📨 User-specific message received:', data);
-//       this.notifyListeners('user-message', data);
-      
-//       // Also notify specific event types based on data
-//       if (data.type) {
-//         this.notifyListeners(data.type, data);
-//       } else if (data.briefId) {
-//         this.notifyListeners('admin-brief-response', data);
-//       } else if (data.designId || data.designUrl) {
-//         this.notifyListeners('designUploaded', data);
-//       } else if (data.status) {
-//         this.notifyListeners('order-status-updated', data);
-//       }
-//     });
-
-//     // Listen to generic events
-//     this.socket.on('order-status-updated', (data) => {
-//       console.log('📨 Order status updated event:', data);
-//       this.notifyListeners('order-status-updated', data);
-//     });
-
-//     this.socket.on('designUploaded', (data) => {
-//       console.log('🎨 Design uploaded event:', data);
-//       this.notifyListeners('designUploaded', data);
-//     });
-
-//     this.socket.on('admin-brief-response', (data) => {
-//       console.log('📝 Admin brief response event:', data);
-//       this.notifyListeners('admin-brief-response', data);
-//     });
-
-//     this.socket.on('feedback-response', (data) => {
-//       console.log('💬 Feedback response event:', data);
-//       this.notifyListeners('feedback-response', data);
-//     });
-
-//     this.socket.on('brief-deleted', (data) => {
-//       console.log('🗑️ Brief deleted event:', data);
-//       this.notifyListeners('brief-deleted', data);
-//     });
-
-//     this.socket.on('order-ready-for-invoice', (data) => {
-//       console.log('💰 Order ready for invoice event:', data);
-//       this.notifyListeners('order-ready-for-invoice', data);
-//     });
-
-//     this.socket.on('new-order', (data) => {
-//       console.log('📦 New order event:', data);
-//       this.notifyListeners('new-order', data);
-//     });
-
-//     this.socket.on('new-customer-brief', (data) => {
-//       console.log('📝 New customer brief event:', data);
-//       this.notifyListeners('new-customer-brief', data);
-//     });
-//   }
 
   on(event, callback) {
     console.log(`Registering listener for event: ${event}`);
