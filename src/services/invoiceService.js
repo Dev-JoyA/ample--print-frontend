@@ -13,15 +13,16 @@ export const invoiceService = {
   },
 
   // Update invoice (draft only)
-  update: async (invoiceId, data) => {
+    update: async (invoiceId, data) => {
     try {
-      const response = await api.put(`/invoices/${invoiceId}`, data);
-      return response;
+        console.log(`Updating invoice ${invoiceId} with:`, data);
+        const response = await api.put(`/invoices/${invoiceId}`, data);
+        return response;
     } catch (error) {
-      console.error('Failed to update invoice:', error);
-      throw error;
+        console.error('Failed to update invoice:', error);
+        throw error;
     }
-  },
+    },
 
 
   // Delete invoice (draft only, Super Admin only)

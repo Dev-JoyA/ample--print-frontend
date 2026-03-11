@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -11,6 +11,35 @@ const Sidebar = ({ userRole = 'customer' }) => {
   const pathname = usePathname();
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [effectiveRole, setEffectiveRole] = useState(userRole);
+
+  // Also check token directly as backup
+  useEffect(() => {
+    const token = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('token='))
+      ?.split('=')[1];
+    
+    if (token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const decoded = JSON.parse(window.atob(base64));
+        
+        const role = decoded?.role || decoded?.userRole || decoded?.user?.role;
+        if (role) {
+          const normalizedRole = role.toLowerCase();
+          console.log('Sidebar detected role:', normalizedRole);
+          setEffectiveRole(normalizedRole);
+        }
+      } catch (e) {
+        console.error('Failed to decode token in sidebar:', e);
+        setEffectiveRole(userRole);
+      }
+    } else {
+      setEffectiveRole(userRole);
+    }
+  }, [userRole]);
 
   const customerNavItems = [
     { name: 'Dashboard', href: '/dashboards', icon: '📊' },
@@ -34,16 +63,19 @@ const Sidebar = ({ userRole = 'customer' }) => {
 
   const superAdminNavItems = [
     { name: 'Dashboard', href: '/dashboards/super-admin-dashboard', icon: '📊' },
+    { name: 'Admin Management', href: '/dashboards/super-admin-dashboard/admin-management', icon: '👥' },
     { name: 'Invoices', href: '/dashboards/super-admin-dashboard/invoices', icon: '📄' },
     { name: 'Shipping Invoices', href: '/dashboards/super-admin-dashboard/shipping-invoices', icon: '🚚' },
+    { name: 'Notifications', href: '/notifications', icon: '➕' },
     { name: 'Discounts', href: '/dashboards/super-admin-dashboard/discounts', icon: '💰' },
     { name: 'Payment Verification', href: '/dashboards/super-admin-dashboard/payment-verification', icon: '✅' },
     { name: 'Financial Records', href: '/dashboards/super-admin-dashboard/financial-records', icon: '📊' },
   ];
 
   const getNavItems = () => {
-    if (userRole === 'admin') return adminNavItems;
-    if (userRole === 'super-admin') return superAdminNavItems;
+    console.log('Getting nav items for role:', effectiveRole);
+    if (effectiveRole === 'admin' || effectiveRole === 'Admin') return adminNavItems;
+    if (effectiveRole === 'super-admin' || effectiveRole === 'SuperAdmin' || effectiveRole === 'superadmin') return superAdminNavItems;
     return customerNavItems;
   };
 
@@ -60,35 +92,27 @@ const Sidebar = ({ userRole = 'customer' }) => {
     try {
       setIsLoggingOut(true);
       
-      // Get refresh token from cookies
       const refreshToken = document.cookie
         .split('; ')
         .find(row => row.startsWith(`${COOKIE_NAMES.REFRESH_TOKEN}=`))
         ?.split('=')[1];
 
-      // Call logout API if refresh token exists
       if (refreshToken) {
         try {
           await authService.logout(refreshToken);
         } catch (error) {
           console.error('Logout API error:', error);
-          // Continue with logout even if API fails
         }
       }
 
-      // Clear all auth cookies
       document.cookie = `${COOKIE_NAMES.TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
       document.cookie = `${COOKIE_NAMES.REFRESH_TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
-      
-      // Clear any other app-specific cookies
       document.cookie = `super_admin_secret=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
       
-      // Redirect to home page
       router.push('/');
       
     } catch (error) {
       console.error('Logout failed:', error);
-      // Force redirect even if error occurs
       router.push('/');
     } finally {
       setIsLoggingOut(false);

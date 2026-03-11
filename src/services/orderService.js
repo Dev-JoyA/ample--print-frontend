@@ -31,15 +31,33 @@ export const orderService = {
     return api.get(q ? `${API_PATHS.ORDERS.FILTER}?${q}` : API_PATHS.ORDERS.FILTER);
   },
 
+  // DEPRECATED: Use getOrdersReadyForInvoice instead
+  // Keeping for backward compatibility
   getNeedingInvoice: (params = {}) => {
+    console.warn("⚠️ getNeedingInvoice is deprecated. Use getOrdersReadyForInvoice instead.");
     const q = new URLSearchParams(params || {}).toString();
-    return api.get(q ? `${API_PATHS.ORDERS.NEEDING_INVOICE}?${q}` : API_PATHS.ORDERS.NEEDING_INVOICE);
+    // Both point to the same endpoint now
+    return api.get(q ? `${API_PATHS.ORDERS.READY_FOR_INVOICE}?${q}` : API_PATHS.ORDERS.READY_FOR_INVOICE);
   },
 
-   searchByOrderNumber: async (orderNumber) => {
+  // RECOMMENDED: Use this method for orders ready for invoice
+  getOrdersReadyForInvoice: async (params = {}) => {
+    console.log("📋 Fetching orders ready for invoice");
+    try {
+      const q = new URLSearchParams(params || {}).toString();
+      const response = await api.get(q ? `${API_PATHS.ORDERS.READY_FOR_INVOICE}?${q}` : API_PATHS.ORDERS.READY_FOR_INVOICE);
+      console.log("✅ Orders ready for invoice:", response);
+      return response;
+    } catch (error) {
+      console.error("❌ Failed to fetch orders ready for invoice:", error);
+      // Return empty result instead of throwing
+      return { orders: [], total: 0 };
+    }
+  },
+
+  searchByOrderNumber: async (orderNumber) => {
     console.log(`🔍 Searching for order: ${orderNumber}`);
     try {
-      // The endpoint is /orders/search/:orderNumber
       const response = await api.get(`/orders/search/${orderNumber}`);
       console.log('Search response:', response);
       return response;
@@ -50,10 +68,10 @@ export const orderService = {
   },
 
   addItemToOrder: (orderId, data) => 
-  api.post(`/orders/${orderId}/items`, data),
+    api.post(`/orders/${orderId}/items`, data),
 
-   getUserActiveOrders: (params = {}) => {
+  getUserActiveOrders: (params = {}) => {
     const q = new URLSearchParams(params).toString();
     return api.get(`/orders/my-active-orders${q ? `?${q}` : ''}`);
-    },    
+  },    
 };

@@ -319,7 +319,7 @@ export default function BriefResponsePage({ params }) {
             {/* Message Content */}
             {brief.description && (
               <div className="mb-4">
-                <p className="text-gray-300 whitespace-pre-wrap">
+                <p className="text-gray-300 whitespace-pre-line">
                   {brief.description}
                 </p>
               </div>

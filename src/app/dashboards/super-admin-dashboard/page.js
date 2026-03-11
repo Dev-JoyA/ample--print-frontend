@@ -53,38 +53,91 @@ export default function SuperAdminDashboard() {
         .filter(o => o.paymentStatus === 'Completed')
         .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
-      // Fetch pending invoices
-      const invoicesResponse = await invoiceService.getAll({ status: 'pending', limit: 100 });
-      const pendingInvoices = invoicesResponse?.invoices?.length || 0;
+     // Fetch orders ready for invoice using the recommended method
+    let pendingInvoices = 0;
+    try {
+    const ordersReadyForInvoiceResponse = await orderService.getOrdersReadyForInvoice();
+    console.log("Orders ready for invoice:", ordersReadyForInvoiceResponse);
+    
+    // Handle different response structures
+    if (ordersReadyForInvoiceResponse?.orders && Array.isArray(ordersReadyForInvoiceResponse.orders)) {
+        pendingInvoices = ordersReadyForInvoiceResponse.orders.length;
+    } else if (ordersReadyForInvoiceResponse?.order && Array.isArray(ordersReadyForInvoiceResponse.order)) {
+        pendingInvoices = ordersReadyForInvoiceResponse.order.length;
+    } else if (Array.isArray(ordersReadyForInvoiceResponse)) {
+        pendingInvoices = ordersReadyForInvoiceResponse.length;
+    } else if (ordersReadyForInvoiceResponse?.data?.orders) {
+        pendingInvoices = ordersReadyForInvoiceResponse.data.orders.length;
+    }
+    } catch (err) {
+    console.error("Failed to fetch orders ready for invoice:", err);
+    pendingInvoices = 0;
+    }
       
       // Fetch overdue invoices
-      const overdueResponse = await invoiceService.getAll({ status: 'overdue', limit: 100 });
-      const overdueInvoices = overdueResponse?.invoices?.length || 0;
+      let overdueInvoices = 0;
+      try {
+        const overdueResponse = await invoiceService.getAll({ status: 'overdue', limit: 100 });
+        overdueInvoices = overdueResponse?.invoices?.length || 
+                         overdueResponse?.data?.invoices?.length || 
+                         (Array.isArray(overdueResponse) ? overdueResponse.length : 0);
+      } catch (err) {
+        console.error("Failed to fetch overdue invoices:", err);
+        overdueInvoices = 0;
+      }
 
       // Fetch unverified payments (bank transfers)
-      const paymentsResponse = await paymentService.getPendingBankTransfers({ limit: 100 });
-      const unverifiedPayments = paymentsResponse?.transactions?.length || 0;
+      let unverifiedPayments = 0;
+      let transactions = [];
+      try {
+        const paymentsResponse = await paymentService.getPendingBankTransfers({ limit: 100 });
+        console.log("Payments response:", paymentsResponse);
+        
+        if (paymentsResponse?.transactions && Array.isArray(paymentsResponse.transactions)) {
+          unverifiedPayments = paymentsResponse.transactions.length;
+          transactions = paymentsResponse.transactions;
+        } else if (paymentsResponse?.data?.transactions) {
+          unverifiedPayments = paymentsResponse.data.transactions.length;
+          transactions = paymentsResponse.data.transactions;
+        } else if (Array.isArray(paymentsResponse)) {
+          unverifiedPayments = paymentsResponse.length;
+          transactions = paymentsResponse;
+        }
+      } catch (err) {
+        console.error("Failed to fetch pending payments:", err);
+        unverifiedPayments = 0;
+        transactions = [];
+      }
 
       // Fetch active admins
-      const adminsResponse = await adminService.getAllAdmins();
-      const activeAdmins = adminsResponse?.filter(a => a.isActive).length || 0;
+      let activeAdmins = 0;
+      try {
+        const adminsResponse = await adminService.getAllAdmins();
+        if (Array.isArray(adminsResponse)) {
+          activeAdmins = adminsResponse.filter(a => a.isActive).length;
+        } else if (adminsResponse?.data && Array.isArray(adminsResponse.data)) {
+          activeAdmins = adminsResponse.data.filter(a => a.isActive).length;
+        }
+      } catch (err) {
+        console.error("Failed to fetch admins:", err);
+        activeAdmins = 0;
+      }
 
-      // Fetch recent activities (you might need a dedicated activities endpoint)
-      const recentOrders = orders.slice(0, 3).map(o => ({
-        id: o._id,
-        action: 'New order created',
-        user: o.orderNumber,
-        time: new Date(o.createdAt).toLocaleString(),
-        status: 'info'
-      }));
-
-      const recentPayments = paymentsResponse?.transactions?.slice(0, 2).map(p => ({
-        id: p._id,
-        action: 'Payment received',
-        user: `Order #${p.orderNumber}`,
-        time: new Date(p.createdAt).toLocaleString(),
-        status: 'success'
-      })) || [];
+      // Fetch recent invoices for display
+      let invoices = [];
+      try {
+        const invoicesResponse = await invoiceService.getAll({ limit: 5 });
+        if (invoicesResponse?.invoices && Array.isArray(invoicesResponse.invoices)) {
+          invoices = invoicesResponse.invoices;
+        } else if (invoicesResponse?.data?.invoices) {
+          invoices = invoicesResponse.data.invoices;
+        } else if (Array.isArray(invoicesResponse)) {
+          invoices = invoicesResponse;
+        }
+      } catch (err) {
+        console.error("Failed to fetch invoices:", err);
+        invoices = [];
+      }
 
       setStats({
         totalRevenue,
@@ -97,37 +150,63 @@ export default function SuperAdminDashboard() {
         overdueInvoices
       });
 
-      // Format currency
-      const formattedRevenue = `₦${totalRevenue.toLocaleString()}`;
-
       // Set pending verifications from bank transfers
-      setPendingVerifications((paymentsResponse?.transactions || []).slice(0, 5).map(t => ({
+      setPendingVerifications(transactions.slice(0, 5).map(t => ({
         id: t._id,
-        customer: t.userId?.email?.split('@')[0] || 'Customer',
-        amount: `₦${t.amount?.toLocaleString()}`,
-        orderId: `#${t.orderNumber}`,
-        date: new Date(t.createdAt).toLocaleDateString()
+        customer: t.userId?.email?.split('@')[0] || t.customerName || 'Customer',
+        amount: `₦${(t.amount || 0).toLocaleString()}`,
+        orderId: t.orderNumber ? `#${t.orderNumber}` : `#${t.orderId?.slice(-6) || 'N/A'}`,
+        date: t.createdAt ? new Date(t.createdAt).toLocaleDateString() : 'N/A'
       })));
 
       // Set recent invoices
-      setRecentInvoices((invoicesResponse?.invoices || []).slice(0, 3).map(i => ({
+      setRecentInvoices(invoices.slice(0, 3).map(i => ({
         id: i._id,
-        number: i.invoiceNumber,
-        customer: i.orderId?.userId?.email?.split('@')[0] || 'Customer',
-        amount: `₦${i.totalAmount?.toLocaleString()}`,
+        number: i.invoiceNumber || `INV-${i._id?.slice(-6)}`,
+        customer: i.orderId?.userId?.email?.split('@')[0] || i.customerName || 'Customer',
+        amount: `₦${(i.totalAmount || 0).toLocaleString()}`,
         status: i.status?.toLowerCase() || 'pending'
       })));
 
-      // Combine recent activities
-      setRecentActivities([
-        ...recentOrders,
-        ...recentPayments,
-        { id: 'stats', action: 'Dashboard updated', user: 'System', time: 'Just now', status: 'info' }
-      ]);
+      // Create recent activities
+      const activities = [];
+      
+      // Add order activities
+      orders.slice(0, 2).forEach(o => {
+        activities.push({
+          id: o._id,
+          action: 'New order created',
+          user: o.orderNumber,
+          time: o.createdAt ? new Date(o.createdAt).toLocaleString() : 'Recently',
+          status: 'info'
+        });
+      });
+      
+      // Add payment activities
+      transactions.slice(0, 2).forEach(t => {
+        activities.push({
+          id: t._id,
+          action: 'Payment received',
+          user: t.orderNumber ? `Order #${t.orderNumber}` : 'Bank transfer',
+          time: t.createdAt ? new Date(t.createdAt).toLocaleString() : 'Recently',
+          status: 'success'
+        });
+      });
+      
+      // Add system activity
+      activities.push({ 
+        id: 'stats', 
+        action: 'Dashboard updated', 
+        user: 'System', 
+        time: 'Just now', 
+        status: 'info' 
+      });
+      
+      setRecentActivities(activities);
 
     } catch (err) {
       console.error('Failed to fetch dashboard data:', err);
-      setError('Failed to load dashboard data');
+      setError('Failed to load dashboard data. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -153,16 +232,6 @@ export default function SuperAdminDashboard() {
       <DashboardLayout userRole="super-admin">
         <div className="flex justify-center items-center min-h-[60vh]">
           <div className="text-white">Loading dashboard...</div>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <DashboardLayout userRole="super-admin">
-        <div className="bg-red-900/50 border border-red-700 rounded-lg p-4 text-red-200">
-          {error}
         </div>
       </DashboardLayout>
     );
@@ -205,13 +274,13 @@ export default function SuperAdminDashboard() {
             color="green"
             subtitle="All time revenue"
           />
-          <Link href="/dashboards/super-admin-dashboard/invoices?filter=pending">
+          <Link href="/dashboards/super-admin-dashboard/orders?filter=needs-invoice">
             <SummaryCard
               title="Pending Invoices"
               value={stats.pendingInvoices.toString()}
               icon="📄"
               color="yellow"
-              subtitle="Awaiting payment"
+              subtitle="Awaiting invoice generation"
             />
           </Link>
           <Link href="/dashboards/super-admin-dashboard/payment-verification">

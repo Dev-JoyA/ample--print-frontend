@@ -50,14 +50,25 @@ export const profileService = {
   },
 
   // Get user by ID
-  getUserById: async (userId) => {
-    try {
-      const endpoint = API_PATHS.USERS.BY_ID(userId);
-      const response = await api.get(endpoint);
-      return response;
-    } catch (error) {
-      console.error('Failed to fetch user:', error);
-      throw error;
-    }
+getUserById: async (userId) => {
+  try {
+    // Ensure userId is a string
+    const id = userId?.toString ? userId.toString() : userId;
+    console.log('Fetching user with ID:', id);
+    
+    const endpoint = API_PATHS.USERS.BY_ID(id);
+    const response = await api.get(endpoint);
+    return response;
+  } catch (error) {
+    console.error('Failed to fetch user:', error);
+    // Return a fallback structure instead of throwing
+    return {
+      user: {
+        firstName: '',
+        lastName: '',
+        email: ''
+      }
+    };
   }
+},
 };
