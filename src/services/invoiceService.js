@@ -190,5 +190,26 @@ export const invoiceService = {
       console.error('Failed to send invoice:', error);
       throw error;
     }
+  },
+
+  // Download invoice as PDF
+downloadInvoice: async (invoiceId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/invoices/${invoiceId}/pdf`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${getToken()}`,
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to download invoice');
+    }
+    
+    return await response.blob();
+  } catch (error) {
+    console.error('Failed to download invoice:', error);
+    throw error;
   }
+},
 };

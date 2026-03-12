@@ -23,63 +23,134 @@ export default function NotificationBell() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Debug log to see what notifications look like
+  useEffect(() => {
+    console.log('Current notifications in bell:', notifications);
+    console.log('Unread count:', unreadCount);
+  }, [notifications, unreadCount]);
+
   const getNotificationIcon = (type) => {
-    switch(type) {
-      case 'new-order': return '📦';
-      case 'new-brief': 
-      case 'new-customer-brief': return '📝';
-      case 'brief-response':
-      case 'admin-brief-response': return '📬';
-      case 'design-uploaded':
-      case 'designUploaded': return '🎨';
-      case 'status-update':
-      case 'order-status-updated': return '🔄';
-      case 'invoice-ready':
-      case 'order-ready-for-invoice': return '💰';
-      case 'feedback-response': return '💬';
-      case 'brief-deleted': return '🗑️';
-      case 'payment-verified': return '✅';
-      case 'payment-rejected': return '❌';
-      default: return '🔔';
-    }
+    const iconMap = {
+      'new-order': '📦',
+      'new-brief': '📝',
+      'new-customer-brief': '📝',
+      'brief-response': '📬',
+      'admin-brief-response': '📬',
+      'design-uploaded': '🎨',
+      'designUploaded': '🎨',
+      'status-update': '🔄',
+      'order-status-updated': '🔄',
+      'invoice-ready': '💰',
+      'order-ready-for-invoice': '💰',
+      'feedback-response': '💬',
+      'brief-deleted': '🗑️',
+      'payment-verified': '✅',
+      'payment-rejected': '❌',
+      'payment-received': '💰',
+      'payment-failed': '❌',
+      'shipping-created': '🚚',
+      'pickup-ready': '📦',
+      'tracking-updated': '📍',
+      'shipping-status-updated': '🚚',
+      'invoice-created': '💰',
+      'invoice-updated': '💰',
+      'invoice-sent': '📤',
+      'invoice-deleted': '🗑️',
+      'invoice-payment-updated': '💰',
+      'design-updated': '🎨',
+      'design-approved': '✅',
+      'new-feedback': '💬',
+      'feedback-status-updated': '🔄',
+      'feedback-deleted': '🗑️',
+      'receipt-uploaded': '📎',
+      'bank-transfer-approved': '✅',
+      'bank-transfer-rejected': '❌',
+      'pending-bank-transfer': '⏳'
+    };
+    return iconMap[type] || '🔔';
   };
 
   const getNotificationColor = (type) => {
-    switch(type) {
-      case 'new-order': return 'text-blue-400';
-      case 'new-brief':
-      case 'new-customer-brief': return 'text-yellow-400';
-      case 'brief-response':
-      case 'admin-brief-response': return 'text-pink-400';
-      case 'design-uploaded':
-      case 'designUploaded': return 'text-purple-400';
-      case 'status-update':
-      case 'order-status-updated': return 'text-green-400';
-      case 'invoice-ready':
-      case 'order-ready-for-invoice': return 'text-emerald-400';
-      case 'feedback-response': return 'text-indigo-400';
-      case 'brief-deleted': return 'text-red-400';
-      case 'payment-verified': return 'text-green-400';
-      case 'payment-rejected': return 'text-red-400';
-      default: return 'text-gray-400';
-    }
+    const colorMap = {
+      'new-order': 'text-blue-400',
+      'new-brief': 'text-yellow-400',
+      'new-customer-brief': 'text-yellow-400',
+      'brief-response': 'text-pink-400',
+      'admin-brief-response': 'text-pink-400',
+      'design-uploaded': 'text-purple-400',
+      'designUploaded': 'text-purple-400',
+      'status-update': 'text-green-400',
+      'order-status-updated': 'text-green-400',
+      'invoice-ready': 'text-emerald-400',
+      'order-ready-for-invoice': 'text-emerald-400',
+      'feedback-response': 'text-indigo-400',
+      'brief-deleted': 'text-red-400',
+      'payment-verified': 'text-green-400',
+      'payment-rejected': 'text-red-400',
+      'payment-received': 'text-green-400',
+      'payment-failed': 'text-red-400',
+      'shipping-created': 'text-blue-400',
+      'pickup-ready': 'text-green-400',
+      'tracking-updated': 'text-blue-400',
+      'shipping-status-updated': 'text-blue-400',
+      'invoice-created': 'text-green-400',
+      'invoice-updated': 'text-yellow-400',
+      'invoice-sent': 'text-blue-400',
+      'invoice-deleted': 'text-red-400',
+      'invoice-payment-updated': 'text-green-400',
+      'design-updated': 'text-purple-400',
+      'design-approved': 'text-green-400',
+      'new-feedback': 'text-indigo-400',
+      'feedback-status-updated': 'text-yellow-400',
+      'feedback-deleted': 'text-red-400',
+      'receipt-uploaded': 'text-blue-400',
+      'bank-transfer-approved': 'text-green-400',
+      'bank-transfer-rejected': 'text-red-400',
+      'pending-bank-transfer': 'text-yellow-400'
+    };
+    return colorMap[type] || 'text-gray-400';
   };
 
   const getNotificationTitle = (type) => {
-    switch(type) {
-      case 'new-brief':
-      case 'new-customer-brief': return 'New Customization Request';
-      case 'brief-response':
-      case 'admin-brief-response': return 'Admin Response to Your Brief';
-      case 'designUploaded':
-      case 'design-uploaded': return 'Design Ready for Review';
-      case 'order-ready-for-invoice': return 'Order Ready for Invoice';
-      case 'brief-deleted': return 'Brief Deleted';
-      default: return null; // Use the title from the notification
-    }
+    const titleMap = {
+      'new-brief': 'New Customization Request',
+      'new-customer-brief': 'New Customization Request',
+      'brief-response': 'Admin Response to Your Brief',
+      'admin-brief-response': 'Admin Response to Your Brief',
+      'designUploaded': 'Design Ready for Review',
+      'design-uploaded': 'Design Ready for Review',
+      'order-ready-for-invoice': 'Order Ready for Invoice',
+      'brief-deleted': 'Brief Deleted',
+      'payment-received': 'Payment Received',
+      'payment-verified': 'Payment Verified',
+      'payment-failed': 'Payment Failed',
+      'payment-rejected': 'Payment Rejected',
+      'shipping-created': 'Shipping Created',
+      'pickup-ready': 'Order Ready for Pickup',
+      'tracking-updated': 'Tracking Information Updated',
+      'shipping-status-updated': 'Shipping Status Updated',
+      'invoice-created': 'Invoice Created',
+      'invoice-updated': 'Invoice Updated',
+      'invoice-sent': 'Invoice Sent',
+      'invoice-deleted': 'Invoice Deleted',
+      'invoice-payment-updated': 'Payment Update',
+      'design-updated': 'Design Updated',
+      'design-approved': 'Design Approved',
+      'new-feedback': 'New Feedback',
+      'feedback-response': 'Feedback Response',
+      'feedback-status-updated': 'Feedback Status Updated',
+      'feedback-deleted': 'Feedback Deleted',
+      'receipt-uploaded': 'Receipt Uploaded',
+      'bank-transfer-approved': 'Bank Transfer Approved',
+      'bank-transfer-rejected': 'Bank Transfer Rejected',
+      'pending-bank-transfer': 'Pending Bank Transfer'
+    };
+    return titleMap[type] || null;
   };
 
   const getBriefStatus = (notification) => {
+    if (!notification || !notification.type) return null;
+    
     if (notification.type.includes('brief')) {
       if (notification.data?.hasDesign) {
         return <span className="text-xs text-purple-400 ml-2">🎨 Includes design</span>;
@@ -92,43 +163,80 @@ export default function NotificationBell() {
   };
 
   const handleNotificationClick = (notification) => {
-    markAsRead(notification.id);
+    if (!notification) return;
+    
+    const notificationId = notification.id || notification._id;
+    if (notificationId) {
+      markAsRead(notificationId);
+    }
+    
     setIsOpen(false);
     
-    // Handle brief-specific navigation
-    if (notification.type === 'admin-brief-response' || notification.type === 'brief-response') {
-      if (notification.data?.briefId) {
-        router.push(`/briefs/${notification.data.briefId}`);
-      } else if (notification.data?.orderId && notification.data?.productId) {
-        router.push(`/orders/${notification.data.orderId}/products/${notification.data.productId}/briefs`);
-      } else if (notification.link) {
-        router.push(notification.link);
+    // Use link from notification if available
+    if (notification.link) {
+      router.push(notification.link);
+      return;
+    }
+    
+    // Handle different notification types
+    const type = notification.type || '';
+    const data = notification.data || {};
+    
+    if (type.includes('brief') || type.includes('Brief')) {
+      if (data.briefId) {
+        router.push(`/briefs/${data.briefId}`);
+      } else if (data.orderId && data.productId) {
+        router.push(`/orders/${data.orderId}/products/${data.productId}/briefs`);
+      } else if (data.orderId) {
+        router.push(`/orders/${data.orderId}`);
       }
     } 
-    // Handle design upload notifications
-    else if (notification.type === 'design-uploaded' || notification.type === 'designUploaded') {
-      if (notification.data?.designId) {
-        router.push(`/designs/${notification.data.designId}`);
-      } else if (notification.data?.orderId) {
-        router.push(`/orders/${notification.data.orderId}`);
-      } else if (notification.link) {
-        router.push(notification.link);
+    else if (type.includes('design') || type.includes('Design')) {
+      if (data.designId) {
+        router.push(`/designs/${data.designId}`);
+      } else if (data.orderId) {
+        router.push(`/orders/${data.orderId}`);
       }
     }
-    // Default navigation
-    else if (notification.link) {
-      router.push(notification.link);
-    } else if (notification.data?.orderId) {
-      router.push(`/orders/${notification.data.orderId}`);
-    } else if (notification.data?.briefId) {
-      router.push(`/briefs/${notification.data.briefId}`);
+    else if (type.includes('invoice') || type.includes('Invoice')) {
+      if (data.invoiceId) {
+        router.push(`/invoices/${data.invoiceId}`);
+      } else if (data.orderId) {
+        router.push(`/orders/${data.orderId}`);
+      }
+    }
+    else if (type.includes('payment') || type.includes('Payment')) {
+      if (data.orderId) {
+        router.push(`/orders/${data.orderId}`);
+      } else if (data.transactionId) {
+        router.push(`/transactions/${data.transactionId}`);
+      }
+    }
+    else if (type.includes('shipping') || type.includes('Shipping') || type.includes('pickup')) {
+      if (data.orderId) {
+        router.push(`/orders/${data.orderId}/shipping`);
+      } else if (data.shippingId) {
+        router.push(`/shipping/${data.shippingId}`);
+      }
+    }
+    else if (type.includes('feedback') || type.includes('Feedback')) {
+      if (data.feedbackId) {
+        router.push(`/feedback/${data.feedbackId}`);
+      } else if (data.orderId) {
+        router.push(`/orders/${data.orderId}`);
+      }
+    }
+    else if (data.orderId) {
+      router.push(`/orders/${data.orderId}`);
     }
   };
 
   // Sort notifications by timestamp (newest first)
-  const sortedNotifications = [...notifications].sort((a, b) => 
-    new Date(b.timestamp) - new Date(a.timestamp)
-  );
+  const sortedNotifications = [...(notifications || [])].sort((a, b) => {
+    const dateA = a.timestamp ? new Date(a.timestamp) : new Date(0);
+    const dateB = b.timestamp ? new Date(b.timestamp) : new Date(0);
+    return dateB - dateA;
+  });
 
   // Limit to 5 notifications in the dropdown
   const recentNotifications = sortedNotifications.slice(0, 5);
@@ -185,7 +293,7 @@ export default function NotificationBell() {
 
           {/* Notifications List */}
           <div className="max-h-96 overflow-y-auto">
-            {recentNotifications.length === 0 ? (
+            {!notifications || notifications.length === 0 ? (
               <div className="p-8 text-center">
                 <div className="text-5xl mb-3 opacity-50">🔔</div>
                 <p className="text-gray-400 text-sm">No notifications yet</p>
@@ -193,14 +301,23 @@ export default function NotificationBell() {
                   We'll notify you when something new arrives
                 </p>
               </div>
+            ) : recentNotifications.length === 0 ? (
+              <div className="p-8 text-center">
+                <div className="text-5xl mb-3 opacity-50">🔔</div>
+                <p className="text-gray-400 text-sm">No recent notifications</p>
+              </div>
             ) : (
               recentNotifications.map((notification) => {
+                if (!notification) return null;
+                
                 const customTitle = getNotificationTitle(notification.type);
                 const briefStatus = getBriefStatus(notification);
+                const icon = getNotificationIcon(notification.type);
+                const colorClass = getNotificationColor(notification.type);
                 
                 return (
                   <div
-                    key={notification.id}
+                    key={notification.id || notification._id || Math.random()}
                     onClick={() => handleNotificationClick(notification)}
                     className={`block p-4 border-b border-gray-800 hover:bg-slate-800/50 transition cursor-pointer ${
                       !notification.read ? 'bg-primary/5' : ''
@@ -208,10 +325,8 @@ export default function NotificationBell() {
                   >
                     <div className="flex items-start gap-3">
                       {/* Icon */}
-                      <div className={`w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center flex-shrink-0 ${getNotificationColor(notification.type)}`}>
-                        <span className="text-xl">
-                          {getNotificationIcon(notification.type)}
-                        </span>
+                      <div className={`w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center flex-shrink-0 ${colorClass}`}>
+                        <span className="text-xl">{icon}</span>
                       </div>
                       
                       {/* Content */}
@@ -219,7 +334,7 @@ export default function NotificationBell() {
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1">
                             <p className="text-white text-sm font-medium mb-1">
-                              {customTitle || notification.title}
+                              {customTitle || notification.title || 'Notification'}
                             </p>
                             {briefStatus}
                           </div>
@@ -229,12 +344,14 @@ export default function NotificationBell() {
                         </div>
                         
                         <p className="text-gray-400 text-xs mb-2 line-clamp-2">
-                          {notification.message}
+                          {notification.message || 'No message'}
                         </p>
                         
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-gray-500 text-xs">
-                            {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}
+                            {notification.timestamp 
+                              ? formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })
+                              : 'recently'}
                           </span>
                           
                           {notification.data?.orderNumber && (
@@ -246,7 +363,7 @@ export default function NotificationBell() {
                             </>
                           )}
                           
-                          {notification.type.includes('brief') && notification.data?.productName && (
+                          {notification.type && notification.type.includes('brief') && notification.data?.productName && (
                             <>
                               <span className="text-gray-600 text-xs">•</span>
                               <span className="text-pink-400 text-xs">
