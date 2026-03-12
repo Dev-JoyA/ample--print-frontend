@@ -172,6 +172,7 @@ export default function OrderTrackingPage() {
   const [trackedOrder, setTrackedOrder] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [searchAttempted, setSearchAttempted] = useState(false);
 
   useEffect(() => {
     const orderParam = searchParams.get('order');
@@ -208,37 +209,119 @@ export default function OrderTrackingPage() {
       return;
     }
 
-    // Format the order number to the correct format (ORD-2026-001)
-    const formattedOrderNumber = formatOrderNumber(orderNum);
-    setOrderNumber(formattedOrderNumber);
+    const searchTerm = orderNum.trim();
+    setOrderNumber(searchTerm);
+    setSearchAttempted(true);
 
     try {
       setLoading(true);
       setError('');
+      setTrackedOrder(null);
       
-      // Try to fetch order by order number
-      const response = await orderService.searchByOrderNumber(formattedOrderNumber);
-      console.log('Track order response:', response);
+      console.log('🔍 Searching for order:', searchTerm);
       
-      const orderData = response?.order || response?.data || response;
-      
-      if (orderData) {
-        setTrackedOrder(orderData);
-      } else {
-        setError('Order not found. Please check the order number.');
+      // Try search endpoint first
+      try {
+        const response = await orderService.searchByOrderNumber(searchTerm);
+        const orderData = response?.order || response?.data || response;
+        
+        if (orderData) {
+          console.log('✅ Order found via search:', orderData);
+          setTrackedOrder(orderData);
+          return;
+        }
+      } catch (searchErr) {
+        console.log('❌ Search endpoint failed:', searchErr);
+        
+        // Handle specific error types
+        if (searchErr.status === 404) {
+          // Order not found - don't show error yet, try fallback
+          console.log('Order not found via search, trying my-orders...');
+        } else if (searchErr.status === 401 || searchErr.status === 403) {
+          console.log('Authorization error, falling back to my-orders');
+        } else {
+          console.log('Other error, falling back to my-orders');
+        }
       }
-    } catch (err) {
-      console.error('Failed to track order:', err);
       
-      // Handle 404 specifically
-      if (err.status === 404) {
-        setError('Order not found. Please check the order number.');
+      // Fallback: Try my-orders method
+      console.log('📋 Fetching user orders as fallback...');
+      const myOrdersResponse = await orderService.getMyOrders({ limit: 50 });
+      
+      // Extract orders array
+      let orders = [];
+      if (myOrdersResponse?.order && Array.isArray(myOrdersResponse.order)) {
+        orders = myOrdersResponse.order;
+      } else if (myOrdersResponse?.orders && Array.isArray(myOrdersResponse.orders)) {
+        orders = myOrdersResponse.orders;
+      } else if (Array.isArray(myOrdersResponse)) {
+        orders = myOrdersResponse;
+      }
+      
+      console.log(`📊 Found ${orders.length} orders for user`);
+      
+      if (orders.length === 0) {
+        setError('You have no orders yet.');
+        return;
+      }
+      
+      // Try multiple matching strategies
+      let foundOrder = null;
+      const searchLower = searchTerm.toLowerCase();
+      
+      // Strategy 1: Exact match
+      foundOrder = orders.find(o => o.orderNumber === searchTerm);
+      
+      // Strategy 2: Case-insensitive match
+      if (!foundOrder) {
+        foundOrder = orders.find(o => 
+          o.orderNumber?.toLowerCase() === searchLower
+        );
+      }
+      
+      // Strategy 3: Contains match (for partial UUIDs)
+      if (!foundOrder && searchTerm.length >= 8) {
+        foundOrder = orders.find(o => 
+          o.orderNumber?.toLowerCase().includes(searchLower)
+        );
+      }
+      
+      // Strategy 4: Check if the order number is a UUID format
+      if (!foundOrder && searchTerm.includes('-')) {
+        foundOrder = orders.find(o => 
+          o.orderNumber?.toLowerCase().includes(searchLower.split('-').join(''))
+        );
+      }
+      
+      if (foundOrder) {
+        console.log('✅ Order found via my-orders:', foundOrder);
+        setTrackedOrder(foundOrder);
       } else {
-        setError('Failed to track order. Please try again.');
+        // No order found in any method
+        setError('Order not found. Please check the order number and try again.');
+      }
+      
+    } catch (err) {
+      console.error('❌ Failed to track order:', err);
+      
+      // Set user-friendly error message
+      if (err.userMessage) {
+        setError(err.userMessage);
+      } else if (err.message?.includes('Network') || err.message?.includes('Failed to fetch')) {
+        setError('Network error. Please check your connection and try again.');
+      } else if (err.message?.includes('401') || err.message?.includes('Unauthorized')) {
+        setError('Please sign in to track your order.');
+      } else {
+        setError('An unexpected error occurred. Please try again later.');
       }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRetry = () => {
+    setError('');
+    handleTrack();
   };
 
   const getImageUrl = (imagePath) => {
@@ -327,7 +410,7 @@ export default function OrderTrackingPage() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <Input
-                placeholder="Enter order number (e.g., ORD-2026-001)"
+                placeholder="Enter order number (e.g., ORD-2026-001 or UUID format)"
                 value={orderNumber}
                 onChange={(e) => setOrderNumber(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleTrack()}
@@ -339,7 +422,7 @@ export default function OrderTrackingPage() {
                 }
               />
               <p className="text-xs text-gray-500 mt-2">
-                Order number format: ORD-2026-001 (case insensitive)
+                Enter your order number (supports ORD-2026-001, UUID format, or partial matches)
               </p>
             </div>
             <Button 
@@ -351,13 +434,25 @@ export default function OrderTrackingPage() {
               {loading ? 'Tracking...' : 'Track Order'}
             </Button>
           </div>
+          
+          {/* Error Message with Retry Button */}
           {error && (
-            <p className="text-red-400 text-sm mt-3 flex items-center gap-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              {error}
-            </p>
+            <div className="mt-4 p-4 bg-red-900/20 border border-red-800 rounded-lg">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p className="text-red-400 text-sm flex items-center gap-2">
+                  <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {error}
+                </p>
+                <button
+                  onClick={handleRetry}
+                  className="text-sm bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition whitespace-nowrap"
+                >
+                  Try Again
+                </button>
+              </div>
+            </div>
           )}
         </div>
 
@@ -699,13 +794,37 @@ export default function OrderTrackingPage() {
           </div>
         )}
 
-        {!trackedOrder && !loading && !error && (
+        {/* Empty State */}
+        {!trackedOrder && !loading && !error && !searchAttempted && (
           <div className="text-center py-16 bg-slate-900/30 rounded-xl border border-gray-800">
             <div className="text-6xl mb-4">🔍</div>
-            <p className="text-gray-400 text-lg">Enter an order number to track your order</p>
-            <p className="text-gray-500 text-sm mt-2">
-              You can find your order number in your order confirmation email
+            <p className="text-gray-400 text-lg mb-2">Enter an order number to track your order</p>
+            <p className="text-gray-500 text-sm max-w-md mx-auto">
+              You can find your order number in your order confirmation email or in your order history.
+              Format examples: ORD-2026-001 or 82097b5f-bbb0-4999-950d-3b155f484f85
             </p>
+          </div>
+        )}
+
+        {/* No Results State */}
+        {!trackedOrder && !loading && error && searchAttempted && (
+          <div className="text-center py-16 bg-slate-900/30 rounded-xl border border-gray-800">
+            <div className="text-6xl mb-4">❓</div>
+            <p className="text-gray-400 text-lg mb-2">No order found</p>
+            <p className="text-gray-500 text-sm max-w-md mx-auto">
+              We couldn't find an order with that number. Please check the number and try again, 
+              or contact support if you need assistance.
+            </p>
+            <button
+              onClick={() => {
+                setOrderNumber('');
+                setError('');
+                setSearchAttempted(false);
+              }}
+              className="mt-4 text-red-400 hover:text-red-300 text-sm"
+            >
+              Clear and try again
+            </button>
           </div>
         )}
       </div>

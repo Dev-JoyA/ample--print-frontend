@@ -56,16 +56,26 @@ export const orderService = {
   },
 
   searchByOrderNumber: async (orderNumber) => {
-    console.log(`🔍 Searching for order: ${orderNumber}`);
-    try {
-      const response = await api.get(`/orders/search/${orderNumber}`);
-      console.log('Search response:', response);
-      return response;
-    } catch (error) {
-      console.error('Failed to search order:', error);
-      throw error;
+  console.log(`🔍 Searching for order: ${orderNumber}`);
+  try {
+    const response = await api.get(`/orders/search/${orderNumber}`);
+    console.log('Search response:', response);
+    return response;
+  } catch (error) {
+    console.error('Failed to search order:', error);
+    
+    // Enhance the error with more context
+    if (error.status === 404) {
+      error.userMessage = 'Order not found. Please check the order number and try again.';
+    } else if (error.status === 401 || error.status === 403) {
+      error.userMessage = 'You are not authorized to view this order. Please sign in with the correct account.';
+    } else {
+      error.userMessage = 'An error occurred while searching for your order. Please try again later.';
     }
-  },
+    
+    throw error;
+  }
+},
 
   addItemToOrder: (orderId, data) => 
     api.post(`/orders/${orderId}/items`, data),

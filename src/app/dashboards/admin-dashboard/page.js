@@ -311,8 +311,10 @@ export default function AdminDashboard() {
             <div className="p-6 border-b border-gray-800">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-white">Pending Customer Briefs</h2>
-                  <p className="text-sm text-gray-400 mt-1">Briefs awaiting your response</p>
+                  <h2 className="text-xl font-semibold text-white">Recent Customer Briefs</h2>
+                  {/* {Order.status === "filesUploaded" && (
+                    <p className="text-sm text-gray-400 mt-1">Briefs awaiting your response</p>
+                  )} */}
                 </div>
                 <Link href="/dashboards/admin-dashboard/customer-briefs" className="text-red-500 hover:text-red-400 text-sm">
                   View All →
