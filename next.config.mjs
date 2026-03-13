@@ -8,6 +8,12 @@ const nextConfig = {
         port: '4001',
         pathname: '/api/v1/attachments/download/**',
       },
+       {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '4001',
+        pathname: '/api/v1/receipts/**',
+      },
       // Add this if you also use HTTPS in production
       {
         protocol: 'https',
