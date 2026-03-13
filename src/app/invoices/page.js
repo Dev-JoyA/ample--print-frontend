@@ -46,9 +46,26 @@ export default function CustomerInvoicesPage() {
   };
 
   const handlePayInvoice = (invoice) => {
-    // Navigate to payment page with invoice ID
-    router.push(`/payment?invoiceId=${invoice._id}&amount=${invoice.remainingAmount || invoice.totalAmount}`);
-  };
+  console.log('Pay invoice clicked - full invoice object:', invoice);
+  
+  // The invoice object might be coming from InvoiceCard with transformed properties
+  // Let's extract the ID correctly
+  const invoiceId = invoice?.id || invoice?._id;
+  
+  console.log('Extracted invoiceId:', invoiceId);
+  
+  if (!invoiceId) {
+    console.error('No invoice ID found in:', invoice);
+    alert('Invalid invoice data - missing ID');
+    return;
+  }
+  
+  // Get the amount - check multiple possible fields
+  const amount = invoice.balance || invoice.remainingAmount || invoice.amount || invoice.totalAmount;
+  
+  // Navigate to payment page with invoice ID
+  router.push(`/payment?invoiceId=${invoiceId}&amount=${amount || 0}`);
+};
 
   const handleDownloadInvoice = async (invoice) => {
     try {
@@ -170,25 +187,27 @@ export default function CustomerInvoicesPage() {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredInvoices.map((invoice) => (
-              <InvoiceCard
+           {filteredInvoices.map((invoice) => (
+            <InvoiceCard
                 key={invoice._id}
                 invoice={{
-                  id: invoice._id,
-                  invoiceNumber: invoice.invoiceNumber,
-                  orderNumber: invoice.orderNumber,
-                  amount: invoice.totalAmount,
-                  balance: invoice.remainingAmount || invoice.totalAmount,
-                  status: invoice.status,
-                  dueDate: invoice.dueDate,
-                  createdAt: invoice.createdAt,
-                  items: invoice.items
+                id: invoice._id,
+                _id: invoice._id, 
+                invoiceNumber: invoice.invoiceNumber,
+                orderNumber: invoice.orderNumber,
+                totalAmount: invoice.totalAmount,      
+                amountPaid: invoice.amountPaid || 0,   
+                remainingAmount: invoice.remainingAmount,
+                status: invoice.status,
+                dueDate: invoice.dueDate,
+                createdAt: invoice.createdAt,
+                items: invoice.items
                 }}
                 onPay={handlePayInvoice}
                 onDownload={handleDownloadInvoice}
                 formatCurrency={formatCurrency}
                 getStatusColor={getStatusColor}
-              />
+            />
             ))}
           </div>
         )}

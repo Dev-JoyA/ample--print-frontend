@@ -348,7 +348,7 @@ export default function CustomerDashboard() {
               </div>
             ) : (
               <div className="space-y-4">
-                {unpaidInvoices.slice(0, 5).map((invoice) => (
+                {unpaidInvoices.slice(0, 2).map((invoice) => (
                   <InvoiceCard 
                     key={invoice._id} 
                     invoice={{
