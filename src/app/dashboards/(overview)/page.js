@@ -12,6 +12,8 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import { useProtectedRoute } from '@/app/lib/auth';
 import { customerService } from '@/services/customerService';
 import { customerBriefService } from '@/services/customerBriefService';
+import { designService } from '@/services/designService'; 
+import { feedbackService } from '@/services/feedbackService'; // Add this import
 import { useNotifications } from '@/components/providers/NotificationProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 
@@ -45,6 +47,7 @@ export default function CustomerDashboard() {
     if (!authLoading && user) {
       fetchDashboardData();
       fetchPendingResponses();
+      fetchDesignsForApproval(); // Add this
     }
   }, [authLoading, user]);
 
@@ -64,7 +67,7 @@ export default function CustomerDashboard() {
         ...prev,
         activeOrders: data.activeOrders || 0,
         pendingInvoices: data.pendingInvoices || 0,
-        designsForApproval: data.designsForApproval || 0,
+        // Remove designsForApproval from here
         completedOrders: data.completedOrders || 0
       }));
 
@@ -78,6 +81,59 @@ export default function CustomerDashboard() {
       setLoading(false);
     }
   };
+
+  const fetchDesignsForApproval = async () => {
+  try {
+    if (!user?.userId) return;
+    
+    // Get all designs for the current user
+    const designsResponse = await designService.getByUser(user.userId);
+    const designsData = designsResponse?.data || designsResponse?.designs || [];
+    
+    // For each design, check if there's any feedback
+    const designsWithFeedbackStatus = await Promise.all(
+      designsData.map(async (design) => {
+        // Skip if already approved
+        if (design.isApproved) {
+          return { ...design, hasFeedback: false };
+        }
+        
+        try {
+          // Get feedback for this order
+          const orderId = design.orderId?._id || design.orderId;
+          const feedbackResponse = await feedbackService.getByOrder(orderId);
+          const feedbacks = feedbackResponse?.data || [];
+          
+          // Check if there's feedback for this specific design
+          const hasFeedback = feedbacks.some(f => 
+            (f.designId?._id === design._id || f.designId === design._id)
+          );
+          
+          return { ...design, hasFeedback };
+        } catch (err) {
+          console.error(`Error checking feedback for design ${design._id}:`, err);
+          return { ...design, hasFeedback: false };
+        }
+      })
+    );
+    
+    // Count only designs that are NOT approved AND have NO feedback
+    const pendingForReview = designsWithFeedbackStatus.filter(
+      d => !d.isApproved && !d.hasFeedback
+    );
+    
+    setStats(prev => ({
+      ...prev,
+      designsForApproval: pendingForReview.length
+    }));
+    
+    console.log('Designs for review:', pendingForReview.length);
+    console.log('Total unapproved designs:', designsData.filter(d => !d.isApproved).length);
+    
+  } catch (error) {
+    console.error('Failed to fetch designs for approval:', error);
+  }
+};
 
   const fetchPendingResponses = async () => {
     try {
@@ -260,7 +316,7 @@ export default function CustomerDashboard() {
               subtitle="Awaiting payment"
             />
           </Link>
-          <Link href="/designs?filter=pending" className="block cursor-pointer">
+          <Link href="/design-approval" className="block cursor-pointer">
             <SummaryCard
               title="Designs to Review"
               value={stats.designsForApproval.toString()}
