@@ -69,12 +69,22 @@ export default function OrderHistoryPage() {
   const [totalOrders, setTotalOrders] = useState(0);
   const [searchTimeout, setSearchTimeout] = useState(null);
 
+  // Stats counters (will be updated with actual counts)
+  const [stats, setStats] = useState({
+    total: 0,
+    delivered: 0,
+    inProduction: 0,
+    pending: 0,
+    paymentDue: 0
+  });
+
   // Wait for auth to be ready before fetching orders
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
       fetchOrders();
+      fetchAllOrderCounts(); // Fetch counts across all pages
     }
-  }, [authLoading, isAuthenticated, currentPage, filterStatus]);
+  }, [authLoading, isAuthenticated]);
 
   // Handle search with debounce
   useEffect(() => {
@@ -94,6 +104,82 @@ export default function OrderHistoryPage() {
     }
   }, [searchTerm, authLoading, isAuthenticated]);
 
+  // Refetch when filter or page changes
+  useEffect(() => {
+    if (!authLoading && isAuthenticated && filterStatus !== 'stats-click') {
+      fetchOrders();
+    }
+  }, [filterStatus, currentPage, authLoading, isAuthenticated]);
+
+  // Handle stats card click
+  const handleStatsClick = (filterType) => {
+    // Map stats type to appropriate status filter
+    switch(filterType) {
+      case 'delivered':
+        setFilterStatus('Delivered');
+        break;
+      case 'inProduction':
+        setFilterStatus('InProduction'); // Strictly InProduction only
+        break;
+      case 'pending':
+        // For pending: Pending, OrderReceived, FilesUploaded only
+        setFilterStatus('pending');
+        break;
+      case 'paymentDue':
+        // For payment due: InvoiceSent, AwaitingPartPayment, AwaitingFinalPayment
+        setFilterStatus('paymentDue');
+        break;
+      default:
+        setFilterStatus('all');
+    }
+    setCurrentPage(1); // Reset to first page
+  };
+
+  // Fetch counts across ALL orders (not just current page)
+  const fetchAllOrderCounts = async () => {
+    try {
+      // Fetch first page with large limit to get counts
+      const response = await orderService.getMyOrders({ limit: 1000 });
+      
+      let allOrders = [];
+      if (response?.order && Array.isArray(response.order)) {
+        allOrders = response.order;
+      } else if (Array.isArray(response)) {
+        allOrders = response;
+      } else if (response?.data?.order) {
+        allOrders = response.data.order;
+      }
+      
+      // Calculate stats from ALL orders with correct filters
+      const total = allOrders.length;
+      const delivered = allOrders.filter(o => o.status === 'Delivered').length;
+      
+      // In Production: strictly InProduction
+      const inProduction = allOrders.filter(o => o.status === 'InProduction').length;
+      
+      // Pending: Pending, OrderReceived, FilesUploaded only
+      const pending = allOrders.filter(o => 
+        ['Pending', 'OrderReceived', 'FilesUploaded'].includes(o.status)
+      ).length;
+      
+      // Payment Due: InvoiceSent, AwaitingPartPayment, AwaitingFinalPayment
+      const paymentDue = allOrders.filter(o => 
+        ['InvoiceSent', 'AwaitingPartPayment', 'AwaitingFinalPayment'].includes(o.status)
+      ).length;
+      
+      setStats({
+        total,
+        delivered,
+        inProduction,
+        pending,
+        paymentDue
+      });
+      
+    } catch (err) {
+      console.error('Failed to fetch order counts:', err);
+    }
+  };
+
   const fetchOrders = async () => {
     // Don't fetch if not authenticated
     if (!isAuthenticated) {
@@ -110,8 +196,14 @@ export default function OrderHistoryPage() {
         limit: 10
       };
 
-      // Add status filter if not 'all'
-      if (filterStatus !== 'all') {
+      // Handle special filters that require multiple statuses
+      if (filterStatus === 'pending') {
+        // For pending: Pending, OrderReceived, FilesUploaded
+        params.limit = 100; // Fetch more to filter client-side
+      } else if (filterStatus === 'paymentDue') {
+        // For payment due: InvoiceSent, AwaitingPartPayment, AwaitingFinalPayment
+        params.limit = 100; // Fetch more to filter client-side
+      } else if (filterStatus !== 'all' && filterStatus !== 'stats-click') {
         params.status = filterStatus;
       }
 
@@ -143,10 +235,30 @@ export default function OrderHistoryPage() {
         limit = response.data.limit || 10;
       }
       
-      setOrders(ordersData);
-      setTotalOrders(total);
-      setTotalPages(Math.ceil(total / limit) || 1);
+      // Apply client-side filtering for special cases
+      let filteredOrders = ordersData;
+      let filteredTotal = total;
+      
+      if (filterStatus === 'pending') {
+        filteredOrders = ordersData.filter(o => 
+          ['Pending', 'OrderReceived', 'FilesUploaded'].includes(o.status)
+        );
+        filteredTotal = filteredOrders.length;
+      } else if (filterStatus === 'paymentDue') {
+        filteredOrders = ordersData.filter(o => 
+          ['InvoiceSent', 'AwaitingPartPayment', 'AwaitingFinalPayment'].includes(o.status)
+        );
+        filteredTotal = filteredOrders.length;
+      }
+      
+      setOrders(filteredOrders);
+      setTotalOrders(filteredTotal);
+      setTotalPages(Math.ceil(filteredTotal / (params.limit || 10)) || 1);
       setError('');
+      
+      // Refresh the stats counts after fetching
+      await fetchAllOrderCounts();
+      
     } catch (err) {
       console.error('Failed to fetch orders:', err);
       
@@ -184,24 +296,6 @@ export default function OrderHistoryPage() {
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // Calculate stats from ACTUAL orders data
-  const stats = {
-    total: totalOrders,
-    delivered: orders.filter(o => o.status === 'Delivered').length,
-    inProduction: orders.filter(o => 
-      ['InProduction', 'DesignUploaded', 'Approved'].includes(o.status)
-    ).length,
-    pending: orders.filter(o => 
-      ['Pending', 'OrderReceived', 'FilesUploaded', 'AwaitingInvoice', 'InvoiceSent', 'UnderReview'].includes(o.status)
-    ).length,
-    paymentPending: orders.filter(o => 
-      o.paymentStatus === 'Pending' || 
-      o.paymentStatus === 'PartPayment' || 
-      o.paymentStatus === 'AwaitingPartPayment' ||
-      o.paymentStatus === 'AwaitingFinalPayment'
-    ).length
   };
 
   // Show loading while auth is being checked
@@ -255,27 +349,56 @@ export default function OrderHistoryPage() {
           </Link>
         </div>
 
-        {/* Stats Cards - Now showing actual counts */}
+        {/* Stats Cards - Now Clickable with correct colors */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-          <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-4 hover:border-gray-700 transition-all">
+          <div 
+            onClick={() => setFilterStatus('all')}
+            className={`bg-slate-900/50 backdrop-blur-sm rounded-xl border p-4 hover:border-blue-500 transition-all cursor-pointer ${
+              filterStatus === 'all' ? 'border-blue-500 bg-blue-900/20' : 'border-gray-800'
+            }`}
+          >
             <p className="text-sm text-gray-400 mb-1">Total Orders</p>
             <p className="text-2xl font-bold text-white">{stats.total}</p>
           </div>
-          <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-4 hover:border-gray-700 transition-all">
+          
+          <div 
+            onClick={() => handleStatsClick('delivered')}
+            className={`bg-slate-900/50 backdrop-blur-sm rounded-xl border p-4 hover:border-green-500 transition-all cursor-pointer ${
+              filterStatus === 'Delivered' ? 'border-green-500 bg-green-900/20' : 'border-gray-800'
+            }`}
+          >
             <p className="text-sm text-gray-400 mb-1">Delivered</p>
             <p className="text-2xl font-bold text-green-400">{stats.delivered}</p>
           </div>
-          <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-4 hover:border-gray-700 transition-all">
+          
+          <div 
+            onClick={() => handleStatsClick('inProduction')}
+            className={`bg-slate-900/50 backdrop-blur-sm rounded-xl border p-4 hover:border-purple-500 transition-all cursor-pointer ${
+              filterStatus === 'InProduction' ? 'border-purple-500 bg-purple-900/20' : 'border-gray-800'
+            }`}
+          >
             <p className="text-sm text-gray-400 mb-1">In Production</p>
-            <p className="text-2xl font-bold text-yellow-400">{stats.inProduction}</p>
+            <p className="text-2xl font-bold text-purple-400">{stats.inProduction}</p>
           </div>
-          <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-4 hover:border-gray-700 transition-all">
+          
+          <div 
+            onClick={() => handleStatsClick('pending')}
+            className={`bg-slate-900/50 backdrop-blur-sm rounded-xl border p-4 hover:border-yellow-500 transition-all cursor-pointer ${
+              filterStatus === 'pending' ? 'border-yellow-500 bg-yellow-900/20' : 'border-gray-800'
+            }`}
+          >
             <p className="text-sm text-gray-400 mb-1">Pending</p>
-            <p className="text-2xl font-bold text-blue-400">{stats.pending}</p>
+            <p className="text-2xl font-bold text-yellow-400">{stats.pending}</p>
           </div>
-          <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-4 hover:border-gray-700 transition-all">
+          
+          <div 
+            onClick={() => handleStatsClick('paymentDue')}
+            className={`bg-slate-900/50 backdrop-blur-sm rounded-xl border p-4 hover:border-orange-500 transition-all cursor-pointer ${
+              filterStatus === 'paymentDue' ? 'border-orange-500 bg-orange-900/20' : 'border-gray-800'
+            }`}
+          >
             <p className="text-sm text-gray-400 mb-1">Payment Due</p>
-            <p className="text-2xl font-bold text-orange-400">{stats.paymentPending}</p>
+            <p className="text-2xl font-bold text-orange-400">{stats.paymentDue}</p>
           </div>
         </div>
 
@@ -300,24 +423,13 @@ export default function OrderHistoryPage() {
             className="bg-slate-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-600 min-w-[200px]"
           >
             <option value="all">All Orders</option>
-            <option value="Pending">Pending</option>
-            <option value="OrderReceived">Order Received</option>
-            <option value="FilesUploaded">Files Uploaded</option>
-            <option value="AwaitingInvoice">Awaiting Invoice</option>
-            <option value="InvoiceSent">Invoice Sent</option>
-            <option value="DesignUploaded">Design Uploaded</option>
-            <option value="UnderReview">Under Review</option>
-            <option value="Approved">Approved</option>
-            <option value="AwaitingPartPayment">Awaiting Part Payment</option>
-            <option value="PartPaymentMade">Part Payment Made</option>
+            <option value="pending">Pending (New Orders)</option>
             <option value="InProduction">In Production</option>
-            <option value="Completed">Completed</option>
-            <option value="AwaitingFinalPayment">Awaiting Final Payment</option>
-            <option value="FinalPaid">Final Paid</option>
-            <option value="ReadyForShipping">Ready For Shipping</option>
+            <option value="paymentDue">Payment Due</option>
+            <option value="Delivered">Delivered</option>
+            <option value="Approved">Approved</option>
             <option value="Shipped">Shipped</option>
             <option value="Cancelled">Cancelled</option>
-            <option value="Delivered">Delivered</option>
           </select>
         </div>
 
@@ -332,7 +444,10 @@ export default function OrderHistoryPage() {
             )}
             {filterStatus !== 'all' && (
               <span className="px-2 py-1 bg-red-900/30 text-red-400 rounded-full text-xs border border-red-800">
-                Status: {StatusDisplayNames[filterStatus] || filterStatus}
+                {filterStatus === 'pending' ? 'Pending (New Orders)' :
+                 filterStatus === 'paymentDue' ? 'Payment Due' :
+                 filterStatus === 'InProduction' ? 'In Production' :
+                 StatusDisplayNames[filterStatus] || filterStatus}
               </span>
             )}
             <button
@@ -371,7 +486,14 @@ export default function OrderHistoryPage() {
                 <p className="text-gray-300">
                   Found <span className="text-red-400 font-bold">{orders.length}</span> orders 
                   {searchTerm && <span> matching "<span className="text-red-400 font-medium">{searchTerm}</span>"</span>}
-                  {filterStatus !== 'all' && <span> with status <span className="text-red-400 font-medium">{StatusDisplayNames[filterStatus] || filterStatus}</span></span>}
+                  {filterStatus !== 'all' && (
+                    <span> with filter <span className="text-red-400 font-medium">
+                      {filterStatus === 'pending' ? 'Pending (New Orders)' :
+                       filterStatus === 'paymentDue' ? 'Payment Due' :
+                       filterStatus === 'InProduction' ? 'In Production' :
+                       StatusDisplayNames[filterStatus] || filterStatus}
+                    </span></span>
+                  )}
                   {totalOrders > orders.length && (
                     <span> (showing page {currentPage} of {totalPages})</span>
                   )}
@@ -439,7 +561,7 @@ export default function OrderHistoryPage() {
                 if (totalPages > 5 && currentPage > 3) {
                   pageNum = currentPage - 3 + i;
                 }
-                if (pageNum <= totalPages) {
+                if (pageNum <= totalPages && pageNum > 0) {
                   return (
                     <button
                       key={pageNum}

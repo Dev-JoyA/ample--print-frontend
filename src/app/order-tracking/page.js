@@ -62,17 +62,19 @@ const StatusFlowOrder = [
   OrderStatus.FilesUploaded,
   OrderStatus.AwaitingInvoice,
   OrderStatus.InvoiceSent,
-  // Payment related statuses (these will be filtered dynamically)
+  // Payment related statuses
   OrderStatus.AwaitingPartPayment,
   OrderStatus.PartPaymentMade,
-  OrderStatus.AwaitingFinalPayment,
-  OrderStatus.FinalPaid,
   // Design and production flow
   OrderStatus.DesignUploaded,
   OrderStatus.UnderReview,
   OrderStatus.Approved,
   OrderStatus.InProduction,
   OrderStatus.Completed,
+  // Final payment
+  OrderStatus.AwaitingFinalPayment,
+  OrderStatus.FinalPaid,
+  // Shipping
   OrderStatus.ReadyForShipping,
   OrderStatus.Shipped,
   OrderStatus.Delivered,
@@ -96,29 +98,40 @@ const getStatusPhases = (order) => {
     }
   ];
 
-  // Add payment phase only if order exists and has required payment type
+  // Payment Phase (for both full and part payment)
   const paymentPhase = {
-    name: 'Payment',
+    name: order?.requiredPaymentType === 'part' ? 'Initial Deposit' : 'Payment',
     icon: '💰',
+    color: order?.requiredPaymentType === 'part' ? 'yellow' : 'blue',
+    statuses: []
+  };
+
+  // Final Payment Phase (only for part payment, after production)
+  const finalPaymentPhase = {
+    name: 'Final Payment',
+    icon: '💳',
     color: 'green',
     statuses: []
   };
 
-  if (order?.requiredPaymentType) {
-    if (order.requiredPaymentType === 'part') {
-      // Show all part payment related statuses
-      paymentPhase.statuses = [
-        OrderStatus.AwaitingPartPayment,
-        OrderStatus.PartPaymentMade,
-        OrderStatus.AwaitingFinalPayment,
-        OrderStatus.FinalPaid
-      ];
-      paymentPhase.description = 'Part payment plan';
-    } else if (order.requiredPaymentType === 'full') {
-      // For full payment, only show InvoiceSent (payment is handled there)
-      paymentPhase.statuses = [OrderStatus.InvoiceSent];
-      paymentPhase.description = 'Full payment required';
-    }
+  if (order?.requiredPaymentType === 'part') {
+    // For part payment, show deposit phase first
+    paymentPhase.statuses = [
+      OrderStatus.AwaitingPartPayment,
+      OrderStatus.PartPaymentMade
+    ];
+    paymentPhase.description = 'Pay deposit to start design work';
+
+    // Final payment happens after production
+    finalPaymentPhase.statuses = [
+      OrderStatus.AwaitingFinalPayment,
+      OrderStatus.FinalPaid
+    ];
+    finalPaymentPhase.description = 'Pay remaining balance after production';
+  } else if (order?.requiredPaymentType === 'full') {
+    // For full payment, show single payment phase
+    paymentPhase.statuses = [OrderStatus.InvoiceSent];
+    paymentPhase.description = 'Full payment required';
   }
 
   const designPhase = {
@@ -149,15 +162,30 @@ const getStatusPhases = (order) => {
     color: 'red'
   };
 
-  // Build phases array based on order status
+  // Build phases array in correct order
   const phases = [...basePhases];
   
-  // Only add payment phase if it has statuses
+  // Add payment phase if it has statuses
   if (paymentPhase.statuses.length > 0) {
     phases.push(paymentPhase);
   }
   
-  phases.push(designPhase, productionPhase, shippingPhase, cancelledPhase);
+  // Design phase comes after payment
+  phases.push(designPhase);
+  
+  // Production phase
+  phases.push(productionPhase);
+  
+  // Add final payment phase if applicable (AFTER production, BEFORE shipping)
+  if (finalPaymentPhase.statuses.length > 0) {
+    phases.push(finalPaymentPhase);
+  }
+  
+  // Shipping phase comes last (after all payments)
+  phases.push(shippingPhase);
+  
+  // Add cancelled phase at the end
+  phases.push(cancelledPhase);
   
   return phases;
 };
@@ -410,7 +438,7 @@ export default function OrderTrackingPage() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <Input
-                placeholder="Enter order number (e.g., ORD-2026-001 or UUID format)"
+                placeholder="Enter order number (e.g., ORD-2026-001 )"
                 value={orderNumber}
                 onChange={(e) => setOrderNumber(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleTrack()}
@@ -490,12 +518,12 @@ export default function OrderTrackingPage() {
               </div>
             )}
 
-            {/* Status Timeline - Only show if not cancelled or show partial timeline */}
+            {/* Status Timeline */}
             {!isCancelled && (
               <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-6">
                 <h2 className="text-xl font-semibold text-white mb-6">Order Status Timeline</h2>
                 
-                {/* Payment Info Banner - Only show if invoice exists */}
+                {/* Payment Info Banner */}
                 {trackedOrder.invoiceId && trackedOrder.requiredPaymentType && (
                   <div className={`mb-6 p-4 rounded-lg ${
                     trackedOrder.requiredPaymentType === 'part' 
@@ -586,53 +614,6 @@ export default function OrderTrackingPage() {
                             const isCompleted = StatusFlowOrder.indexOf(status) < getCurrentStepIndex();
                             const isCurrent = status === trackedOrder.status;
                             
-                            // For full payment, don't show individual payment statuses
-                            if (phase.name === 'Payment' && trackedOrder.requiredPaymentType === 'full') {
-                              if (status === OrderStatus.InvoiceSent) {
-                                return (
-                                  <div key={status} className="relative flex items-start gap-3">
-                                    <div className="absolute -left-[25px] top-1">
-                                      <div className={`w-4 h-4 rounded-full ${
-                                        isCompleted
-                                          ? 'bg-green-500'
-                                          : isCurrent
-                                          ? 'bg-red-500 animate-pulse'
-                                          : 'bg-gray-700'
-                                      }`}></div>
-                                    </div>
-                                    <div className="flex-1 pb-2">
-                                      <div className="flex items-center gap-2 mb-1">
-                                        <p className={`text-sm font-medium ${
-                                          isCompleted || isCurrent
-                                            ? 'text-white'
-                                            : 'text-gray-500'
-                                        }`}>
-                                          Payment {trackedOrder.paymentStatus === 'Completed' ? 'Completed' : 'Pending'}
-                                        </p>
-                                        {isCurrent && (
-                                          <span className="px-2 py-0.5 bg-red-600/20 text-red-400 rounded-full text-xs border border-red-700">
-                                            Current
-                                          </span>
-                                        )}
-                                      </div>
-                                      {isCurrent && (
-                                        <div className="mt-2 text-sm text-gray-400">
-                                          {trackedOrder.paymentStatus === 'Pending' && (
-                                            <p>Awaiting full payment of ₦{trackedOrder.totalAmount?.toLocaleString()}</p>
-                                          )}
-                                          {trackedOrder.paymentStatus === 'Completed' && (
-                                            <p>Payment received successfully</p>
-                                          )}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                );
-                              }
-                              return null; // Don't show other payment statuses for full payment
-                            }
-                            
-                            // For part payment, show all statuses
                             return (
                               <div key={status} className="relative flex items-start gap-3">
                                 <div className="absolute -left-[25px] top-1">
@@ -674,16 +655,10 @@ export default function OrderTrackingPage() {
                                   {isCurrent && (
                                     <div className="mt-2 text-sm text-gray-400">
                                       {status === OrderStatus.AwaitingPartPayment && (
-                                        <p>Awaiting part payment of ₦{trackedOrder.requiredDeposit?.toLocaleString()}</p>
+                                        <p>Awaiting initial deposit of ₦{trackedOrder.requiredDeposit?.toLocaleString()}</p>
                                       )}
                                       {status === OrderStatus.PartPaymentMade && (
-                                        <p>Part payment received. Awaiting final payment instructions.</p>
-                                      )}
-                                      {status === OrderStatus.AwaitingFinalPayment && (
-                                        <p>Awaiting final payment of ₦{trackedOrder.remainingBalance?.toLocaleString()}</p>
-                                      )}
-                                      {status === OrderStatus.FinalPaid && (
-                                        <p>Final payment received. Order will proceed to design.</p>
+                                        <p>Deposit received. Design work will begin soon.</p>
                                       )}
                                       {status === OrderStatus.DesignUploaded && (
                                         <p>Your design has been uploaded and is ready for your review.</p>
@@ -698,13 +673,22 @@ export default function OrderTrackingPage() {
                                         <p>Your order is currently being printed/produced.</p>
                                       )}
                                       {status === OrderStatus.Completed && (
-                                        <p>Production is complete! Your order is being prepared for shipping.</p>
+                                        <p>Production is complete! Final payment is now required for shipping.</p>
+                                      )}
+                                      {status === OrderStatus.AwaitingFinalPayment && (
+                                        <p>Awaiting final payment of ₦{trackedOrder.remainingBalance?.toLocaleString()} before shipping</p>
+                                      )}
+                                      {status === OrderStatus.FinalPaid && (
+                                        <p>Final payment received. Your order will be prepared for shipping.</p>
                                       )}
                                       {status === OrderStatus.ReadyForShipping && (
                                         <p>Your order is packed and ready to be shipped.</p>
                                       )}
                                       {status === OrderStatus.Shipped && (
                                         <p>Your order has been shipped and is on its way to you.</p>
+                                      )}
+                                      {status === OrderStatus.Delivered && (
+                                        <p>Your order has been delivered. Thank you for your business!</p>
                                       )}
                                     </div>
                                   )}
@@ -745,6 +729,11 @@ export default function OrderTrackingPage() {
                     Required Deposit: ₦{trackedOrder.requiredDeposit.toLocaleString()}
                   </div>
                 )}
+                {trackedOrder.remainingBalance > 0 && trackedOrder.status === 'Completed' && (
+                  <div className="mt-3 text-xs text-orange-400 bg-orange-900/20 p-2 rounded-lg">
+                    Final Payment Due: ₦{trackedOrder.remainingBalance.toLocaleString()}
+                  </div>
+                )}
               </div>
 
               <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-6">
@@ -767,6 +756,11 @@ export default function OrderTrackingPage() {
                   >
                     View Shipping Details →
                   </button>
+                )}
+                {trackedOrder.status === 'Completed' && (
+                  <p className="mt-3 text-xs text-green-400">
+                    Production complete. {trackedOrder.remainingBalance > 0 ? 'Final payment required before shipping.' : 'Ready for shipping.'}
+                  </p>
                 )}
               </div>
             </div>
