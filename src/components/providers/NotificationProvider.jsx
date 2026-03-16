@@ -1,8 +1,8 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
-import { socketService } from '@/services/socketService';
-import { notificationService } from '@/services/notificationService';
+import { socketService } from '../../services/socketService';
+import { notificationService } from '../../services/notificationService';
 import { useToast } from './ToastProvider';
 
 const NotificationContext = createContext(null);

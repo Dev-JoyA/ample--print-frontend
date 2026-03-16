@@ -8,12 +8,13 @@ import SummaryCard from '@/components/cards/SummaryCard';
 import OrderCard from '@/components/cards/OrderCard';
 import InvoiceCard from '@/components/cards/InvoiceCard';
 import Button from '@/components/ui/Button';
-import StatusBadge from '@/components/ui/StatusBadge';
 import { useProtectedRoute } from '@/app/lib/auth';
 import { customerService } from '@/services/customerService';
 import { customerBriefService } from '@/services/customerBriefService';
 import { designService } from '@/services/designService'; 
-import { feedbackService } from '@/services/feedbackService'; // Add this import
+import { feedbackService } from '@/services/feedbackService';
+import { invoiceService } from '@/services/invoiceService';
+import { orderService } from '@/services/orderService';
 import { useNotifications } from '@/components/providers/NotificationProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 
@@ -33,12 +34,17 @@ export default function CustomerDashboard() {
   const [stats, setStats] = useState({
     activeOrders: 0,
     pendingInvoices: 0,
+    shippingInvoices: 0,
+    readyForShipping: 0,
     designsForApproval: 0,
     completedOrders: 0,
-    pendingResponses: 0
+    pendingResponses: 0,
+    unreadFeedbackResponses: 0
   });
   const [recentOrders, setRecentOrders] = useState([]);
   const [unpaidInvoices, setUnpaidInvoices] = useState([]);
+  const [unpaidShippingInvoices, setUnpaidShippingInvoices] = useState([]);
+  const [ordersReadyForShipping, setOrdersReadyForShipping] = useState([]);
   const [pendingResponses, setPendingResponses] = useState([]);
   const [userName, setUserName] = useState('');
   const [viewingBrief, setViewingBrief] = useState(null);
@@ -47,7 +53,9 @@ export default function CustomerDashboard() {
     if (!authLoading && user) {
       fetchDashboardData();
       fetchPendingResponses();
-      fetchDesignsForApproval(); // Add this
+      fetchDesignsForApproval();
+      fetchShippingData();
+      fetchUnreadFeedbackCount();
     }
   }, [authLoading, user]);
 
@@ -67,7 +75,6 @@ export default function CustomerDashboard() {
         ...prev,
         activeOrders: data.activeOrders || 0,
         pendingInvoices: data.pendingInvoices || 0,
-        // Remove designsForApproval from here
         completedOrders: data.completedOrders || 0
       }));
 
@@ -82,62 +89,137 @@ export default function CustomerDashboard() {
     }
   };
 
+  const fetchShippingData = async () => {
+    try {
+      if (!user?.userId) return;
+      
+      // Fetch all orders for the user
+      const ordersResponse = await orderService.getMyOrders({ limit: 50 });
+      
+      let orders = [];
+      if (ordersResponse?.order && Array.isArray(ordersResponse.order)) {
+        orders = ordersResponse.order;
+      } else if (ordersResponse?.orders && Array.isArray(ordersResponse.orders)) {
+        orders = ordersResponse.orders;
+      } else if (Array.isArray(ordersResponse)) {
+        orders = ordersResponse;
+      }
+      
+      // Find orders that are completed but don't have shipping selected yet
+      const readyForShipping = orders.filter(order => 
+        order.status === 'Completed' && !order.shippingId
+      );
+      
+      setOrdersReadyForShipping(readyForShipping);
+      setStats(prev => ({
+        ...prev,
+        readyForShipping: readyForShipping.length
+      }));
+      
+      // Fetch shipping invoices
+      const invoicesResponse = await invoiceService.getMyInvoices({ limit: 50 });
+      
+      let invoices = [];
+      if (invoicesResponse?.invoices && Array.isArray(invoicesResponse.invoices)) {
+        invoices = invoicesResponse.invoices;
+      } else if (invoicesResponse?.data?.invoices) {
+        invoices = invoicesResponse.data.invoices;
+      } else if (Array.isArray(invoicesResponse)) {
+        invoices = invoicesResponse;
+      }
+      
+      // Filter for unpaid shipping invoices
+      const shippingInvoices = invoices.filter(inv => 
+        inv.invoiceType === 'shipping' && 
+        inv.status !== 'Paid' && 
+        inv.status !== 'Cancelled'
+      );
+      
+      setUnpaidShippingInvoices(shippingInvoices);
+      setStats(prev => ({
+        ...prev,
+        shippingInvoices: shippingInvoices.length
+      }));
+      
+    } catch (error) {
+      console.error('Failed to fetch shipping data:', error);
+    }
+  };
+
+  const fetchUnreadFeedbackCount = async () => {
+    try {
+      if (!user?.userId) return;
+      
+      const response = await feedbackService.getMyFeedback({ limit: 20 });
+      
+      let feedbackData = [];
+      if (response?.feedback && Array.isArray(response.feedback)) {
+        feedbackData = response.feedback;
+      } else if (response?.data && Array.isArray(response.data)) {
+        feedbackData = response.data;
+      } else if (Array.isArray(response)) {
+        feedbackData = response;
+      }
+      
+      const unreadResponses = feedbackData.filter(f => 
+        f.adminResponse && f.adminResponseAt
+      ).length;
+      
+      setStats(prev => ({
+        ...prev,
+        unreadFeedbackResponses: unreadResponses
+      }));
+      
+    } catch (error) {
+      console.error('Failed to fetch unread feedback:', error);
+    }
+  };
+
   const fetchDesignsForApproval = async () => {
-  try {
-    if (!user?.userId) return;
-    
-    // Get all designs for the current user
-    const designsResponse = await designService.getByUser(user.userId);
-    const designsData = designsResponse?.data || designsResponse?.designs || [];
-    
-    // For each design, check if there's any feedback
-    const designsWithFeedbackStatus = await Promise.all(
-      designsData.map(async (design) => {
-        // Skip if already approved
-        if (design.isApproved) {
-          return { ...design, hasFeedback: false };
-        }
-        
-        try {
-          // Get feedback for this order
-          const orderId = design.orderId?._id || design.orderId;
-          const feedbackResponse = await feedbackService.getByOrder(orderId);
-          const feedbacks = feedbackResponse?.data || [];
+    try {
+      if (!user?.userId) return;
+      
+      const designsResponse = await designService.getByUser(user.userId);
+      const designsData = designsResponse?.data || designsResponse?.designs || [];
+      
+      const designsWithFeedbackStatus = await Promise.all(
+        designsData.map(async (design) => {
+          if (design.isApproved) {
+            return { ...design, hasFeedback: false };
+          }
           
-          // Check if there's feedback for this specific design
-          const hasFeedback = feedbacks.some(f => 
-            (f.designId?._id === design._id || f.designId === design._id)
-          );
-          
-          return { ...design, hasFeedback };
-        } catch (err) {
-          console.error(`Error checking feedback for design ${design._id}:`, err);
-          return { ...design, hasFeedback: false };
-        }
-      })
-    );
-    
-    // Count only designs that are NOT approved AND have NO feedback
-    const pendingForReview = designsWithFeedbackStatus.filter(
-      d => !d.isApproved && !d.hasFeedback
-    );
-    
-    setStats(prev => ({
-      ...prev,
-      designsForApproval: pendingForReview.length
-    }));
-    
-    console.log('Designs for review:', pendingForReview.length);
-    console.log('Total unapproved designs:', designsData.filter(d => !d.isApproved).length);
-    
-  } catch (error) {
-    console.error('Failed to fetch designs for approval:', error);
-  }
-};
+          try {
+            const orderId = design.orderId?._id || design.orderId;
+            const feedbackResponse = await feedbackService.getByOrder(orderId);
+            const feedbacks = feedbackResponse?.data || [];
+            
+            const hasFeedback = feedbacks.some(f => 
+              (f.designId?._id === design._id || f.designId === design._id)
+            );
+            
+            return { ...design, hasFeedback };
+          } catch (err) {
+            return { ...design, hasFeedback: false };
+          }
+        })
+      );
+      
+      const pendingForReview = designsWithFeedbackStatus.filter(
+        d => !d.isApproved && !d.hasFeedback
+      );
+      
+      setStats(prev => ({
+        ...prev,
+        designsForApproval: pendingForReview.length
+      }));
+      
+    } catch (error) {
+      console.error('Failed to fetch designs for approval:', error);
+    }
+  };
 
   const fetchPendingResponses = async () => {
     try {
-      // Get briefs where admin has responded but customer hasn't viewed
       const response = await customerBriefService.getMyBriefs({ 
         hasAdminResponse: true,
         viewed: false,
@@ -165,42 +247,26 @@ export default function CustomerDashboard() {
     }
   };
 
-  const handleViewBriefResponse = async (brief) => {
-    try {
-      setViewingBrief(brief._id);
-      
-      // Check if order is still editable
-      const orderStatus = brief.orderId?.status;
-      const isEditable = EDITABLE_ORDER_STATUSES.includes(orderStatus);
-      
-      if (!isEditable) {
-        showToast('This order is no longer editable', 'warning');
-        router.push(`/orders/${brief.orderId?._id}`);
-        return;
-      }
-      
-      // Mark the brief as viewed
-      await customerBriefService.markAsViewed(brief._id);
-      
-      showToast('Response marked as reviewed', 'success');
-      
-      // Refresh pending responses
-      await fetchPendingResponses();
-      
-      // Navigate to the brief details
-      router.push(`/briefs/${brief._id}`);
-    } catch (error) {
-      console.error('Failed to mark brief as viewed:', error);
-      showToast('Failed to mark brief as viewed', 'error');
-    } finally {
-      setViewingBrief(null);
-    }
+  const handleSelectShipping = (orderId) => {
+    router.push(`/shipping?orderId=${orderId}`);
   };
 
   const getDesignsMessage = () => {
     if (stats.designsForApproval === 0) return "No designs awaiting approval";
     if (stats.designsForApproval === 1) return "You have 1 design awaiting your approval";
     return `You have ${stats.designsForApproval} designs awaiting your approval`;
+  };
+
+  const getShippingMessage = () => {
+    if (stats.readyForShipping === 0) return "No orders ready for shipping";
+    if (stats.readyForShipping === 1) return "1 order ready for shipping selection";
+    return `${stats.readyForShipping} orders ready for shipping selection`;
+  };
+
+  const getShippingInvoiceMessage = () => {
+    if (stats.shippingInvoices === 0) return "No pending shipping invoices";
+    if (stats.shippingInvoices === 1) return "You have 1 shipping invoice pending";
+    return `You have ${stats.shippingInvoices} shipping invoices pending`;
   };
 
   const getWelcomeName = () => {
@@ -224,25 +290,6 @@ export default function CustomerDashboard() {
     } catch {
       return 'Invalid date';
     }
-  };
-
-  const getOrderStatusColor = (status) => {
-    const colors = {
-      'Pending': 'yellow',
-      'OrderReceived': 'blue',
-      'FilesUploaded': 'purple',
-      'AwaitingInvoice': 'orange',
-      'InvoiceSent': 'red',
-      'DesignUploaded': 'indigo',
-      'UnderReview': 'yellow',
-      'Approved': 'green',
-      'InProduction': 'blue',
-      'Completed': 'green',
-      'Shipped': 'teal',
-      'Delivered': 'green',
-      'Cancelled': 'red'
-    };
-    return colors[status] || 'gray';
   };
 
   if (authLoading || loading) {
@@ -271,17 +318,30 @@ export default function CustomerDashboard() {
             </h1>
             <p className="text-gray-400">{getDesignsMessage()}</p>
           </div>
-          <Link href="/new-order">
-            <Button variant="primary" size="md" className="gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Start a New Print Order
-            </Button>
-          </Link>
+          <div className="flex gap-3">
+            <Link href="/feedback">
+              <Button variant="secondary" size="md" className="gap-2 relative">
+                <span>💬</span>
+                Feedback
+                {stats.unreadFeedbackResponses > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs flex items-center justify-center text-white">
+                    {stats.unreadFeedbackResponses}
+                  </span>
+                )}
+              </Button>
+            </Link>
+            <Link href="/new-order">
+              <Button variant="primary" size="md" className="gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                New Order
+              </Button>
+            </Link>
+          </div>
         </div>
 
-        {/* Error Message (non-blocking) */}
+        {/* Error Message */}
         {error && (
           <div className="mb-6 p-4 bg-yellow-900/30 border border-yellow-700 rounded-lg flex items-center gap-3">
             <svg className="w-5 h-5 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -296,9 +356,10 @@ export default function CustomerDashboard() {
             </button>
           </div>
         )}
-        {/* Summary Cards with Navigation */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Link href="/dashboards/active-orders" className="block cursor-pointer">
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+          <Link href="/order-history?filter=active" className="block cursor-pointer">
             <SummaryCard
               title="Active Orders"
               value={stats.activeOrders.toString()}
@@ -307,6 +368,7 @@ export default function CustomerDashboard() {
               subtitle="In progress"
             />
           </Link>
+          
           <Link href="/invoices?filter=pending" className="block cursor-pointer">
             <SummaryCard
               title="Pending Invoices"
@@ -316,144 +378,215 @@ export default function CustomerDashboard() {
               subtitle="Awaiting payment"
             />
           </Link>
+          
+          <Link href="/shipping/orders" className="block cursor-pointer">
+            <SummaryCard
+              title="Ready for Shipping"
+              value={stats.readyForShipping.toString()}
+              icon="🚚"
+              color="orange"
+              subtitle={getShippingMessage()}
+            />
+          </Link>
+          
+          <Link href="/invoices?filter=shipping" className="block cursor-pointer">
+            <SummaryCard
+              title="Shipping Invoices"
+              value={stats.shippingInvoices.toString()}
+              icon="📋"
+              color="yellow"
+              subtitle={getShippingInvoiceMessage()}
+            />
+          </Link>
+          
           <Link href="/design-approval" className="block cursor-pointer">
             <SummaryCard
               title="Designs to Review"
               value={stats.designsForApproval.toString()}
               icon="🎨"
-              color="yellow"
+              color="green"
               subtitle="Awaiting approval"
             />
           </Link>
-          <Link href="/order-history?filter=completed" className="block cursor-pointer">
+          
+          <Link href="/feedback" className="block cursor-pointer relative">
             <SummaryCard
-              title="Completed"
-              value={stats.completedOrders.toString()}
-              icon="✅"
-              color="green"
-              subtitle="Delivered orders"
+              title="Feedback"
+              value={stats.unreadFeedbackResponses.toString()}
+              icon="💬"
+              color="purple"
+              subtitle="Messages & responses"
             />
+            {stats.unreadFeedbackResponses > 0 && (
+              <span className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full text-xs flex items-center justify-center text-white font-bold border-2 border-slate-900">
+                {stats.unreadFeedbackResponses}
+              </span>
+            )}
           </Link>
         </div>
 
-        {/* Active Orders & Unpaid Invoices */}
+        {/* Main Content - 2fr/1fr Layout */}
         <div className="grid lg:grid-cols-[2fr_1fr] gap-8">
-          {/* Active Orders */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-white">Recent Orders</h2>
-              <Link href="/order-history" className="text-primary hover:text-primary-dark text-sm transition">
-                View All →
-              </Link>
-            </div>
-            
-            {recentOrders.length === 0 ? (
-              <div className="bg-slate-900/50 rounded-xl border border-gray-800 p-8 text-center">
-                <p className="text-gray-400 mb-3">No active orders</p>
-                <Link href="/collections">
-                  <Button variant="primary" size="sm">
-                    Start Shopping
-                  </Button>
+          {/* Left Column - Recent Orders & Ready for Shipping */}
+          <div className="space-y-8">
+            {/* Recent Orders */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-white">Recent Orders</h2>
+                <Link href="/order-history" className="text-primary hover:text-primary-dark text-sm transition">
+                  View All →
                 </Link>
               </div>
-            ) : (
-              <div className="space-y-4">
-                {recentOrders.slice(0, 5).map((order) => {
-                  const isEditable = EDITABLE_ORDER_STATUSES.includes(order.status);
-                  
-                  return (
-                    <div key={order._id} className="relative">
-                      <OrderCard 
-                        order={{
-                          id: order._id,
-                          orderNumber: order.orderNumber,
-                          productName: order.items?.[0]?.productName || 'Multiple Items',
-                          orderedDate: formatDate(order.createdAt),
-                          totalAmount: order.totalAmount,
-                          status: order.status,
-                          itemsCount: order.items?.length || 1
-                        }}
-                        onClick={() => router.push(`/orders/${order._id}`)}
-                      />
-                      {isEditable && (
-                        <div className="absolute top-2 right-2">
-                          <span className="text-xs bg-green-600/20 text-green-400 px-2 py-1 rounded-full">
-                            Editable
-                          </span>
+              
+              {recentOrders.length === 0 ? (
+                <div className="bg-slate-900/50 rounded-xl border border-gray-800 p-8 text-center">
+                  <p className="text-gray-400 mb-3">No active orders</p>
+                  <Link href="/collections">
+                    <Button variant="primary" size="sm">
+                      Start Shopping
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {recentOrders.slice(0, 3).map((order) => {
+                    const isEditable = EDITABLE_ORDER_STATUSES.includes(order.status);
+                    
+                    return (
+                      <div key={order._id} className="relative">
+                        <OrderCard 
+                          order={{
+                            id: order._id,
+                            orderNumber: order.orderNumber,
+                            productName: order.items?.[0]?.productName || 'Multiple Items',
+                            orderedDate: formatDate(order.createdAt),
+                            totalAmount: order.totalAmount,
+                            status: order.status,
+                            itemsCount: order.items?.length || 1
+                          }}
+                          onClick={() => router.push(`/order-history/${order._id}`)}
+                        />
+                        {isEditable && (
+                          <div className="absolute top-2 right-2">
+                            <span className="text-xs bg-green-600/20 text-green-400 px-2 py-1 rounded-full">
+                              Editable
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Ready for Shipping Section */}
+            {ordersReadyForShipping.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-white">Ready for Shipping</h2>
+                  <Link href="/shipping/orders" className="text-primary hover:text-primary-dark text-sm transition">
+                    View All →
+                  </Link>
+                </div>
+                
+                <div className="space-y-4">
+                  {ordersReadyForShipping.slice(0, 1).map((order) => (
+                    <div key={order._id} className="bg-gradient-to-br from-orange-900/20 to-orange-950/20 border border-orange-800 rounded-lg p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <h3 className="text-white font-medium">{order.orderNumber}</h3>
+                          <p className="text-sm text-gray-400 mt-1">
+                            {order.items?.length} item(s)
+                          </p>
                         </div>
-                      )}
+                        <Button
+                          variant="warning"
+                          size="sm"
+                          onClick={() => handleSelectShipping(order._id)}
+                        >
+                          Select Shipping
+                        </Button>
+                      </div>
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
             )}
           </div>
 
-          {/* Pending Invoices */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-white">Pending Invoices</h2>
-              <Link href="/invoices" className="text-primary hover:text-primary-dark text-sm transition">
-                View All →
-              </Link>
+          {/* Right Column - Invoices */}
+          <div className="space-y-6">
+            {/* Regular Invoices */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-white">Pending Invoices</h2>
+                <Link href="/invoices?filter=pending" className="text-primary hover:text-primary-dark text-sm transition">
+                  View All →
+                </Link>
+              </div>
+              
+              {unpaidInvoices.length === 0 ? (
+                <div className="bg-slate-900/50 rounded-xl border border-gray-800 p-6 text-center">
+                  <p className="text-gray-400 text-sm">No pending invoices</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {unpaidInvoices.slice(0, 1).map((invoice) => (
+                    <InvoiceCard 
+                      key={invoice._id} 
+                      invoice={{
+                        id: invoice._id,
+                        invoiceNumber: invoice.invoiceNumber,
+                        amount: invoice.totalAmount,
+                        balance: invoice.remainingAmount || invoice.totalAmount,
+                        status: invoice.status,
+                        dueDate: invoice.dueDate,
+                        createdAt: invoice.createdAt
+                      }}
+                      onPay={() => router.push(`/payment?invoiceId=${invoice._id}`)}
+                      onDownload={() => {}}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-            
-            {unpaidInvoices.length === 0 ? (
-              <div className="bg-slate-900/50 rounded-xl border border-gray-800 p-8 text-center">
-                <p className="text-gray-400">No pending invoices</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {unpaidInvoices.slice(0, 2).map((invoice) => (
-                  <InvoiceCard 
-                    key={invoice._id} 
-                    invoice={{
-                      id: invoice._id,
-                      invoiceNumber: invoice.invoiceNumber,
-                      balance: invoice.remainingAmount || invoice.totalAmount,
-                      status: invoice.status,
-                      dueSoon: invoice.dueDate ? new Date(invoice.dueDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : false
-                    }}
-                    onClick={() => router.push(`/invoices/${invoice._id}`)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
 
-        {/* Order Status Guide */}
-        <div className="mt-8 bg-slate-900/30 rounded-xl border border-gray-800 p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Order Status Guide</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 mt-2 rounded-full bg-yellow-500"></div>
-              <div>
-                <p className="text-white text-sm font-medium">Pending / Order Received</p>
-                <p className="text-xs text-gray-400">You can still edit your customization briefs</p>
+            {/* Shipping Invoices */}
+            {/* <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-white">Shipping Invoices</h2>
+                <Link href="/invoices?filter=shipping" className="text-primary hover:text-primary-dark text-sm transition">
+                  View All →
+                </Link>
               </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 mt-2 rounded-full bg-purple-500"></div>
-              <div>
-                <p className="text-white text-sm font-medium">Files Uploaded</p>
-                <p className="text-xs text-gray-400">Your briefs are with the team - you can still make changes</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 mt-2 rounded-full bg-orange-500"></div>
-              <div>
-                <p className="text-white text-sm font-medium">Awaiting Invoice</p>
-                <p className="text-xs text-gray-400">All briefs processed - order is locked, no more changes</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 mt-2 rounded-full bg-green-500"></div>
-              <div>
-                <p className="text-white text-sm font-medium">Invoice Sent+</p>
-                <p className="text-xs text-gray-400">Order is in production/shipping, cannot make changes</p>
-              </div>
-            </div>
+              
+              {unpaidShippingInvoices.length === 0 ? (
+                <div className="bg-slate-900/50 rounded-xl border border-gray-800 p-6 text-center">
+                  <p className="text-gray-400 text-sm">No pending shipping invoices</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {unpaidShippingInvoices.slice(0, 2).map((invoice) => (
+                    <InvoiceCard 
+                      key={invoice._id} 
+                      invoice={{
+                        id: invoice._id,
+                        invoiceNumber: invoice.invoiceNumber,
+                        amount: invoice.totalAmount,
+                        balance: invoice.remainingAmount || invoice.totalAmount,
+                        status: invoice.status,
+                        dueDate: invoice.dueDate,
+                        createdAt: invoice.createdAt,
+                        type: 'shipping'
+                      }}
+                      onPay={() => router.push(`/payment?invoiceId=${invoice._id}`)}
+                      onDownload={() => {}}
+                    />
+                  ))}
+                </div>
+              )}
+            </div> */}
           </div>
         </div>
 
@@ -477,9 +610,9 @@ export default function CustomerDashboard() {
           
           <Link href="/invoices">
             <div className="bg-gradient-to-br from-green-900/30 to-green-950/30 p-4 rounded-lg border border-green-800 hover:border-green-600 transition cursor-pointer">
-              <div className="text-3xl mb-2">💰</div>
-              <h4 className="text-white font-medium">Invoices</h4>
-              <p className="text-xs text-gray-400 mt-1">Manage payments</p>
+              <div className="text-3xl mb-2">📄</div>
+              <h4 className="text-white font-medium">All Invoices</h4>
+              <p className="text-xs text-gray-400 mt-1">View and manage invoices</p>
             </div>
           </Link>
         </div>

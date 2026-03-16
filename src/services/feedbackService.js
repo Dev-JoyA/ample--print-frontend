@@ -5,11 +5,32 @@ export const feedbackService = {
   // Create new feedback
   create: (formData) => api.upload(API_PATHS.FEEDBACK.CREATE, formData),
 
-  // Get current user's feedback (customer)
-  getMyFeedback: (params = {}) => {
-    const { page = API_DEFAULTS.PAGINATION_PAGE, limit = API_DEFAULTS.PAGINATION_LIMIT } = params;
-    const q = new URLSearchParams({ page, limit }).toString();
-    return api.get(`${API_PATHS.FEEDBACK.USER_LIST}?${q}`);
+  // Get current user's feedback (customer) - WITH STATUS FILTER
+  getMyFeedback: async (params = {}) => {
+    try {
+      const { page = API_DEFAULTS.PAGINATION_PAGE, limit = API_DEFAULTS.PAGINATION_LIMIT, status } = params;
+      
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', page);
+      queryParams.append('limit', limit);
+      
+      // Add status filter if provided
+      if (status && status !== 'all') {
+        queryParams.append('status', status);
+      }
+      
+      const queryString = queryParams.toString();
+      // Use the USER_LIST endpoint which should return only the user's feedback
+      const endpoint = `${API_PATHS.FEEDBACK.USER_LIST}?${queryString}`;
+      
+      console.log('📋 Fetching my feedback with params:', params);
+      const response = await api.get(endpoint);
+      console.log('✅ My feedback response:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ Failed to fetch my feedback:', error);
+      return { feedback: [], total: 0 };
+    }
   },
 
   // Get pending feedback (admin only)
@@ -19,7 +40,7 @@ export const feedbackService = {
     return api.get(`${API_PATHS.FEEDBACK.PENDING}?${q}`);
   },
 
-  // NEW: Get all feedback with pagination and filters
+  // Get all feedback with pagination and filters (admin only)
   getAll: async (params = {}) => {
     try {
       const queryParams = new URLSearchParams();
@@ -40,7 +61,7 @@ export const feedbackService = {
     }
   },
 
-  // NEW: Advanced filtering
+  // Filter feedback (admin only)
   filter: async (params = {}) => {
     try {
       const queryParams = new URLSearchParams();
@@ -68,16 +89,13 @@ export const feedbackService = {
   getById: (feedbackId) => api.get(API_PATHS.FEEDBACK.BY_ID(feedbackId)),
 
   // Admin respond to feedback
- // Admin respond to feedback - supports both text and file attachments
-respond: async (feedbackId, data) => {
-  // If data is FormData (with files), use upload, otherwise use regular post
-  if (data instanceof FormData) {
-    return api.upload(`/feedback/${feedbackId}/respond`, data);
-  } else {
-    // Simple text response
-    return api.post(`/feedback/${feedbackId}/respond`, { response: data });
-  }
-},
+  respond: (feedbackId, data) => {
+    if (data instanceof FormData) {
+      return api.upload(`/feedback/${feedbackId}/respond`, data);
+    } else {
+      return api.post(`/feedback/${feedbackId}/respond`, { response: data });
+    }
+  },
 
   // Update feedback status
   updateStatus: (feedbackId, status) =>

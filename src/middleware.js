@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { COOKIE_NAMES } from "@/lib/constants";
+import { COOKIE_NAMES } from "./lib/constants";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:4001/api/v1";

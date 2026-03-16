@@ -265,12 +265,24 @@ export default function AdminDashboard() {
             className="bg-gradient-to-br from-purple-900/30 to-purple-950/30 p-6 rounded-lg border border-purple-800 hover:border-purple-600 transition cursor-pointer"
           >
             <div className="text-4xl mb-3">🎨</div>
-            <h3 className="text-white font-bold text-lg">Design Ready Orders</h3>
+            <h3 className="text-white font-bold text-lg">Order Management</h3>
             <p className="text-gray-400 text-sm mt-2">
               {stats.designReady} orders with approved designs ready for production
             </p>
             <span className="text-xs text-purple-400 mt-2 block">Start production →</span>
           </div>
+
+            <div 
+                onClick={() => router.push('/dashboards/admin-dashboard/shipping')}
+                className="bg-gradient-to-br from-teal-900/30 to-teal-950/30 p-6 rounded-lg border border-teal-800 hover:border-teal-600 transition cursor-pointer"
+                >
+                <div className="text-4xl mb-3">🚚</div>
+                <h3 className="text-white font-bold text-lg">Shipping Management</h3>
+                <p className="text-gray-400 text-sm mt-2">
+                    Manage deliveries, pickups, and shipping invoices
+                </p>
+                <span className="text-xs text-teal-400 mt-2 block">View all shipping →</span>
+                </div>
 
           <div 
             onClick={() => router.push('/dashboards/admin-dashboard/feedback')}
