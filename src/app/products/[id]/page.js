@@ -239,7 +239,6 @@ export default function ProductDetailPage() {
 PRODUCT INFORMATION:
 -------------------
 Product Name: ${product.name}
-Product ID: ${product._id}
 Collection: ${product.collectionId?.name || 'N/A'}
 
 CUSTOMER SPECIFICATIONS:

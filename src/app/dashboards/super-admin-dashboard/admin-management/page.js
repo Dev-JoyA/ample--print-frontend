@@ -487,7 +487,7 @@ const AdminManagementPage = () => {
                                             <th className="text-left p-4 text-gray-400 font-medium">Uploaded By</th>
                                             <th className="text-left p-4 text-gray-400 font-medium">Order</th>
                                             <th className="text-left p-4 text-gray-400 font-medium">Product</th>
-                                            <th className="text-left p-4 text-gray-400 font-medium">Version</th>
+                                            {/* <th className="text-left p-4 text-gray-400 font-medium">Version</th> */}
                                             <th className="text-left p-4 text-gray-400 font-medium">Status</th>
                                             <th className="text-left p-4 text-gray-400 font-medium">Uploaded</th>
                                             <th className="text-left p-4 text-gray-400 font-medium">Actions</th>
@@ -519,9 +519,9 @@ const AdminManagementPage = () => {
                                                 <td className="p-4 text-gray-300 text-sm">
                                                     {design.productId?.name || 'Unknown Product'}
                                                 </td>
-                                                <td className="p-4 text-gray-300 text-sm">
+                                                {/* <td className="p-4 text-gray-300 text-sm">
                                                     v{design.version || 1}
-                                                </td>
+                                                </td> */}
                                                 <td className="p-4">
                                                     {getStatusBadge(design.isApproved)}
                                                 </td>

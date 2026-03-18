@@ -35,6 +35,18 @@ export default function SuperAdminDashboard() {
     fetchDashboardData();
   }, []);
 
+  const handlePrintReport = () => {
+  // Open transactions page in a new window with print-friendly URL
+  const printWindow = window.open('/dashboards/super-admin-dashboard/transactions?print=true', '_blank');
+  
+  // Wait for page to load then trigger print
+  if (printWindow) {
+    printWindow.onload = () => {
+      printWindow.print();
+    };
+  }
+};
+
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
@@ -247,14 +259,15 @@ export default function SuperAdminDashboard() {
             <p className="text-gray-400">Welcome back! Here's what's happening with your business today.</p>
           </div>
           <div className="flex gap-3">
-            <Button 
-              variant="primary" 
-              size="md" 
-              icon="📊"
-              onClick={() => window.print()}
-            >
-              Generate Report
-            </Button>
+            <Link 
+                href="/dashboards/super-admin-dashboard/transactions?print=true" 
+                target="_blank"
+                className="inline-block"
+                >
+                <Button variant="primary" size="md" icon="📊">
+                    Generate Report
+                </Button>
+                </Link>
           </div>
         </div>
 
@@ -312,15 +325,6 @@ export default function SuperAdminDashboard() {
               icon="👥"
               color="purple"
               subtitle="Currently managing system"
-            />
-          </Link>
-          <Link href="/dashboards/super-admin-dashboard/invoices?filter=overdue">
-            <SummaryCard
-              title="Overdue Invoices"
-              value={stats.overdueInvoices.toString()}
-              icon="⚠️"
-              color="orange"
-              subtitle="Require attention"
             />
           </Link>
         </div>

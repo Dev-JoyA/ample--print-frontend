@@ -404,7 +404,7 @@ export default function EditInvoicePage() {
                     >
                       <span>📋</span> View Customization Brief
                       {item.hasAdminResponse && (
-                        <span className="ml-1 text-green-400">(Has Response)</span>
+                        <span className="ml-1 text-green-400 whitespace-nowrap transition">(Has Response)</span>
                       )}
                     </button>
                   ) : (

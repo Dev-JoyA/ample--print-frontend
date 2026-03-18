@@ -13,25 +13,34 @@ import { customerBriefService } from '@/services/customerBriefService';
 export default function OrderDetailPage({ params }) {
   useAuthCheck();
   const router = useRouter();
-  const { id } = params;
-
   const [order, setOrder] = useState(null);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [orderId, setOrderId] = useState(null);
+
+  // Unwrap params promise
+  useEffect(() => {
+    const unwrapParams = async () => {
+      const resolvedParams = await params;
+      setOrderId(resolvedParams.id);
+    };
+    
+    unwrapParams();
+  }, [params]);
 
   useEffect(() => {
-    if (id) {
+    if (orderId) {
       fetchOrderDetails();
     }
-  }, [id]);
+  }, [orderId]);
 
   const fetchOrderDetails = async () => {
     try {
       setLoading(true);
       
       // Fetch order
-      const response = await orderService.getById(id);
+      const response = await orderService.getById(orderId);
       const orderData = response?.order || response?.data || response;
       setOrder(orderData);
       
@@ -41,7 +50,7 @@ export default function OrderDetailPage({ params }) {
           orderData.items.map(async (item) => {
             const productId = item.productId?._id || item.productId;
             try {
-              const briefResponse = await customerBriefService.getByOrderAndProduct(id, productId);
+              const briefResponse = await customerBriefService.getByOrderAndProduct(orderId, productId);
               const briefData = briefResponse?.data || briefResponse;
               return {
                 ...item,
@@ -71,7 +80,7 @@ export default function OrderDetailPage({ params }) {
   };
 
   const handleCreateInvoice = () => {
-    router.push(`/dashboards/super-admin-dashboard/invoices/create?orderId=${id}`);
+    router.push(`/dashboards/super-admin-dashboard/invoices/create?orderId=${orderId}`);
   };
 
   const formatCurrency = (amount) => {
@@ -108,6 +117,19 @@ export default function OrderDetailPage({ params }) {
     return colors[status] || 'gray';
   };
 
+  // Helper function to safely get string ID
+  const getStringId = (id) => {
+    if (!id) return '';
+    if (typeof id === 'string') return id;
+    if (typeof id === 'object') {
+      // If it's an object with _id property
+      if (id._id) return id._id.toString();
+      // If it's an ObjectId or other object, convert to string
+      return id.toString();
+    }
+    return '';
+  };
+
   if (loading) {
     return (
       <DashboardLayout userRole="super-admin">
@@ -136,6 +158,9 @@ export default function OrderDetailPage({ params }) {
 
   const hasInvoice = order.invoiceId;
   const needsInvoice = !hasInvoice && order.status === 'OrderReceived';
+  
+  // Get safe invoice ID string
+  const invoiceIdString = getStringId(order.invoiceId);
 
   return (
     <DashboardLayout userRole="super-admin">
@@ -169,8 +194,8 @@ export default function OrderDetailPage({ params }) {
                   Create Invoice
                 </Button>
               )}
-              {hasInvoice && (
-                <Link href={`/dashboards/super-admin-dashboard/invoices/${order.invoiceId}`}>
+              {hasInvoice && invoiceIdString && (
+                <Link href={`/dashboards/super-admin-dashboard/invoices/${invoiceIdString}`}>
                   <Button variant="secondary" icon="👁️">
                     View Invoice
                   </Button>
@@ -218,48 +243,57 @@ export default function OrderDetailPage({ params }) {
           </div>
           
           <div className="divide-y divide-gray-800">
-            {items.map((item, index) => (
-              <div key={index} className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-white font-medium text-lg">{item.productName}</h3>
-                    <p className="text-sm text-gray-400">Quantity: {item.quantity}</p>
+            {items.map((item, index) => {
+              // Get safe brief ID string
+              const briefIdString = getStringId(item.briefId);
+              
+              return (
+                <div key={index} className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-white font-medium text-lg">{item.productName}</h3>
+                      <p className="text-sm text-gray-400">Quantity: {item.quantity}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-primary font-bold text-lg">
+                        {formatCurrency(item.price * item.quantity)}
+                      </p>
+                      <p className="text-sm text-gray-400">{formatCurrency(item.price)} each</p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-primary font-bold text-lg">
-                      {formatCurrency(item.price * item.quantity)}
-                    </p>
-                    <p className="text-sm text-gray-400">{formatCurrency(item.price)} each</p>
-                  </div>
-                </div>
 
-                {/* Brief Status and Link */}
-                <div className="mt-2 flex gap-2">
-                  {item.hasBrief ? (
-                    <Link href={`/briefs/${item.briefId}`}>
-                      <button className="flex items-center gap-1 text-xs bg-blue-900/30 text-blue-400 px-3 py-1.5 rounded-full hover:bg-blue-900/50 transition">
-                        <span>📋</span> View Customer Brief
-                        {item.hasAdminResponse && (
-                          <span className="ml-1 text-green-400">(Has Response)</span>
-                        )}
-                      </button>
-                    </Link>
-                  ) : (
-                    <span className="text-xs bg-gray-800 text-gray-500 px-3 py-1.5 rounded-full">
-                      No brief submitted
-                    </span>
-                  )}
-                  
-                  {item.hasAdminResponse && (
-                    <Link href={`/briefs/responses?orderId=${id}&productId=${item.productId}`}>
-                      <button className="flex items-center gap-1 text-xs bg-green-900/30 text-green-400 px-3 py-1.5 rounded-full hover:bg-green-900/50 transition">
-                        <span>💬</span> View Response Thread
-                      </button>
-                    </Link>
-                  )}
+                  {/* Brief Status and Link */}
+                  <div className="mt-2 flex gap-2">
+                    {item.hasBrief && briefIdString ? (
+                      <Link href={`/briefs/${briefIdString}`}>
+                        <button className="flex items-center gap-1 text-xs bg-blue-900/30 text-blue-400 px-3 py-1.5 rounded-full hover:bg-blue-900/50 transition">
+                          <span>📋</span> View Customer Brief
+                          {item.hasAdminResponse && (
+                            <span className="ml-1 text-green-400">(Has Response)</span>
+                          )}
+                        </button>
+                      </Link>
+                    ) : item.hasBrief ? (
+                      <span className="text-xs bg-blue-900/30 text-blue-400 px-3 py-1.5 rounded-full">
+                        <span>📋</span> Brief Available
+                      </span>
+                    ) : (
+                      <span className="text-xs bg-gray-800 text-gray-500 px-3 py-1.5 rounded-full">
+                        No brief submitted
+                      </span>
+                    )}
+                    
+                    {item.hasAdminResponse && (
+                      <Link href={`/briefs/responses?orderId=${orderId}&productId=${item.productId}`}>
+                        <button className="flex items-center gap-1 text-xs bg-green-900/30 text-green-400 px-3 py-1.5 rounded-full hover:bg-green-900/50 transition">
+                          <span>💬</span> View Response Thread
+                        </button>
+                      </Link>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

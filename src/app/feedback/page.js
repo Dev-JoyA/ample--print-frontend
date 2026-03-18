@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import Button from '@/components/ui/Button';
+import Textarea from '@/components/ui/Textarea';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { useProtectedRoute } from '@/app/lib/auth';
 import { feedbackService } from '@/services/feedbackService';
@@ -22,10 +23,16 @@ export default function CustomerFeedbackPage() {
   const [error, setError] = useState('');
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [filter, setFilter] = useState('all'); // 'all', 'pending', 'reviewed', 'resolved'
+  const [filter, setFilter] = useState('all');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [limit] = useState(10);
+  
+  // New state for customer response
+  const [showResponseModal, setShowResponseModal] = useState(false);
+  const [responseMessage, setResponseMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [responseFiles, setResponseFiles] = useState([]);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -33,63 +40,133 @@ export default function CustomerFeedbackPage() {
     }
   }, [authLoading, user, filter, page]);
 
- const fetchMyFeedback = async () => {
-  try {
-    setLoading(true);
-    setError('');
-    
-    // Build params object
-    const params = {
-      page,
-      limit
-    };
-    
-    // Add status filter if not 'all'
-    if (filter !== 'all') {
-      params.status = filter;
+  const fetchMyFeedback = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      const params = {
+        page,
+        limit
+      };
+      
+      if (filter !== 'all') {
+        params.status = filter;
+      }
+      
+      console.log('📋 Fetching my feedback with params:', params);
+      
+      const response = await feedbackService.getMyFeedback(params);
+      
+      let feedbackData = [];
+      let total = 0;
+      
+      if (response?.feedback && Array.isArray(response.feedback)) {
+        feedbackData = response.feedback;
+        total = response.total || feedbackData.length;
+      } else if (response?.data && Array.isArray(response.data)) {
+        feedbackData = response.data;
+        total = response.total || feedbackData.length;
+      } else if (Array.isArray(response)) {
+        feedbackData = response;
+        total = feedbackData.length;
+      }
+      
+      setFeedbacks(feedbackData);
+      setTotalPages(Math.ceil(total / limit));
+      
+    } catch (err) {
+      console.error('❌ Failed to fetch feedback:', err);
+      setError('Failed to load your feedback. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    
-    console.log('📋 Fetching my feedback with params:', params);
-    
-    const response = await feedbackService.getMyFeedback(params);
-    
-    console.log('📋 My feedback response:', response);
-    
-    // Handle different response structures
-    let feedbackData = [];
-    let total = 0;
-    
-    if (response?.feedback && Array.isArray(response.feedback)) {
-      feedbackData = response.feedback;
-      total = response.total || feedbackData.length;
-    } else if (response?.data && Array.isArray(response.data)) {
-      feedbackData = response.data;
-      total = response.total || feedbackData.length;
-    } else if (Array.isArray(response)) {
-      feedbackData = response;
-      total = feedbackData.length;
+  };
+
+  const markFeedbackAsViewed = async (feedbackId) => {
+    try {
+      // Call API to mark as viewed (you'll need to add this endpoint)
+      // await feedbackService.markAsViewed(feedbackId);
+      console.log('📌 Marked feedback as viewed:', feedbackId);
+      
+      // Update local state to reflect viewed status
+      setFeedbacks(prev => prev.map(f => 
+        f._id === feedbackId ? { ...f, viewedByCustomer: true } : f
+      ));
+      
+      if (selectedFeedback && selectedFeedback._id === feedbackId) {
+        setSelectedFeedback(prev => ({ ...prev, viewedByCustomer: true }));
+      }
+    } catch (err) {
+      console.error('Failed to mark feedback as viewed:', err);
     }
-    
-    console.log(`✅ Found ${feedbackData.length} feedback items with status: ${filter}`);
-    setFeedbacks(feedbackData);
-    setTotalPages(Math.ceil(total / limit));
-    
-  } catch (err) {
-    console.error('❌ Failed to fetch feedback:', err);
-    setError('Failed to load your feedback. Please try again.');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const handleViewFeedback = (feedback) => {
     setSelectedFeedback(feedback);
     setShowFeedbackModal(true);
     
-    // If feedback has admin response and hasn't been viewed, mark as viewed
+    // Mark as viewed when customer opens it
     if (feedback.adminResponse && !feedback.viewedByCustomer) {
-      // You might want to call an API to mark as viewed
-      // markFeedbackAsViewed(feedback._id);
+      markFeedbackAsViewed(feedback._id);
+    }
+  };
+
+  const handleRespondToAdmin = (feedback) => {
+    setSelectedFeedback(feedback);
+    setShowFeedbackModal(false);
+    setShowResponseModal(true);
+    setResponseMessage('');
+    setResponseFiles([]);
+  };
+
+  const handleFileUpload = (e) => {
+    const files = Array.from(e.target.files);
+    setResponseFiles(prev => [...prev, ...files]);
+  };
+
+  const removeFile = (index) => {
+    setResponseFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSubmitResponse = async () => {
+    if (!responseMessage.trim()) {
+      showToast('Please enter your response', 'error');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      
+      // Create a new feedback response (this creates a new feedback thread or reply)
+      const formData = new FormData();
+      formData.append('orderId', selectedFeedback.orderId._id);
+      if (selectedFeedback.designId) {
+        formData.append('designId', selectedFeedback.designId._id);
+      }
+      formData.append('message', responseMessage);
+      formData.append('parentFeedbackId', selectedFeedback._id); // Link to original feedback
+      
+      responseFiles.forEach(file => {
+        formData.append('attachments', file);
+      });
+      
+      await feedbackService.create(formData);
+      
+      showToast('Your response has been sent to admin', 'success');
+      
+      setShowResponseModal(false);
+      setResponseMessage('');
+      setResponseFiles([]);
+      
+      // Refresh feedback list
+      await fetchMyFeedback();
+      
+    } catch (err) {
+      console.error('Failed to send response:', err);
+      showToast('Failed to send response. Please try again.', 'error');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -131,6 +208,10 @@ export default function CustomerFeedbackPage() {
     if (path.startsWith('http')) return path;
     let filename = path.split('/').pop();
     return `http://localhost:4001/api/v1/attachments/download/${filename}`;
+  };
+
+  const hasUnreadAdminResponse = (feedback) => {
+    return feedback.adminResponse && !feedback.viewedByCustomer;
   };
 
   if (authLoading || loading) {
@@ -264,7 +345,11 @@ export default function CustomerFeedbackPage() {
               <div
                 key={feedback._id}
                 onClick={() => handleViewFeedback(feedback)}
-                className="bg-slate-900/50 border border-gray-800 rounded-lg p-5 hover:border-gray-700 transition cursor-pointer group"
+                className={`bg-slate-900/50 border rounded-lg p-5 hover:border-gray-700 transition cursor-pointer group ${
+                  hasUnreadAdminResponse(feedback) 
+                    ? 'border-primary/30 bg-primary/5' 
+                    : 'border-gray-800'
+                }`}
               >
                 <div className="flex flex-col md:flex-row md:items-start gap-4">
                   {/* Status Icon */}
@@ -280,8 +365,16 @@ export default function CustomerFeedbackPage() {
                         {feedback.status}
                       </span>
                       {feedback.adminResponse && (
-                        <span className="bg-green-900/30 text-green-400 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                          <span>✓</span> Admin Responded
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${
+                          hasUnreadAdminResponse(feedback)
+                            ? 'bg-green-600/30 text-green-400 border border-green-700'
+                            : 'bg-green-900/30 text-green-400'
+                        }`}>
+                          <span>✓</span> 
+                          Admin Responded
+                          {hasUnreadAdminResponse(feedback) && (
+                            <span className="w-2 h-2 bg-green-400 rounded-full ml-1 animate-pulse"></span>
+                          )}
                         </span>
                       )}
                       <span className="text-xs text-gray-500">
@@ -475,16 +568,122 @@ export default function CustomerFeedbackPage() {
                 )}
               </div>
 
-              <div className="p-6 border-t border-gray-800 flex justify-end">
+              <div className="p-6 border-t border-gray-800 flex gap-3">
+                {selectedFeedback.adminResponse && selectedFeedback.status !== 'Resolved' && (
+                  <Button
+                    variant="primary"
+                    onClick={() => handleRespondToAdmin(selectedFeedback)}
+                    className="flex-1"
+                  >
+                    Reply to Admin
+                  </Button>
+                )}
                 <Button
-                  variant="primary"
+                  variant="secondary"
                   onClick={() => {
                     setShowFeedbackModal(false);
                     setSelectedFeedback(null);
                   }}
+                  className={selectedFeedback.adminResponse ? 'flex-1' : 'w-full'}
                 >
                   Close
                 </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Customer Response Modal */}
+        {showResponseModal && selectedFeedback && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+            <div className="bg-slate-900 rounded-xl border border-gray-800 max-w-lg w-full">
+              <div className="p-6 border-b border-gray-800">
+                <h3 className="text-xl font-bold text-white">Reply to Admin</h3>
+                <p className="text-sm text-gray-400 mt-1">
+                  Order #{selectedFeedback.orderId?.orderNumber}
+                </p>
+              </div>
+              
+              <div className="p-6 space-y-4">
+                {/* Original Admin Response Preview */}
+                <div className="bg-green-900/20 border border-green-800 rounded-lg p-3">
+                  <p className="text-xs text-green-400 mb-1">Admin said:</p>
+                  <p className="text-sm text-white">{selectedFeedback.adminResponse}</p>
+                </div>
+
+                {/* Response Message */}
+                <Textarea
+                  placeholder="Type your response..."
+                  value={responseMessage}
+                  onChange={(e) => setResponseMessage(e.target.value)}
+                  rows={4}
+                  className="w-full bg-slate-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
+                />
+
+                {/* File Upload Area */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Upload Attachments (Optional)
+                  </label>
+                  <div className="border-2 border-dashed border-gray-700 rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      id="response-attachments"
+                    />
+                    <label htmlFor="response-attachments" className="cursor-pointer">
+                      <svg className="w-8 h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                      <p className="text-sm text-gray-400">Click to upload or drag and drop</p>
+                      <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF up to 10MB</p>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Selected Files List */}
+                {responseFiles.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-gray-300">Selected Files:</p>
+                    {responseFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between bg-slate-800 rounded-lg p-2">
+                        <span className="text-white text-sm truncate max-w-[250px]">{file.name}</span>
+                        <button
+                          onClick={() => removeFile(index)}
+                          className="text-red-400 hover:text-red-300 text-sm"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setShowResponseModal(false);
+                      setResponseMessage('');
+                      setResponseFiles([]);
+                    }}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={handleSubmitResponse}
+                    disabled={submitting || !responseMessage.trim()}
+                    className="flex-1"
+                  >
+                    {submitting ? 'Sending...' : 'Send Reply'}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

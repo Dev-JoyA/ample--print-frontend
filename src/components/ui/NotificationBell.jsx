@@ -165,70 +165,19 @@ export default function NotificationBell() {
   const handleNotificationClick = (notification) => {
     if (!notification) return;
     
+    // ONLY mark as read - NO navigation
     const notificationId = notification.id || notification._id;
     if (notificationId) {
       markAsRead(notificationId);
     }
     
+    // Keep the dropdown open? Or close it? Let's close it for better UX
     setIsOpen(false);
-    
-    // Use link from notification if available
-    if (notification.link) {
-      router.push(notification.link);
-      return;
-    }
-    
-    // Handle different notification types
-    const type = notification.type || '';
-    const data = notification.data || {};
-    
-    if (type.includes('brief') || type.includes('Brief')) {
-      if (data.briefId) {
-        router.push(`/briefs/${data.briefId}`);
-      } else if (data.orderId && data.productId) {
-        router.push(`/orders/${data.orderId}/products/${data.productId}/briefs`);
-      } else if (data.orderId) {
-        router.push(`/orders/${data.orderId}`);
-      }
-    } 
-    else if (type.includes('design') || type.includes('Design')) {
-      if (data.designId) {
-        router.push(`/designs/${data.designId}`);
-      } else if (data.orderId) {
-        router.push(`/orders/${data.orderId}`);
-      }
-    }
-    else if (type.includes('invoice') || type.includes('Invoice')) {
-      if (data.invoiceId) {
-        router.push(`/invoices/${data.invoiceId}`);
-      } else if (data.orderId) {
-        router.push(`/orders/${data.orderId}`);
-      }
-    }
-    else if (type.includes('payment') || type.includes('Payment')) {
-      if (data.orderId) {
-        router.push(`/orders/${data.orderId}`);
-      } else if (data.transactionId) {
-        router.push(`/transactions/${data.transactionId}`);
-      }
-    }
-    else if (type.includes('shipping') || type.includes('Shipping') || type.includes('pickup')) {
-      if (data.orderId) {
-        router.push(`/orders/${data.orderId}/shipping`);
-      } else if (data.shippingId) {
-        router.push(`/shipping/${data.shippingId}`);
-      }
-    }
-    else if (type.includes('feedback') || type.includes('Feedback')) {
-      if (data.feedbackId) {
-        router.push(`/feedback/${data.feedbackId}`);
-      } else if (data.orderId) {
-        router.push(`/orders/${data.orderId}`);
-      }
-    }
-    else if (data.orderId) {
-      router.push(`/orders/${data.orderId}`);
-    }
+  };
+
+  const handleViewAllClick = () => {
+    setIsOpen(false);
+    router.push('/notifications');
   };
 
   // Sort notifications by timestamp (newest first)
@@ -383,13 +332,12 @@ export default function NotificationBell() {
           {/* Footer */}
           {notifications.length > 0 && (
             <div className="p-3 border-t border-gray-800 text-center bg-slate-800/30">
-              <Link
-                href="/notifications"
-                onClick={() => setIsOpen(false)}
-                className="text-xs text-gray-400 hover:text-white transition block py-1"
+              <button
+                onClick={handleViewAllClick}
+                className="text-xs text-gray-400 hover:text-white transition block w-full py-1"
               >
                 View all notifications ({notifications.length})
-              </Link>
+              </button>
             </div>
           )}
         </div>
