@@ -291,7 +291,7 @@ export default function InvoicesPage() {
           <div className="relative">
             <input
               type="text"
-              placeholder="Search by invoice number, order number, or customer..."
+              placeholder="Search by invoice number"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full bg-slate-900 border border-gray-800 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary"

@@ -11,7 +11,7 @@ import ProfileDropdown from './ProfileDropdown';
 
 const Header = ({ onSearch, showSearch = true }) => {
   const pathname = usePathname();
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth(); // Get user from auth
   
   // Don't show header on auth pages or if not authenticated
   const isAuthPage = pathname?.startsWith('/auth/');
@@ -19,6 +19,9 @@ const Header = ({ onSearch, showSearch = true }) => {
   if (isAuthPage || !isAuthenticated || loading) {
     return null;
   }
+
+  // Determine user role - you might need to adjust this based on your auth structure
+  const userRole = user?.role?.toLowerCase() || 'customer';
 
   return (
     <header className="sticky top-0 z-40 bg-slate-950 border-b border-gray-800">
@@ -33,7 +36,7 @@ const Header = ({ onSearch, showSearch = true }) => {
         {/* Search Bar - conditionally shown */}
         {showSearch && (
           <div className="flex-1 max-w-2xl">
-            <SearchBar onSearch={onSearch} />
+            <SearchBar userRole={userRole} />
           </div>
         )}
         
@@ -42,7 +45,7 @@ const Header = ({ onSearch, showSearch = true }) => {
           <NotificationBell />
 
           {/* Shopping Cart - Only for customers */}
-          <CartIcon />
+          {userRole === 'customer' && <CartIcon />}
 
           {/* User Profile Dropdown */}
           <ProfileDropdown />

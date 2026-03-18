@@ -59,7 +59,6 @@ const Sidebar = ({ userRole = 'customer' }) => {
     { name: 'Notifications', href: '/notifications', icon: '➕' },
     { name: 'Collections', href: '/dashboards/admin-dashboard/collections', icon: '➕' },
     { name: 'Products', href: '/dashboards/admin-dashboard/products/create', icon: '➕' },
-    { name: 'Shipping Invoices', href: '/dashboards/admin-dashboard/shipping-invoices', icon: '🚚' },
   ];
 
   const superAdminNavItems = [

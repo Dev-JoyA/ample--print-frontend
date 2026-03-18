@@ -227,7 +227,7 @@ export default function AdminDashboard() {
             />
           </div>
           
-          <div onClick={() => router.push('/dashboards/admin-dashboard/orders/approved')} className="cursor-pointer">
+          {/* <div onClick={() => router.push('/dashboards/admin-dashboard/orders/approved')} className="cursor-pointer">
             <SummaryCard
               title="Design Ready"
               value={stats.designReady.toString()}
@@ -235,7 +235,7 @@ export default function AdminDashboard() {
               color="purple"
               subtitle="Approved designs ready for production"
             />
-          </div>
+          </div> */}
           
           <div onClick={() => handleQuickFilter('ready-to-ship')} className="cursor-pointer">
             <SummaryCard

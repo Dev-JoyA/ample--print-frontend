@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useNotifications } from '@/components/providers/NotificationProvider';
@@ -160,20 +159,8 @@ export default function NotificationsPage() {
   };
 
   const handleNotificationClick = (notification) => {
+    // Just mark as read - no navigation
     markAsRead(notification.id);
-    
-    if (notification.link) {
-      router.push(notification.link);
-    } else if (notification.data) {
-      // Generate link based on notification data
-      if (notification.data.orderId) {
-        router.push(`/orders/${notification.data.orderId}`);
-      } else if (notification.data.briefId) {
-        router.push(`/briefs/${notification.data.briefId}`);
-      } else if (notification.data.designId) {
-        router.push(`/designs/${notification.data.designId}`);
-      }
-    }
   };
 
   const handleMarkAllAsRead = async () => {
