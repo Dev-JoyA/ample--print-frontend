@@ -1,24 +1,20 @@
 import { api } from "../lib/api";
+import { API_PATHS } from "../lib/constants";
 
 export const notificationService = {
-  // Get notification history with pagination
   getHistory: async (params = {}) => {
     try {
       const queryParams = new URLSearchParams();
-      
       if (params.page) queryParams.append('page', params.page);
       if (params.limit) queryParams.append('limit', params.limit);
       if (params.read !== undefined) queryParams.append('read', params.read);
       if (params.type) queryParams.append('type', params.type);
-      
       const queryString = queryParams.toString();
-      const endpoint = queryString ? `/notifications/history?${queryString}` : '/notifications/history';
-      
+      const endpoint = queryString ? `${API_PATHS.NOTIFICATIONS.HISTORY}?${queryString}` : API_PATHS.NOTIFICATIONS.HISTORY;
       const response = await api.get(endpoint);
       console.log('📋 Notifications fetched:', response);
       return response;
     } catch (error) {
-      // If 404, return empty success response instead of throwing
       if (error.status === 404) {
         console.log('Notifications endpoint not available yet');
         return { success: true, notifications: [], total: 0, pages: 0 };
@@ -28,10 +24,9 @@ export const notificationService = {
     }
   },
 
-  // Get unread count
   getUnreadCount: async () => {
     try {
-      const response = await api.get('/notifications/unread-count');
+      const response = await api.get(API_PATHS.NOTIFICATIONS.UNREAD_COUNT);
       return response;
     } catch (error) {
       if (error.status === 404) {
@@ -42,10 +37,9 @@ export const notificationService = {
     }
   },
 
-  // Mark notification as read
   markAsRead: async (notificationId) => {
     try {
-      const response = await api.patch(`/notifications/${notificationId}/read`, {});
+      const response = await api.patch(API_PATHS.NOTIFICATIONS.MARK_READ(notificationId), {});
       return response;
     } catch (error) {
       if (error.status === 404) {
@@ -57,10 +51,9 @@ export const notificationService = {
     }
   },
 
-  // Mark all notifications as read
   markAllAsRead: async () => {
     try {
-      const response = await api.post('/notifications/mark-all-read', {});
+      const response = await api.post(API_PATHS.NOTIFICATIONS.MARK_ALL_READ, {});
       return response;
     } catch (error) {
       if (error.status === 404) {
@@ -72,10 +65,9 @@ export const notificationService = {
     }
   },
 
-  // Delete notification
   deleteNotification: async (notificationId) => {
     try {
-      const response = await api.delete(`/notifications/${notificationId}`);
+      const response = await api.delete(API_PATHS.NOTIFICATIONS.DELETE(notificationId));
       return response;
     } catch (error) {
       if (error.status === 404) {
@@ -87,10 +79,9 @@ export const notificationService = {
     }
   },
 
-  // Clear all notifications
   clearAll: async () => {
     try {
-      const response = await api.delete('/notifications/clear-all');
+      const response = await api.delete(API_PATHS.NOTIFICATIONS.CLEAR_ALL);
       return response;
     } catch (error) {
       if (error.status === 404) {

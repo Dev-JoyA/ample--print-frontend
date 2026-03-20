@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import SEOHead from '@/components/common/SEOHead';
+import { METADATA } from '@/lib/metadata';
 import { customerBriefService } from '@/services/customerBriefService';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -35,7 +37,6 @@ export default function ProductBriefPreview({ orderId, productId, productName })
     }
   };
 
-  // Get the most recent message (either admin or customer)
   const getLatestMessage = () => {
     if (!conversation) return null;
     
@@ -46,7 +47,6 @@ export default function ProductBriefPreview({ orderId, productId, productName })
     
     if (messages.length === 0) return null;
     
-    // Sort by date and get the latest
     return messages.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
   };
 
@@ -74,16 +74,16 @@ export default function ProductBriefPreview({ orderId, productId, productName })
 
   if (loading) {
     return (
-      <div className="p-4 text-center">
-        <div className="text-gray-400 text-sm">Loading briefs...</div>
+      <div className="p-3 sm:p-4 text-center">
+        <div className="text-gray-400 text-xs sm:text-sm">Loading briefs...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-4 text-center">
-        <div className="text-red-400 text-sm">{error}</div>
+      <div className="p-3 sm:p-4 text-center">
+        <div className="text-red-400 text-xs sm:text-sm">{error}</div>
       </div>
     );
   }
@@ -94,8 +94,8 @@ export default function ProductBriefPreview({ orderId, productId, productName })
 
   if (!hasCustomerBrief && !hasAdminResponse) {
     return (
-      <div className="p-6 text-center">
-        <p className="text-gray-400 text-sm mb-2">No customization briefs yet</p>
+      <div className="p-4 sm:p-6 text-center">
+        <p className="text-gray-400 text-xs sm:text-sm mb-2">No customization briefs yet</p>
         <Link href={`/orders/${orderId}/products/${productId}/respond`}>
           <span className="text-primary hover:text-primary-dark text-xs font-medium cursor-pointer">
             + Add Brief
@@ -106,16 +106,15 @@ export default function ProductBriefPreview({ orderId, productId, productName })
   }
 
   return (
-    <div className="p-4">
-      {/* Latest Message Preview */}
+    <div className="p-3 sm:p-4">
       {latestMessage && (
-        <div className="flex items-start gap-3">
-          <div className={`w-8 h-8 rounded-full ${getRoleColor(latestMessage.role)} flex items-center justify-center text-sm border flex-shrink-0`}>
+        <div className="flex items-start gap-2 sm:gap-3">
+          <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full ${getRoleColor(latestMessage.role)} flex items-center justify-center text-xs sm:text-sm border flex-shrink-0`}>
             {getRoleIcon(latestMessage.role)}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-medium text-white">
+            <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
+              <span className="text-xs sm:text-sm font-medium text-white">
                 {latestMessage.role === 'customer' ? 'You' : 
                  latestMessage.role === 'admin' ? 'Admin' : 'Super Admin'}
               </span>
@@ -129,13 +128,12 @@ export default function ProductBriefPreview({ orderId, productId, productName })
               )}
             </div>
             
-            <p className="text-gray-300 text-sm line-clamp-2">
+            <p className="text-gray-300 text-xs sm:text-sm line-clamp-2">
               {latestMessage.description || 'No description provided'}
             </p>
             
-            {/* Attachment indicators */}
             {hasAttachments(latestMessage) && (
-              <div className="flex gap-2 mt-1">
+              <div className="flex flex-wrap gap-1 sm:gap-2 mt-1">
                 {latestMessage.image && <span className="text-xs text-blue-400">📷</span>}
                 {latestMessage.voiceNote && <span className="text-xs text-green-400">🎤</span>}
                 {latestMessage.video && <span className="text-xs text-red-400">🎥</span>}
@@ -146,14 +144,13 @@ export default function ProductBriefPreview({ orderId, productId, productName })
         </div>
       )}
 
-      {/* Status indicators */}
-      <div className="mt-3 flex items-center justify-between text-xs">
-        <div className="flex gap-2">
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div className="flex flex-wrap gap-2">
           {hasCustomerBrief && (
-            <span className="text-green-400">✓ Your brief submitted</span>
+            <span className="text-green-400 text-xs">✓ Your brief submitted</span>
           )}
           {hasAdminResponse && !conversation.customer?.viewed && (
-            <span className="text-yellow-400 animate-pulse">● Admin response</span>
+            <span className="text-yellow-400 animate-pulse text-xs">● Admin response</span>
           )}
         </div>
         <Link href={`/orders/${orderId}/products/${productId}/briefs`}>

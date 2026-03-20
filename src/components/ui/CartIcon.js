@@ -8,17 +8,16 @@ const CartIcon = () => {
   const { cartCount, loading } = useCart();
   const { user } = useAuth();
 
-  // Only show for customers
   if (user?.role !== 'Customer') return null;
 
   return (
     <Link href="/order-history" className="relative">
       <button 
-        className="p-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors relative"
+        className="relative rounded-lg p-2 text-gray-300 transition-colors hover:bg-gray-800 hover:text-white"
         aria-label="Shopping cart"
       >
         <svg
-          className="w-6 h-6"
+          className="h-5 w-5 sm:h-6 sm:w-6"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -32,7 +31,7 @@ const CartIcon = () => {
         </svg>
         
         {!loading && cartCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-600 rounded-full text-xs flex items-center justify-center text-white px-1">
+          <span className="absolute -right-1 -top-1 flex min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1 text-xs text-white">
             {cartCount > 9 ? '9+' : cartCount}
           </span>
         )}

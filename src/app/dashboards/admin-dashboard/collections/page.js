@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import Button from '@/components/ui/Button';
+import SEOHead from '@/components/common/SEOHead';
+import { METADATA } from '@/lib/metadata';
 import { collectionService } from '@/services/collectionService';
 import { useAuthCheck } from '@/app/lib/auth';
 
@@ -90,6 +92,7 @@ export default function CollectionsPage() {
   if (loading && collections.length === 0) {
     return (
       <DashboardLayout userRole="admin">
+        <SEOHead {...METADATA.dashboard.admin} />
         <div className="flex justify-center items-center min-h-[60vh]">
           <div className="text-white">Loading collections...</div>
         </div>
@@ -99,23 +102,22 @@ export default function CollectionsPage() {
 
   return (
     <DashboardLayout userRole="admin">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+      <SEOHead {...METADATA.dashboard.admin} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-white">Collections</h1>
-            <p className="text-gray-400 mt-2">Manage your product categories</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white">Collections</h1>
+            <p className="text-gray-400 text-sm sm:text-base mt-1 sm:mt-2">Manage your product categories</p>
           </div>
           <div className="flex gap-3">
             <Link href="/dashboards/admin-dashboard/collections/create">
-              <Button variant="primary" icon="+">
+              <Button variant="primary" icon="+" className="w-full sm:w-auto">
                 New Collection
               </Button>
             </Link>
           </div>
         </div>
 
-        {/* Search Bar */}
         <div className="mb-6">
           <div className="relative">
             <input
@@ -123,10 +125,10 @@ export default function CollectionsPage() {
               placeholder="Search collections..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-900 border border-gray-800 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600"
+              className="w-full bg-slate-900 border border-gray-800 rounded-lg pl-10 pr-4 py-2.5 sm:py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600"
             />
             <svg
-              className="absolute left-3 top-3.5 h-5 w-5 text-gray-500"
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -142,19 +144,18 @@ export default function CollectionsPage() {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-200">
+          <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-200 text-sm">
             {error}
           </div>
         )}
 
-        {/* Collections Grid */}
         {filteredCollections.length === 0 ? (
-          <div className="bg-slate-900 rounded-lg border border-gray-800 p-12 text-center">
-            <div className="text-6xl mb-4">📁</div>
-            <h3 className="text-xl font-medium text-white mb-2">
+          <div className="bg-slate-900 rounded-lg border border-gray-800 p-8 sm:p-12 text-center">
+            <div className="text-5xl sm:text-6xl mb-4">📁</div>
+            <h3 className="text-lg sm:text-xl font-medium text-white mb-2">
               {searchTerm ? 'No matching collections' : 'No collections yet'}
             </h3>
-            <p className="text-gray-400 mb-6">
+            <p className="text-gray-400 text-sm sm:text-base mb-6">
               {searchTerm 
                 ? 'Try a different search term' 
                 : 'Create your first collection to start adding products'}
@@ -166,15 +167,14 @@ export default function CollectionsPage() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredCollections.map((collection) => (
               <div
                 key={collection._id}
                 className="bg-slate-900 rounded-lg border border-gray-800 overflow-hidden hover:shadow-xl transition-all duration-300 group"
               >
                 {editingCollection?._id === collection._id ? (
-                  // Edit Mode
-                  <div className="p-6">
+                  <div className="p-4 sm:p-6">
                     <input
                       type="text"
                       value={editName}
@@ -198,16 +198,15 @@ export default function CollectionsPage() {
                     </div>
                   </div>
                 ) : (
-                  // View Mode
                   <>
-                    <div className="p-6">
+                    <div className="p-4 sm:p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-red-600/20 to-purple-600/20 rounded-lg flex items-center justify-center text-3xl">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-red-600/20 to-purple-600/20 rounded-lg flex items-center justify-center text-2xl sm:text-3xl shrink-0">
                             📁
                           </div>
                           <div>
-                            <h3 className="text-lg font-semibold text-white group-hover:text-red-400 transition">
+                            <h3 className="text-base sm:text-lg font-semibold text-white group-hover:text-red-400 transition break-words">
                               {collection.name}
                             </h3>
                             <p className="text-xs text-gray-500">
@@ -215,10 +214,10 @@ export default function CollectionsPage() {
                             </p>
                           </div>
                         </div>
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                        <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition">
                           <button
                             onClick={() => handleEdit(collection)}
-                            className="p-2 hover:bg-slate-800 rounded-lg text-gray-400 hover:text-blue-400 transition"
+                            className="p-1.5 sm:p-2 hover:bg-slate-800 rounded-lg text-gray-400 hover:text-blue-400 transition"
                             title="Edit"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -227,7 +226,7 @@ export default function CollectionsPage() {
                           </button>
                           <button
                             onClick={() => handleDelete(collection._id, collection.name)}
-                            className="p-2 hover:bg-slate-800 rounded-lg text-gray-400 hover:text-red-400 transition"
+                            className="p-1.5 sm:p-2 hover:bg-slate-800 rounded-lg text-gray-400 hover:text-red-400 transition"
                             title="Delete"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -237,11 +236,10 @@ export default function CollectionsPage() {
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-800">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-gray-800">
                         <Link
                           href={`/dashboards/admin-dashboard/collections/${collection._id}/products`}
-                          className="text-sm text-red-500 hover:text-red-400 font-medium flex items-center gap-1"
-                          onClick={() => console.log('Navigating to:', `/dashboards/admin-dashboard/collections/${collection._id}/products`)}
+                          className="text-sm text-red-500 hover:text-red-400 font-medium flex items-center gap-1 justify-center sm:justify-start"
                         >
                           View Products
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -250,7 +248,7 @@ export default function CollectionsPage() {
                         </Link>
                         <Link
                           href={`/dashboards/admin-dashboard/products/create?collectionId=${collection._id}`}
-                          className="text-sm text-gray-400 hover:text-gray-300 flex items-center gap-1"
+                          className="text-sm text-gray-400 hover:text-gray-300 flex items-center gap-1 justify-center sm:justify-start"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

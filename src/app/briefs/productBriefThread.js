@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import SEOHead from '@/components/common/SEOHead';
+import { METADATA } from '@/lib/metadata';
 import { customerBriefService } from '@/services/customerBriefService';
 import { formatDistanceToNow } from 'date-fns';
 import Button from '@/components/ui/Button';
@@ -91,8 +93,8 @@ export default function ProductBriefThread({ orderId, productId, productName, or
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex justify-center items-center py-8 sm:py-12">
+        <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -100,7 +102,6 @@ export default function ProductBriefThread({ orderId, productId, productName, or
   const hasCustomerBrief = !!conversation?.customer;
   const hasAdminResponse = !!(conversation?.admin || conversation?.superAdmin);
 
-  // Collect and sort all messages
   const allMessages = [];
   if (conversation?.customer) {
     allMessages.push({ ...conversation.customer, role: 'customer', sortDate: conversation.customer.createdAt });
@@ -112,45 +113,46 @@ export default function ProductBriefThread({ orderId, productId, productName, or
     allMessages.push({ ...conversation.superAdmin, role: 'superAdmin', sortDate: conversation.superAdmin.createdAt });
   }
 
-  // Sort by date (oldest first for conversation view)
   const sortedMessages = allMessages.sort((a, b) => new Date(a.sortDate) - new Date(b.sortDate));
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      <SEOHead 
+        {...METADATA.briefs} 
+        title={`${productName} | Customization Conversation`}
+      />
+      
+      <div className="mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-white mb-2">Customization Conversation</h1>
-            <p className="text-gray-400">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-1 sm:mb-2">Customization Conversation</h1>
+            <p className="text-gray-400 text-sm sm:text-base">
               Order #{orderNumber} • {productName}
             </p>
           </div>
           <Link href={`/orders/${orderId}`}>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="w-full sm:w-auto">
               Back to Order
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* Conversation Thread */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {sortedMessages.map((message, index) => (
           <div
             key={`${message.role}-${message._id || index}`}
             className={`flex ${message.role === 'customer' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[80%] rounded-lg p-4 ${
+              className={`max-w-[90%] sm:max-w-[85%] md:max-w-[80%] rounded-lg p-3 sm:p-4 ${
                 message.role === 'customer'
                   ? 'bg-blue-900/20 border border-blue-800'
                   : 'bg-green-900/20 border border-green-800'
               }`}
             >
-              {/* Message Header */}
-              <div className="flex items-center gap-2 mb-2">
-                <div className={`w-6 h-6 rounded-full ${getRoleColor(message.role)} flex items-center justify-center text-xs border`}>
+              <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-2">
+                <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full ${getRoleColor(message.role)} flex items-center justify-center text-xs border`}>
                   {getRoleIcon(message.role)}
                 </div>
                 <span className="text-xs font-medium text-white">
@@ -172,32 +174,29 @@ export default function ProductBriefThread({ orderId, productId, productName, or
                 )}
               </div>
 
-              {/* Message Content */}
               {message.description && (
-                <p className="text-gray-300 text-sm whitespace-pre-wrap mb-3">
+                <p className="text-gray-300 text-xs sm:text-sm whitespace-pre-wrap mb-3">
                   {message.description}
                 </p>
               )}
 
-              {/* Design Link */}
               {message.designId && (
                 <div className="mt-2">
                   <Link href={`/designs/${message.designId}`}>
-                    <span className="text-xs bg-purple-900/30 text-purple-400 px-3 py-1 rounded-full inline-flex items-center gap-1 hover:bg-purple-900/50 transition">
+                    <span className="text-xs bg-purple-900/30 text-purple-400 px-2 sm:px-3 py-1 rounded-full inline-flex items-center gap-1 hover:bg-purple-900/50 transition">
                       <span>🎨</span> View Design
                     </span>
                   </Link>
                 </div>
               )}
 
-              {/* Attachments */}
-              <div className="flex flex-wrap gap-2 mt-3">
+              <div className="flex flex-wrap gap-1 sm:gap-2 mt-3">
                 {message.image && (
                   <a
                     href={message.image}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs bg-slate-800 hover:bg-slate-700 text-blue-400 px-3 py-1 rounded-full flex items-center gap-1"
+                    className="text-xs bg-slate-800 hover:bg-slate-700 text-blue-400 px-2 sm:px-3 py-1 rounded-full flex items-center gap-1"
                   >
                     <span>📷</span> Image
                   </a>
@@ -205,7 +204,7 @@ export default function ProductBriefThread({ orderId, productId, productName, or
                 {message.voiceNote && (
                   <button
                     onClick={() => new Audio(message.voiceNote).play()}
-                    className="text-xs bg-slate-800 hover:bg-slate-700 text-green-400 px-3 py-1 rounded-full flex items-center gap-1"
+                    className="text-xs bg-slate-800 hover:bg-slate-700 text-green-400 px-2 sm:px-3 py-1 rounded-full flex items-center gap-1"
                   >
                     <span>🎤</span> Voice Note
                   </button>
@@ -215,7 +214,7 @@ export default function ProductBriefThread({ orderId, productId, productName, or
                     href={message.video}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs bg-slate-800 hover:bg-slate-700 text-red-400 px-3 py-1 rounded-full flex items-center gap-1"
+                    className="text-xs bg-slate-800 hover:bg-slate-700 text-red-400 px-2 sm:px-3 py-1 rounded-full flex items-center gap-1"
                   >
                     <span>🎥</span> Video
                   </a>
@@ -225,7 +224,7 @@ export default function ProductBriefThread({ orderId, productId, productName, or
                     href={message.logo}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs bg-slate-800 hover:bg-slate-700 text-purple-400 px-3 py-1 rounded-full flex items-center gap-1"
+                    className="text-xs bg-slate-800 hover:bg-slate-700 text-purple-400 px-2 sm:px-3 py-1 rounded-full flex items-center gap-1"
                   >
                     <span>🎨</span> Logo
                   </a>
@@ -236,10 +235,10 @@ export default function ProductBriefThread({ orderId, productId, productName, or
         ))}
 
         {!hasCustomerBrief && !hasAdminResponse && (
-          <div className="text-center py-12 bg-slate-900/30 rounded-xl border border-gray-800">
-            <p className="text-gray-400 mb-4">No messages yet for this product</p>
+          <div className="text-center py-8 sm:py-12 bg-slate-900/30 rounded-xl border border-gray-800">
+            <p className="text-gray-400 text-sm sm:text-base mb-4">No messages yet for this product</p>
             <Link href={`/orders/${orderId}/products/${productId}/respond`}>
-              <Button variant="primary">
+              <Button variant="primary" size="md" className="w-full sm:w-auto">
                 Start Conversation
               </Button>
             </Link>
@@ -247,34 +246,37 @@ export default function ProductBriefThread({ orderId, productId, productName, or
         )}
       </div>
 
-      {/* Response Form */}
       {hasAdminResponse && (
-        <div className="mt-8 border-t border-gray-800 pt-6">
+        <div className="mt-6 sm:mt-8 border-t border-gray-800 pt-6">
           {showResponseForm ? (
-            <div className="bg-slate-900/50 rounded-xl border border-gray-800 p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Your Response</h3>
+            <div className="bg-slate-900/50 rounded-xl border border-gray-800 p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Your Response</h3>
               <textarea
                 value={responseText}
                 onChange={(e) => setResponseText(e.target.value)}
                 placeholder="Type your response here..."
                 rows={4}
-                className="w-full bg-slate-800 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary"
+                className="w-full bg-slate-800 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary text-sm sm:text-base"
               />
-              <div className="flex justify-end gap-3 mt-4">
+              <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 mt-4">
                 <Button
                   variant="outline"
+                  size="md"
                   onClick={() => {
                     setShowResponseForm(false);
                     setResponseText('');
                   }}
+                  className="w-full sm:w-auto"
                 >
                   Cancel
                 </Button>
                 <Button
                   variant="primary"
+                  size="md"
                   onClick={handleRespond}
                   loading={responding}
                   disabled={!responseText.trim()}
+                  className="w-full sm:w-auto"
                 >
                   Send Response
                 </Button>
@@ -284,7 +286,9 @@ export default function ProductBriefThread({ orderId, productId, productName, or
             <div className="text-center">
               <Button
                 variant="secondary"
+                size="md"
                 onClick={() => setShowResponseForm(true)}
+                className="w-full sm:w-auto"
               >
                 Reply to Admin
               </Button>

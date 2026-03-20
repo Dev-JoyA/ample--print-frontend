@@ -6,8 +6,10 @@ import Link from 'next/link';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import Button from '@/components/ui/Button';
 import StatusBadge from '@/components/ui/StatusBadge';
+import SEOHead from '@/components/common/SEOHead';
 import { useAuthCheck } from '@/app/lib/auth';
 import { orderService } from '@/services/orderService';
+import { METADATA } from '@/lib/metadata';
 
 export default function ReadyForShippingPage() {
   const router = useRouter();
@@ -25,7 +27,6 @@ export default function ReadyForShippingPage() {
     try {
       setLoading(true);
       
-      // Fetch all orders for the user
       const response = await orderService.getMyOrders({ limit: 50 });
       
       let allOrders = [];
@@ -37,7 +38,6 @@ export default function ReadyForShippingPage() {
         allOrders = response;
       }
       
-      // Filter for orders that are completed but don't have shipping selected
       const readyForShipping = allOrders.filter(order => 
         order.status === 'Completed' && !order.shippingId
       );
@@ -61,77 +61,91 @@ export default function ReadyForShippingPage() {
 
   if (loading) {
     return (
-      <DashboardLayout userRole="customer">
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="flex justify-center items-center min-h-[60vh]">
-            <div className="text-white">Loading...</div>
+      <>
+        <SEOHead
+          title="Ready for Shipping"
+          description="Select shipping for your completed orders"
+          robots="noindex, nofollow"
+        />
+        <DashboardLayout userRole="customer">
+          <div className="mx-auto max-w-4xl px-4 py-8">
+            <div className="flex min-h-[60vh] items-center justify-center">
+              <div className="text-white">Loading...</div>
+            </div>
           </div>
-        </div>
-      </DashboardLayout>
+        </DashboardLayout>
+      </>
     );
   }
 
   return (
-    <DashboardLayout userRole="customer">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center">
-            <span className="text-2xl">🚚</span>
+    <>
+      <SEOHead
+        title="Ready for Shipping"
+        description="Select shipping for your completed orders"
+      />
+      <DashboardLayout userRole="customer">
+        <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+          <div className="mb-6 flex flex-col items-start gap-3 sm:mb-8 sm:flex-row sm:items-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-500/20 sm:h-14 sm:w-14">
+              <span className="text-2xl sm:text-3xl">🚚</span>
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white sm:text-3xl sm:text-4xl">Ready for Shipping</h1>
+              <p className="mt-1 text-xs text-gray-400 sm:text-sm">Orders that need shipping selection</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-4xl font-bold text-white">Ready for Shipping</h1>
-            <p className="text-gray-400 text-sm mt-1">Orders that need shipping selection</p>
-          </div>
-        </div>
 
-        {error && (
-          <div className="mb-6 p-3 bg-red-900/20 border border-red-800 rounded-lg">
-            <p className="text-sm text-red-400">{error}</p>
-          </div>
-        )}
+          {error && (
+            <div className="mb-6 rounded-lg border border-red-800 bg-red-900/20 p-3">
+              <p className="text-sm text-red-400">{error}</p>
+            </div>
+          )}
 
-        {orders.length === 0 ? (
-          <div className="bg-slate-900/50 rounded-xl border border-gray-800 p-12 text-center">
-            <div className="text-6xl mb-4">📦</div>
-            <h3 className="text-xl font-semibold text-white mb-2">No orders ready for shipping</h3>
-            <p className="text-gray-400">When your orders are completed, they'll appear here</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {orders.map((order) => (
-              <div key={order._id} className="bg-slate-900/50 border border-gray-800 rounded-lg p-6">
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-bold text-white">{order.orderNumber}</h3>
-                      <StatusBadge status={order.status} />
+          {orders.length === 0 ? (
+            <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-8 text-center sm:p-12">
+              <div className="mb-4 text-5xl sm:text-6xl">📦</div>
+              <h3 className="mb-2 text-lg font-semibold text-white sm:text-xl">No orders ready for shipping</h3>
+              <p className="text-xs text-gray-400 sm:text-sm">When your orders are completed, they'll appear here</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {orders.map((order) => (
+                <div key={order._id} className="rounded-lg border border-gray-800 bg-slate-900/50 p-4 sm:p-6">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <div className="mb-2 flex flex-wrap items-center gap-2 sm:gap-3">
+                        <h3 className="text-base font-bold text-white sm:text-xl">{order.orderNumber}</h3>
+                        <StatusBadge status={order.status} />
+                      </div>
+                      
+                      <div className="space-y-1 text-xs sm:text-sm">
+                        <p className="text-gray-400">
+                          <span className="text-gray-500">Items:</span> {order.items?.length || 0}
+                        </p>
+                        <p className="text-gray-400">
+                          <span className="text-gray-500">Total:</span> {formatCurrency(order.totalAmount)}
+                        </p>
+                        <p className="text-gray-400">
+                          <span className="text-gray-500">Placed:</span> {new Date(order.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
-                    
-                    <div className="space-y-1 text-sm">
-                      <p className="text-gray-400">
-                        <span className="text-gray-500">Items:</span> {order.items?.length || 0}
-                      </p>
-                      <p className="text-gray-400">
-                        <span className="text-gray-500">Total:</span> {formatCurrency(order.totalAmount)}
-                      </p>
-                      <p className="text-gray-400">
-                        <span className="text-gray-500">Placed:</span> {new Date(order.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
+
+                    <Button
+                      variant="warning"
+                      onClick={() => handleSelectShipping(order._id)}
+                      className="w-full sm:w-auto"
+                    >
+                      Select Shipping
+                    </Button>
                   </div>
-
-                  <Button
-                    variant="warning"
-                    onClick={() => handleSelectShipping(order._id)}
-                  >
-                    Select Shipping
-                  </Button>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </DashboardLayout>
+              ))}
+            </div>
+          )}
+        </div>
+      </DashboardLayout>
+    </>
   );
 }

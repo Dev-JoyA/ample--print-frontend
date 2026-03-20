@@ -6,10 +6,12 @@ import Link from 'next/link';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import Button from '@/components/ui/Button';
 import StatusBadge from '@/components/ui/StatusBadge';
+import SEOHead from '@/components/common/SEOHead';
 import { useAuthCheck } from '@/app/lib/auth';
 import { shippingService } from '@/services/shippingService';
 import { orderService } from '@/services/orderService';
 import { invoiceService } from '@/services/invoiceService';
+import { METADATA } from '@/lib/metadata';
 
 export default function AdminShippingPage() {
   const router = useRouter();
@@ -28,7 +30,6 @@ export default function AdminShippingPage() {
     estimatedDelivery: ''
   });
 
-  // Stats for summary cards
   const [stats, setStats] = useState({
     total: 0,
     needingInvoice: 0,
@@ -61,10 +62,8 @@ export default function AdminShippingPage() {
       
       const shippingData = response?.data || [];
       
-      // For each shipping record that has an invoice, fetch the invoice status
       const shippingWithDetails = await Promise.all(
         shippingData.map(async (shipping) => {
-          // Get order details if needed
           let orderDetails = null;
           if (shipping.orderId && typeof shipping.orderId === 'string') {
             try {
@@ -75,7 +74,6 @@ export default function AdminShippingPage() {
             }
           }
           
-          // Get invoice status if exists
           let invoiceStatus = null;
           if (shipping.shippingInvoiceId) {
             try {
@@ -96,8 +94,6 @@ export default function AdminShippingPage() {
       );
       
       setShippingRecords(shippingWithDetails);
-      
-      // Calculate stats
       await fetchStats();
       
     } catch (err) {
@@ -110,7 +106,6 @@ export default function AdminShippingPage() {
 
   const fetchStats = async () => {
     try {
-      // Get counts for different categories
       const [all, needingInvoice, pending, shipped, delivered] = await Promise.all([
         shippingService.getAll({ limit: 1 }),
         shippingService.getNeedingInvoice(),
@@ -119,7 +114,6 @@ export default function AdminShippingPage() {
         shippingService.filter({ status: 'delivered' })
       ]);
       
-      // Get all records to count pickup vs delivery
       const allRecords = await shippingService.getAll({ limit: 1000 });
       const allData = allRecords?.data || [];
       
@@ -143,13 +137,10 @@ export default function AdminShippingPage() {
   const handleGenerateInvoice = async (shipping) => {
     try {
       setUpdatingId(shipping._id);
-      
       const orderId = typeof shipping.orderId === 'object' 
         ? shipping.orderId._id 
         : shipping.orderId;
-      
       router.push(`/dashboards/admin-dashboard/shipping-invoices/create?shippingId=${shipping._id}&orderId=${orderId}`);
-      
     } catch (err) {
       console.error('Failed to generate invoice:', err);
       alert('Failed to generate invoice');
@@ -166,18 +157,15 @@ export default function AdminShippingPage() {
 
     try {
       setUpdatingId(selectedShipping._id);
-      
       await shippingService.updateTracking(selectedShipping._id, {
         trackingNumber: trackingData.trackingNumber,
         carrier: trackingData.carrier,
         estimatedDelivery: trackingData.estimatedDelivery ? new Date(trackingData.estimatedDelivery) : undefined
       });
-      
       setShowTrackingModal(false);
       setSelectedShipping(null);
       setTrackingData({ trackingNumber: '', carrier: '', estimatedDelivery: '' });
       await fetchShippingRecords();
-      
     } catch (err) {
       console.error('Failed to update tracking:', err);
       alert('Failed to update tracking');
@@ -189,14 +177,11 @@ export default function AdminShippingPage() {
   const handleMarkAsShipped = async (shippingId) => {
     try {
       setUpdatingId(shippingId);
-      
       await shippingService.updateStatus(shippingId, 'shipped');
-      
       const shipping = shippingRecords.find(s => s._id === shippingId);
       if (shipping?.orderId?._id) {
         await orderService.updateStatus(shipping.orderId._id, 'Shipped');
       }
-      
       await fetchShippingRecords();
     } catch (err) {
       console.error('Failed to mark as shipped:', err);
@@ -209,14 +194,11 @@ export default function AdminShippingPage() {
   const handleMarkAsDelivered = async (shippingId) => {
     try {
       setUpdatingId(shippingId);
-      
       await shippingService.updateStatus(shippingId, 'delivered');
-      
       const shipping = shippingRecords.find(s => s._id === shippingId);
       if (shipping?.orderId?._id) {
         await orderService.updateStatus(shipping.orderId._id, 'Delivered');
       }
-      
       await fetchShippingRecords();
     } catch (err) {
       console.error('Failed to mark as delivered:', err);
@@ -226,15 +208,11 @@ export default function AdminShippingPage() {
     }
   };
 
-  const getMethodIcon = (method) => {
-    return method === 'pickup' ? '🏢' : '🚚';
-  };
+  const getMethodIcon = (method) => method === 'pickup' ? '🏢' : '🚚';
 
-  const getMethodColor = (method) => {
-    return method === 'pickup' 
-      ? 'bg-purple-900/30 text-purple-400 border-purple-700' 
-      : 'bg-blue-900/30 text-blue-400 border-blue-700';
-  };
+  const getMethodColor = (method) => method === 'pickup' 
+    ? 'bg-purple-900/30 text-purple-400 border-purple-700' 
+    : 'bg-blue-900/30 text-blue-400 border-blue-700';
 
   const getStatusColor = (status) => {
     const colors = {
@@ -253,7 +231,6 @@ export default function AdminShippingPage() {
         </span>
       );
     }
-    
     if (shipping.metadata?.pickupNotes?.includes('Pay on delivery')) {
       return (
         <span className="px-2 py-1 bg-green-900/30 text-green-400 rounded-full text-xs font-medium">
@@ -261,7 +238,6 @@ export default function AdminShippingPage() {
         </span>
       );
     }
-    
     return (
       <span className="px-2 py-1 bg-blue-900/30 text-blue-400 rounded-full text-xs font-medium">
         Prepaid
@@ -271,25 +247,20 @@ export default function AdminShippingPage() {
 
   const getActionButtons = (shipping) => {
     const isUpdating = updatingId === shipping._id;
-    const orderId = typeof shipping.orderId === 'object' ? shipping.orderId._id : shipping.orderId;
     
-    // For pickup orders - NO READY FOR SHIPPING BUTTON
     if (shipping.shippingMethod === 'pickup') {
       return (
         <div className="flex flex-col gap-2 w-full">
           {shipping.status === 'pending' && (
-            <>
-              {/* Pickup orders don't need "Ready for Shipping" - just mark as picked up */}
-              <Button
-                variant="success"
-                size="sm"
-                onClick={() => handleMarkAsDelivered(shipping._id)}
-                disabled={isUpdating}
-                className="w-full bg-gradient-to-r from-green-600 to-green-700"
-              >
-                {isUpdating ? 'Processing...' : '📦 Mark as Picked Up'}
-              </Button>
-            </>
+            <Button
+              variant="success"
+              size="sm"
+              onClick={() => handleMarkAsDelivered(shipping._id)}
+              disabled={isUpdating}
+              className="w-full text-sm"
+            >
+              {isUpdating ? 'Processing...' : '📦 Mark as Picked Up'}
+            </Button>
           )}
           {shipping.status === 'delivered' && (
             <span className="text-sm text-green-400 bg-green-900/20 px-4 py-2 rounded-lg text-center border border-green-800">
@@ -300,9 +271,7 @@ export default function AdminShippingPage() {
       );
     }
     
-    // For delivery orders
     if (shipping.shippingMethod === 'delivery') {
-      // Pay on delivery - no invoice needed
       if (shipping.metadata?.pickupNotes?.includes('Pay on delivery')) {
         return (
           <div className="flex flex-col gap-2 w-full">
@@ -316,7 +285,7 @@ export default function AdminShippingPage() {
                     setShowTrackingModal(true);
                   }}
                   disabled={isUpdating}
-                  className="w-full bg-gradient-to-r from-yellow-600 to-yellow-700"
+                  className="w-full text-sm"
                 >
                   📋 Add Tracking
                 </Button>
@@ -325,7 +294,7 @@ export default function AdminShippingPage() {
                   size="sm"
                   onClick={() => handleMarkAsShipped(shipping._id)}
                   disabled={isUpdating}
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700"
+                  className="w-full text-sm"
                 >
                   {isUpdating ? 'Processing...' : '🚚 Mark Shipped'}
                 </Button>
@@ -334,7 +303,7 @@ export default function AdminShippingPage() {
                   size="sm"
                   onClick={() => handleMarkAsDelivered(shipping._id)}
                   disabled={isUpdating}
-                  className="w-full bg-gradient-to-r from-green-600 to-green-700"
+                  className="w-full text-sm"
                 >
                   {isUpdating ? 'Processing...' : '✅ Mark Delivered'}
                 </Button>
@@ -346,7 +315,7 @@ export default function AdminShippingPage() {
                 size="sm"
                 onClick={() => handleMarkAsDelivered(shipping._id)}
                 disabled={isUpdating}
-                className="w-full bg-gradient-to-r from-green-600 to-green-700"
+                className="w-full text-sm"
               >
                 {isUpdating ? 'Processing...' : '✅ Mark Delivered'}
               </Button>
@@ -360,40 +329,31 @@ export default function AdminShippingPage() {
         );
       }
       
-      // Prepaid delivery - needs invoice
       return (
         <div className="flex flex-col gap-2 w-full">
-          {/* No invoice yet - show Generate Invoice */}
           {!shipping.shippingInvoiceId && (
             <Button
               variant="primary"
               size="sm"
               onClick={() => handleGenerateInvoice(shipping)}
               disabled={isUpdating}
-              className="w-full bg-gradient-to-r from-primary to-primary-dark"
+              className="w-full text-sm"
             >
               {isUpdating ? 'Processing...' : '💰 Generate Invoice'}
             </Button>
           )}
           
-          {/* Invoice exists - check its status */}
           {shipping.shippingInvoiceId && (
             <>
-              {/* Invoice is Sent - not paid yet */}
               {shipping.invoiceStatus === 'Sent' && (
-                <div className="space-y-2">
-                  <div className="bg-yellow-900/20 border border-yellow-800 rounded-lg p-3 text-center">
-                    <p className="text-yellow-400 text-sm font-medium">Invoice Sent</p>
-                    <p className="text-xs text-gray-400 mt-1">Awaiting payment</p>
-                  </div>
-                  {/* Don't show shipping buttons until paid */}
+                <div className="bg-yellow-900/20 border border-yellow-800 rounded-lg p-3 text-center">
+                  <p className="text-yellow-400 text-sm font-medium">Invoice Sent</p>
+                  <p className="text-xs text-gray-400 mt-1">Awaiting payment</p>
                 </div>
               )}
               
-              {/* Invoice is Paid - ready for shipping process */}
               {shipping.invoiceStatus === 'Paid' && shipping.status === 'pending' && (
                 <>
-                  {/* Ready for Shipping button removed - process starts here */}
                   <Button
                     variant="warning"
                     size="sm"
@@ -402,7 +362,7 @@ export default function AdminShippingPage() {
                       setShowTrackingModal(true);
                     }}
                     disabled={isUpdating}
-                    className="w-full bg-gradient-to-r from-yellow-600 to-yellow-700"
+                    className="w-full text-sm"
                   >
                     📋 Add Tracking
                   </Button>
@@ -411,7 +371,7 @@ export default function AdminShippingPage() {
                     size="sm"
                     onClick={() => handleMarkAsShipped(shipping._id)}
                     disabled={isUpdating}
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700"
+                    className="w-full text-sm"
                   >
                     {isUpdating ? 'Processing...' : '🚚 Mark Shipped'}
                   </Button>
@@ -420,21 +380,20 @@ export default function AdminShippingPage() {
                     size="sm"
                     onClick={() => handleMarkAsDelivered(shipping._id)}
                     disabled={isUpdating}
-                    className="w-full bg-gradient-to-r from-green-600 to-green-700"
+                    className="w-full text-sm"
                   >
                     {isUpdating ? 'Processing...' : '✅ Mark Delivered'}
                   </Button>
                 </>
               )}
               
-              {/* Invoice is Paid and shipping is in progress */}
               {shipping.invoiceStatus === 'Paid' && shipping.status === 'shipped' && (
                 <Button
                   variant="success"
                   size="sm"
                   onClick={() => handleMarkAsDelivered(shipping._id)}
                   disabled={isUpdating}
-                  className="w-full bg-gradient-to-r from-green-600 to-green-700"
+                  className="w-full text-sm"
                 >
                   {isUpdating ? 'Processing...' : '✅ Mark Delivered'}
                 </Button>
@@ -442,7 +401,6 @@ export default function AdminShippingPage() {
             </>
           )}
           
-          {/* Shipping completed */}
           {shipping.status === 'delivered' && (
             <span className="text-sm text-green-400 bg-green-900/20 px-4 py-2 rounded-lg text-center border border-green-800">
               ✓ Delivered
@@ -453,9 +411,7 @@ export default function AdminShippingPage() {
     }
   };
 
-  const formatCurrency = (amount) => {
-    return `₦${amount?.toLocaleString() || '0'}`;
-  };
+  const formatCurrency = (amount) => `₦${amount?.toLocaleString() || '0'}`;
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -477,321 +433,311 @@ export default function AdminShippingPage() {
 
   if (loading) {
     return (
-      <DashboardLayout userRole="admin">
-        <div className="flex justify-center items-center min-h-[60vh]">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-400">Loading shipping records...</p>
+      <>
+        <SEOHead {...METADATA.dashboard.admin} />
+        <DashboardLayout userRole="admin">
+          <div className="flex justify-center items-center min-h-[60vh]">
+            <div className="text-center">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-400 text-sm sm:text-base">Loading shipping records...</p>
+            </div>
           </div>
-        </div>
-      </DashboardLayout>
+        </DashboardLayout>
+      </>
     );
   }
 
   return (
-    <DashboardLayout userRole="admin">
-      <div className="px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Shipping Management</h1>
-          <p className="text-gray-400">Manage all shipping, pickups, and deliveries</p>
-        </div>
+    <>
+      <SEOHead {...METADATA.dashboard.admin} />
+      <DashboardLayout userRole="admin">
+        <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">Shipping Management</h1>
+            <p className="text-gray-400 text-sm sm:text-base">Manage all shipping, pickups, and deliveries</p>
+          </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-8">
-          <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-gray-800 p-4">
-            <p className="text-gray-400 text-sm">Total</p>
-            <p className="text-2xl font-bold text-white">{stats.total}</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4 mb-6 sm:mb-8">
+            <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-gray-800 p-3 sm:p-4">
+              <p className="text-gray-400 text-xs sm:text-sm">Total</p>
+              <p className="text-xl sm:text-2xl font-bold text-white">{stats.total}</p>
+            </div>
+            <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-yellow-800 p-3 sm:p-4">
+              <p className="text-gray-400 text-xs sm:text-sm">Awaiting Processing</p>
+              <p className="text-xl sm:text-2xl font-bold text-yellow-400">{stats.needingInvoice}</p>
+            </div>
+            <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-blue-800 p-3 sm:p-4">
+              <p className="text-gray-400 text-xs sm:text-sm">Pending</p>
+              <p className="text-xl sm:text-2xl font-bold text-blue-400">{stats.pending}</p>
+            </div>
+            <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-teal-800 p-3 sm:p-4">
+              <p className="text-gray-400 text-xs sm:text-sm">Shipped</p>
+              <p className="text-xl sm:text-2xl font-bold text-teal-400">{stats.shipped}</p>
+            </div>
+            <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-green-800 p-3 sm:p-4">
+              <p className="text-gray-400 text-xs sm:text-sm">Delivered</p>
+              <p className="text-xl sm:text-2xl font-bold text-green-400">{stats.delivered}</p>
+            </div>
+            <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-purple-800 p-3 sm:p-4">
+              <p className="text-gray-400 text-xs sm:text-sm">Pickup</p>
+              <p className="text-xl sm:text-2xl font-bold text-purple-400">{stats.pickup}</p>
+            </div>
+            <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-blue-800 p-3 sm:p-4">
+              <p className="text-gray-400 text-xs sm:text-sm">Delivery</p>
+              <p className="text-xl sm:text-2xl font-bold text-blue-400">{stats.delivery}</p>
+            </div>
           </div>
-          <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-yellow-800 p-4">
-            <p className="text-gray-400 text-sm">Awaiting Processing</p>
-            <p className="text-2xl font-bold text-yellow-400">{stats.needingInvoice}</p>
-          </div>
-          <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-blue-800 p-4">
-            <p className="text-gray-400 text-sm">Pending</p>
-            <p className="text-2xl font-bold text-blue-400">{stats.pending}</p>
-          </div>
-          <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-teal-800 p-4">
-            <p className="text-gray-400 text-sm">Shipped</p>
-            <p className="text-2xl font-bold text-teal-400">{stats.shipped}</p>
-          </div>
-          <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-green-800 p-4">
-            <p className="text-gray-400 text-sm">Delivered</p>
-            <p className="text-2xl font-bold text-green-400">{stats.delivered}</p>
-          </div>
-          <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-purple-800 p-4">
-            <p className="text-gray-400 text-sm">Pickup</p>
-            <p className="text-2xl font-bold text-purple-400">{stats.pickup}</p>
-          </div>
-          <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-blue-800 p-4">
-            <p className="text-gray-400 text-sm">Delivery</p>
-            <p className="text-2xl font-bold text-blue-400">{stats.delivery}</p>
-          </div>
-        </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2 ${
-                  isActive
-                    ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                    : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
-                }`}
-              >
-                <span>{tab.icon}</span>
-                {tab.label}
-              </button>
-            );
-          })}
-          <Button
-            variant="secondary"
-            onClick={fetchShippingRecords}
-            size="sm"
-            className="ml-auto"
-          >
-            Refresh
-          </Button>
-        </div>
-
-        {error && (
-          <div className="mb-4 p-3 bg-red-900/20 border border-red-800 rounded-lg text-red-400">
-            {error}
-          </div>
-        )}
-
-        {/* Shipping Records Grid */}
-        {shippingRecords.length === 0 ? (
-          <div className="bg-slate-900/50 rounded-xl border border-gray-800 p-16 text-center">
-            <div className="text-7xl mb-4 opacity-50">🚚</div>
-            <h3 className="text-2xl font-semibold text-white mb-2">No shipping records found</h3>
-            <p className="text-gray-400">
-              Shipping records will appear here once customers select shipping methods
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {shippingRecords.map((shipping) => {
-              const orderId = typeof shipping.orderId === 'object' 
-                ? shipping.orderId._id 
-                : shipping.orderId;
-              
+          <div className="flex flex-wrap gap-2 mb-6 overflow-x-auto pb-2">
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab.id;
               return (
-                <div
-                  key={shipping._id}
-                  className="bg-gradient-to-br from-slate-900 to-slate-950 border border-gray-800 rounded-xl overflow-hidden hover:border-gray-700 transition-all hover:shadow-xl hover:shadow-black/20"
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-all flex items-center gap-1 sm:gap-2 ${
+                    isActive
+                      ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                      : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
+                  }`}
                 >
-                  {/* Header */}
-                  <div className="p-5 border-b border-gray-800">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-2xl">
-                          {getMethodIcon(shipping.shippingMethod)}
+                  <span>{tab.icon}</span>
+                  {tab.label}
+                </button>
+              );
+            })}
+            <Button
+              variant="secondary"
+              onClick={fetchShippingRecords}
+              size="sm"
+              className="ml-auto text-sm"
+            >
+              Refresh
+            </Button>
+          </div>
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-900/20 border border-red-800 rounded-lg text-red-400 text-sm">
+              {error}
+            </div>
+          )}
+
+          {shippingRecords.length === 0 ? (
+            <div className="bg-slate-900/50 rounded-xl border border-gray-800 p-12 sm:p-16 text-center">
+              <div className="text-5xl sm:text-7xl mb-4 opacity-50">🚚</div>
+              <h3 className="text-xl sm:text-2xl font-semibold text-white mb-2">No shipping records found</h3>
+              <p className="text-gray-400 text-sm sm:text-base">
+                Shipping records will appear here once customers select shipping methods
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
+              {shippingRecords.map((shipping) => {
+                const orderId = typeof shipping.orderId === 'object' 
+                  ? shipping.orderId._id 
+                  : shipping.orderId;
+                
+                return (
+                  <div
+                    key={shipping._id}
+                    className="bg-gradient-to-br from-slate-900 to-slate-950 border border-gray-800 rounded-xl overflow-hidden hover:border-gray-700 transition-all hover:shadow-xl hover:shadow-black/20"
+                  >
+                    <div className="p-4 sm:p-5 border-b border-gray-800">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 rounded-lg flex items-center justify-center text-xl sm:text-2xl">
+                            {getMethodIcon(shipping.shippingMethod)}
+                          </div>
+                          <div>
+                            <h3 className="text-base sm:text-lg font-semibold text-white">
+                              Order #{shipping.orderNumber}
+                            </h3>
+                            <p className="text-xs text-gray-400">
+                              Created {formatDate(shipping.createdAt)}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-white">
-                            Order #{shipping.orderNumber}
-                          </h3>
-                          <p className="text-xs text-gray-400">
-                            Created {formatDate(shipping.createdAt)}
+                        <div className="flex flex-wrap gap-2">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getMethodColor(shipping.shippingMethod)}`}>
+                            {shipping.shippingMethod === 'pickup' ? 'Pickup' : 'Delivery'}
+                          </span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(shipping.status)}`}>
+                            {shipping.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 sm:p-5 space-y-3 sm:space-y-4">
+                      <div className="bg-slate-800/30 rounded-lg p-3">
+                        <p className="text-xs text-gray-500 mb-2">CUSTOMER DETAILS</p>
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                          <div>
+                            <p className="text-white font-medium text-sm">{shipping.recipientName || 'N/A'}</p>
+                            <p className="text-xs sm:text-sm text-gray-400">{shipping.recipientPhone}</p>
+                          </div>
+                          {getPaymentBadge(shipping)}
+                        </div>
+                      </div>
+
+                      {shipping.address && (
+                        <div className="bg-slate-800/30 rounded-lg p-3">
+                          <p className="text-xs text-gray-500 mb-2">DELIVERY ADDRESS</p>
+                          <p className="text-white text-sm">
+                            {shipping.address.street}
+                          </p>
+                          <p className="text-gray-400 text-xs sm:text-sm">
+                            {shipping.address.city}, {shipping.address.state}
                           </p>
                         </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getMethodColor(shipping.shippingMethod)}`}>
-                          {shipping.shippingMethod === 'pickup' ? 'Pickup' : 'Delivery'}
-                        </span>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(shipping.status)}`}>
-                          {shipping.status}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                      )}
 
-                  {/* Content */}
-                  <div className="p-5 space-y-4">
-                    {/* Customer Info */}
-                    <div className="bg-slate-800/30 rounded-lg p-3">
-                      <p className="text-xs text-gray-500 mb-2">CUSTOMER DETAILS</p>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="text-white font-medium">{shipping.recipientName || 'N/A'}</p>
-                          <p className="text-sm text-gray-400">{shipping.recipientPhone}</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="bg-slate-800/30 rounded-lg p-3">
+                          <p className="text-xs text-gray-500 mb-1">Invoice</p>
+                          {shipping.shippingInvoiceId ? (
+                            <div>
+                              <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                                shipping.invoiceStatus === 'Paid' 
+                                  ? 'bg-green-900/30 text-green-400' 
+                                  : shipping.invoiceStatus === 'Sent'
+                                  ? 'bg-yellow-900/30 text-yellow-400'
+                                  : 'bg-blue-900/30 text-blue-400'
+                              }`}>
+                                {shipping.invoiceStatus || 'Generated'}
+                              </span>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-yellow-400">None</p>
+                          )}
                         </div>
-                        {getPaymentBadge(shipping)}
-                      </div>
-                    </div>
 
-                    {/* Address (for delivery) */}
-                    {shipping.address && (
-                      <div className="bg-slate-800/30 rounded-lg p-3">
-                        <p className="text-xs text-gray-500 mb-2">DELIVERY ADDRESS</p>
-                        <p className="text-white text-sm">
-                          {shipping.address.street}
-                        </p>
-                        <p className="text-gray-400 text-sm">
-                          {shipping.address.city}, {shipping.address.state}
-                        </p>
-                      </div>
-                    )}
+                        <div className="bg-slate-800/30 rounded-lg p-3">
+                          <p className="text-xs text-gray-500 mb-1">Tracking</p>
+                          {shipping.trackingNumber ? (
+                            <div>
+                              <p className="text-sm text-white truncate">{shipping.trackingNumber}</p>
+                              {shipping.carrier && (
+                                <p className="text-xs text-gray-400">{shipping.carrier}</p>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-400">Not added</p>
+                          )}
+                        </div>
 
-                    {/* Status Info */}
-                    <div className="grid grid-cols-2 gap-3">
-                      {/* Invoice Status */}
-                      <div className="bg-slate-800/30 rounded-lg p-3">
-                        <p className="text-xs text-gray-500 mb-1">Invoice</p>
-                        {shipping.shippingInvoiceId ? (
-                          <div>
-                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                              shipping.invoiceStatus === 'Paid' 
-                                ? 'bg-green-900/30 text-green-400' 
-                                : shipping.invoiceStatus === 'Sent'
-                                ? 'bg-yellow-900/30 text-yellow-400'
-                                : 'bg-blue-900/30 text-blue-400'
-                            }`}>
-                              {shipping.invoiceStatus || 'Generated'}
-                            </span>
+                        <div className="bg-slate-800/30 rounded-lg p-3 sm:col-span-2">
+                          <p className="text-xs text-gray-500 mb-1">Shipping Cost</p>
+                          <p className="text-lg sm:text-xl font-bold text-primary">
+                            {formatCurrency(shipping.shippingCost)}
+                          </p>
+                        </div>
+
+                        {shipping.metadata?.pickupNotes && (
+                          <div className="bg-slate-800/30 rounded-lg p-3 sm:col-span-2">
+                            <p className="text-xs text-gray-500 mb-1">Notes</p>
+                            <p className="text-sm text-gray-300">{shipping.metadata.pickupNotes}</p>
                           </div>
-                        ) : (
-                          <p className="text-sm text-yellow-400">None</p>
                         )}
                       </div>
 
-                      {/* Tracking Status */}
-                      <div className="bg-slate-800/30 rounded-lg p-3">
-                        <p className="text-xs text-gray-500 mb-1">Tracking</p>
-                        {shipping.trackingNumber ? (
-                          <div>
-                            <p className="text-sm text-white truncate">{shipping.trackingNumber}</p>
-                            {shipping.carrier && (
-                              <p className="text-xs text-gray-400">{shipping.carrier}</p>
-                            )}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-400">Not added</p>
-                        )}
+                      <div className="pt-2">
+                        {getActionButtons(shipping)}
                       </div>
 
-                      {/* Cost */}
-                      <div className="bg-slate-800/30 rounded-lg p-3 col-span-2">
-                        <p className="text-xs text-gray-500 mb-1">Shipping Cost</p>
-                        <p className="text-xl font-bold text-primary">
-                          {formatCurrency(shipping.shippingCost)}
-                        </p>
-                      </div>
-
-                      {/* Notes */}
-                      {shipping.metadata?.pickupNotes && (
-                        <div className="bg-slate-800/30 rounded-lg p-3 col-span-2">
-                          <p className="text-xs text-gray-500 mb-1">Notes</p>
-                          <p className="text-sm text-gray-300">{shipping.metadata.pickupNotes}</p>
+                      {orderId && (
+                        <div className="text-right">
+                          <Link 
+                            href={`/dashboards/admin-dashboard/orders/${orderId}`}
+                            className="text-xs text-primary hover:text-primary-dark"
+                          >
+                            View Order Details →
+                          </Link>
                         </div>
                       )}
                     </div>
-
-                    {/* Actions */}
-                    <div className="pt-2">
-                      {getActionButtons(shipping)}
-                    </div>
-
-                    {/* View Order Link */}
-                    {orderId && (
-                      <div className="text-right">
-                        <Link 
-                          href={`/dashboards/admin-dashboard/orders/${orderId}`}
-                          className="text-xs text-primary hover:text-primary-dark"
-                        >
-                          View Order Details →
-                        </Link>
-                      </div>
-                    )}
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
 
-        {/* Tracking Modal */}
-        {showTrackingModal && selectedShipping && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-            <div className="bg-slate-900 rounded-xl border border-gray-800 max-w-lg w-full">
-              <div className="p-6 border-b border-gray-800">
-                <h3 className="text-xl font-bold text-white">Add Tracking Information</h3>
-                <p className="text-sm text-gray-400 mt-1">
-                  Order #{selectedShipping.orderNumber}
-                </p>
-              </div>
-              
-              <div className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Tracking Number <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={trackingData.trackingNumber}
-                    onChange={(e) => setTrackingData({ ...trackingData, trackingNumber: e.target.value })}
-                    placeholder="Enter tracking number"
-                    className="w-full bg-slate-800 border border-gray-700 rounded-lg px-4 py-3 text-white"
-                  />
+          {showTrackingModal && selectedShipping && (
+            <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+              <div className="bg-slate-900 rounded-xl border border-gray-800 max-w-lg w-full">
+                <div className="p-5 sm:p-6 border-b border-gray-800">
+                  <h3 className="text-lg sm:text-xl font-bold text-white">Add Tracking Information</h3>
+                  <p className="text-xs sm:text-sm text-gray-400 mt-1">
+                    Order #{selectedShipping.orderNumber}
+                  </p>
                 </div>
+                
+                <div className="p-5 sm:p-6 space-y-4">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                      Tracking Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={trackingData.trackingNumber}
+                      onChange={(e) => setTrackingData({ ...trackingData, trackingNumber: e.target.value })}
+                      placeholder="Enter tracking number"
+                      className="w-full bg-slate-800 border border-gray-700 rounded-lg px-4 py-2 sm:py-3 text-white text-sm"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Carrier
-                  </label>
-                  <input
-                    type="text"
-                    value={trackingData.carrier}
-                    onChange={(e) => setTrackingData({ ...trackingData, carrier: e.target.value })}
-                    placeholder="e.g., DHL, FedEx, UPS"
-                    className="w-full bg-slate-800 border border-gray-700 rounded-lg px-4 py-3 text-white"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                      Carrier
+                    </label>
+                    <input
+                      type="text"
+                      value={trackingData.carrier}
+                      onChange={(e) => setTrackingData({ ...trackingData, carrier: e.target.value })}
+                      placeholder="e.g., DHL, FedEx, UPS"
+                      className="w-full bg-slate-800 border border-gray-700 rounded-lg px-4 py-2 sm:py-3 text-white text-sm"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Estimated Delivery Date
-                  </label>
-                  <input
-                    type="date"
-                    value={trackingData.estimatedDelivery}
-                    onChange={(e) => setTrackingData({ ...trackingData, estimatedDelivery: e.target.value })}
-                    className="w-full bg-slate-800 border border-gray-700 rounded-lg px-4 py-3 text-white"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                      Estimated Delivery Date
+                    </label>
+                    <input
+                      type="date"
+                      value={trackingData.estimatedDelivery}
+                      onChange={(e) => setTrackingData({ ...trackingData, estimatedDelivery: e.target.value })}
+                      className="w-full bg-slate-800 border border-gray-700 rounded-lg px-4 py-2 sm:py-3 text-white text-sm"
+                    />
+                  </div>
 
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setShowTrackingModal(false);
-                      setSelectedShipping(null);
-                      setTrackingData({ trackingNumber: '', carrier: '', estimatedDelivery: '' });
-                    }}
-                    className="flex-1"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="primary"
-                    onClick={handleUpdateTracking}
-                    disabled={!trackingData.trackingNumber || updatingId === selectedShipping._id}
-                    className="flex-1"
-                  >
-                    {updatingId === selectedShipping._id ? 'Saving...' : 'Save Tracking'}
-                  </Button>
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setShowTrackingModal(false);
+                        setSelectedShipping(null);
+                        setTrackingData({ trackingNumber: '', carrier: '', estimatedDelivery: '' });
+                      }}
+                      className="flex-1 text-sm"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="primary"
+                      onClick={handleUpdateTracking}
+                      disabled={!trackingData.trackingNumber || updatingId === selectedShipping._id}
+                      className="flex-1 text-sm"
+                    >
+                      {updatingId === selectedShipping._id ? 'Saving...' : 'Save Tracking'}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
-    </DashboardLayout>
+          )}
+        </div>
+      </DashboardLayout>
+    </>
   );
 }

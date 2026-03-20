@@ -1,13 +1,12 @@
 import { api } from "@/lib/api";
+import { API_PATHS } from "@/lib/constants";
 
-// Helper to get current user ID from token
 const getCurrentUserId = () => {
   try {
     const token = document.cookie
       .split('; ')
       .find(row => row.startsWith('token='))
       ?.split('=')[1];
-    
     if (token) {
       const decoded = JSON.parse(atob(token.split('.')[1]));
       return decoded?.id || decoded?.userId || decoded?.sub;
@@ -19,7 +18,6 @@ const getCurrentUserId = () => {
 };
 
 export const customerService = {
-  // Get user profile - FIXED for your actual API response
   getUserProfile: async () => {
     try {
       const userId = getCurrentUserId();
@@ -27,31 +25,19 @@ export const customerService = {
         console.warn('No user ID found in token');
         return { name: 'Customer', email: '' };
       }
-
-      // Fetch user from backend
-      const response = await api.get(`/users/${userId}`);
-      
+      const response = await api.get(API_PATHS.USERS.BY_ID(userId));
       console.log('API response:', response);
-      
-      // Extract user data - your API returns { user: { ... } }
       const userData = response?.user || response?.data?.user || response;
-      
       console.log('Extracted userData:', userData);
-      
       if (!userData) {
         console.error('No user data in response:', response);
         throw new Error('No user data received');
       }
-
-      // The user ID is in the 'user' field (string) not '_id'
       const userIdFromData = userData.user || userData._id || userData.id;
-      
       if (!userIdFromData) {
         console.error('No user ID in userData:', userData);
         throw new Error('No user ID in response');
       }
-
-      // Construct name from firstName and lastName
       let displayName = 'Customer';
       if (userData.firstName) {
         displayName = userData.firstName;
@@ -61,7 +47,6 @@ export const customerService = {
       } else if (userData.email) {
         displayName = userData.email.split('@')[0];
       }
-
       return {
         id: userIdFromData,
         email: userData.email || '',
@@ -74,17 +59,13 @@ export const customerService = {
         role: userData.role || 'Customer',
         isActive: userData.isActive !== undefined ? userData.isActive : true
       };
-
     } catch (error) {
       console.error('Failed to fetch user profile:', error);
-      
-      // Fallback to token data
       try {
         const token = document.cookie
           .split('; ')
           .find(row => row.startsWith('token='))
           ?.split('=')[1];
-        
         if (token) {
           const decoded = JSON.parse(atob(token.split('.')[1]));
           return {
@@ -103,7 +84,6 @@ export const customerService = {
       } catch (e) {
         console.error('Failed to decode token for fallback:', e);
       }
-      
       return {
         id: null,
         email: null,
@@ -119,20 +99,15 @@ export const customerService = {
     }
   },
 
-  // Get customer dashboard stats
   getDashboardStats: async () => {
     try {
-      // Fetch orders
       let orders = [];
       let activeOrders = [];
       let designsForApproval = [];
       let completedOrders = [];
-      
       try {
-        const ordersResponse = await api.get('/orders/my-orders?limit=100');
+        const ordersResponse = await api.get(API_PATHS.ORDERS.MY_ORDERS);
         console.log('Orders response:', ordersResponse);
-        
-        // Handle different response structures
         if (ordersResponse?.orders) {
           orders = ordersResponse.orders;
         } else if (ordersResponse?.order) {
@@ -144,29 +119,22 @@ export const customerService = {
         } else if (ordersResponse?.data?.order) {
           orders = ordersResponse.data.order;
         }
-        
         activeOrders = orders.filter(o => 
           !['Delivered', 'Cancelled', 'Completed'].includes(o?.status)
         );
-        
         designsForApproval = orders.filter(o => 
           o?.status === 'DesignUploaded' || o?.status === 'UnderReview'
         );
-        
         completedOrders = orders.filter(o => 
           ['Delivered', 'Completed'].includes(o?.status)
         );
       } catch (orderError) {
         console.warn('Could not fetch orders:', orderError);
       }
-
-      // Fetch invoices
       let pendingInvoices = [];
       try {
-        const invoicesResponse = await api.get('/invoices/my-invoices?limit=100');
+        const invoicesResponse = await api.get(API_PATHS.INVOICES.MY_INVOICES);
         console.log('Invoices response:', invoicesResponse);
-        
-        // Handle different response structures
         let invoices = [];
         if (invoicesResponse?.invoices) {
           invoices = invoicesResponse.invoices;
@@ -177,14 +145,12 @@ export const customerService = {
         } else if (Array.isArray(invoicesResponse)) {
           invoices = invoicesResponse;
         }
-        
         pendingInvoices = invoices.filter(i => 
           i?.status === 'Sent' || i?.status === 'Pending' || i?.status === 'PartPayment'
         );
       } catch (invoiceError) {
         console.warn('Could not fetch invoices:', invoiceError);
       }
-
       return {
         activeOrders: activeOrders.length,
         pendingInvoices: pendingInvoices.length,
@@ -193,7 +159,6 @@ export const customerService = {
         recentOrders: orders.slice(0, 5) || [],
         unpaidInvoices: pendingInvoices.slice(0, 5)
       };
-      
     } catch (error) {
       console.error('Failed to fetch dashboard stats:', error);
       return {
@@ -207,11 +172,9 @@ export const customerService = {
     }
   },
 
-  // Get recent orders
   getRecentOrders: async (limit = 5) => {
     try {
-      const response = await api.get(`/orders/my-orders?limit=${limit}`);
-      // Handle different response structures
+      const response = await api.get(`${API_PATHS.ORDERS.MY_ORDERS}?limit=${limit}`);
       if (response?.orders) return response.orders;
       if (response?.order) return response.order;
       if (response?.data?.orders) return response.data.orders;
@@ -224,11 +187,9 @@ export const customerService = {
     }
   },
 
-  // Get pending invoices
   getPendingInvoices: async (limit = 5) => {
     try {
-      const response = await api.get(`/invoices/my-invoices?limit=${limit}`);
-      // Handle different response structures
+      const response = await api.get(`${API_PATHS.INVOICES.MY_INVOICES}?limit=${limit}`);
       if (response?.invoices) return response.invoices;
       if (response?.data?.invoices) return response.data.invoices;
       if (response?.data) return response.data;
@@ -240,10 +201,9 @@ export const customerService = {
     }
   },
 
-  // Get single order by ID
   getOrderById: async (orderId) => {
     try {
-      const response = await api.get(`/orders/${orderId}`);
+      const response = await api.get(API_PATHS.ORDERS.BY_ID(orderId));
       return response.data || response;
     } catch (error) {
       console.error('Failed to fetch order:', error);
@@ -251,10 +211,9 @@ export const customerService = {
     }
   },
 
-  // Get single invoice by ID
   getInvoiceById: async (invoiceId) => {
     try {
-      const response = await api.get(`/invoices/id/${invoiceId}`);
+      const response = await api.get(API_PATHS.INVOICES.BY_ID(invoiceId));
       return response.data || response;
     } catch (error) {
       console.error('Failed to fetch invoice:', error);
@@ -262,13 +221,11 @@ export const customerService = {
     }
   },
 
-  // Update user profile
   updateProfile: async (profileData) => {
     try {
       const userId = getCurrentUserId();
       if (!userId) throw new Error('Not authenticated');
-      
-      const response = await api.put(`/users/${userId}/profile`, profileData);
+      const response = await api.put(API_PATHS.USERS.UPDATE_PROFILE(userId), profileData);
       return response.data || response;
     } catch (error) {
       console.error('Failed to update profile:', error);
@@ -276,7 +233,6 @@ export const customerService = {
     }
   },
 
-  // Get order tracking information
   getOrderTracking: async (orderId) => {
     try {
       const response = await api.get(`/orders/${orderId}/tracking`);
@@ -287,11 +243,10 @@ export const customerService = {
     }
   },
 
-  // Get customer notifications
   getNotifications: async (params = {}) => {
     try {
       const queryParams = new URLSearchParams(params).toString();
-      const endpoint = queryParams ? `/notifications?${queryParams}` : '/notifications';
+      const endpoint = queryParams ? `${API_PATHS.NOTIFICATIONS.HISTORY}?${queryParams}` : API_PATHS.NOTIFICATIONS.HISTORY;
       const response = await api.get(endpoint);
       return response.data || response;
     } catch (error) {
@@ -300,10 +255,9 @@ export const customerService = {
     }
   },
 
-  // Mark notification as read
   markNotificationRead: async (notificationId) => {
     try {
-      const response = await api.patch(`/notifications/${notificationId}/read`, {});
+      const response = await api.patch(API_PATHS.NOTIFICATIONS.MARK_READ(notificationId), {});
       return response.data || response;
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
@@ -311,13 +265,11 @@ export const customerService = {
     }
   },
 
-  // Get customer addresses
   getAddresses: async () => {
     try {
       const userId = getCurrentUserId();
       if (!userId) throw new Error('Not authenticated');
-      
-      const response = await api.get(`/users/${userId}/address`);
+      const response = await api.get(API_PATHS.USERS.ADDRESS(userId));
       return response.data || response;
     } catch (error) {
       console.error('Failed to fetch addresses:', error);
@@ -325,13 +277,11 @@ export const customerService = {
     }
   },
 
-  // Add new address
   addAddress: async (addressData) => {
     try {
       const userId = getCurrentUserId();
       if (!userId) throw new Error('Not authenticated');
-      
-      const response = await api.post(`/users/${userId}/address`, addressData);
+      const response = await api.post(API_PATHS.USERS.ADDRESS(userId), addressData);
       return response.data || response;
     } catch (error) {
       console.error('Failed to add address:', error);
@@ -339,13 +289,11 @@ export const customerService = {
     }
   },
 
-  // Update address
   updateAddress: async (addressId, addressData) => {
     try {
       const userId = getCurrentUserId();
       if (!userId) throw new Error('Not authenticated');
-      
-      const response = await api.put(`/users/${userId}/address/${addressId}`, addressData);
+      const response = await api.put(`${API_PATHS.USERS.ADDRESS(userId)}/${addressId}`, addressData);
       return response.data || response;
     } catch (error) {
       console.error('Failed to update address:', error);
@@ -353,13 +301,11 @@ export const customerService = {
     }
   },
 
-  // Delete address
   deleteAddress: async (addressId) => {
     try {
       const userId = getCurrentUserId();
       if (!userId) throw new Error('Not authenticated');
-      
-      const response = await api.delete(`/users/${userId}/address/${addressId}`);
+      const response = await api.delete(`${API_PATHS.USERS.ADDRESS(userId)}/${addressId}`);
       return response.data || response;
     } catch (error) {
       console.error('Failed to delete address:', error);
@@ -367,7 +313,6 @@ export const customerService = {
     }
   },
 
-  // Get payment methods
   getPaymentMethods: async () => {
     try {
       const response = await api.get('/payments/methods');
@@ -378,7 +323,6 @@ export const customerService = {
     }
   },
 
-  // Add payment method
   addPaymentMethod: async (paymentData) => {
     try {
       const response = await api.post('/payments/methods', paymentData);
@@ -389,7 +333,6 @@ export const customerService = {
     }
   },
 
-  // Delete payment method
   deletePaymentMethod: async (methodId) => {
     try {
       const response = await api.delete(`/payments/methods/${methodId}`);
@@ -400,11 +343,10 @@ export const customerService = {
     }
   },
 
-  // Get transaction history
   getTransactions: async (params = {}) => {
     try {
       const queryParams = new URLSearchParams(params).toString();
-      const endpoint = queryParams ? `/payments/my-transactions?${queryParams}` : '/payments/my-transactions';
+      const endpoint = queryParams ? `${API_PATHS.PAYMENTS.MY_TRANSACTIONS}?${queryParams}` : API_PATHS.PAYMENTS.MY_TRANSACTIONS;
       const response = await api.get(endpoint);
       return response.data || response;
     } catch (error) {
@@ -413,10 +355,9 @@ export const customerService = {
     }
   },
 
-  // Download invoice PDF
   downloadInvoice: async (invoiceId) => {
     try {
-      const response = await api.get(`/invoices/${invoiceId}/pdf`, {
+      const response = await api.get(API_PATHS.INVOICES.PDF(invoiceId), {
         fetchOpts: { responseType: 'blob' }
       });
       return response;
@@ -426,178 +367,11 @@ export const customerService = {
     }
   },
 
-  // Get customer support tickets
-  getSupportTickets: async (params = {}) => {
-    try {
-      const queryParams = new URLSearchParams(params).toString();
-      const endpoint = queryParams ? `/support/tickets?${queryParams}` : '/support/tickets';
-      const response = await api.get(endpoint);
-      return response.data || response;
-    } catch (error) {
-      console.error('Failed to fetch support tickets:', error);
-      return [];
-    }
-  },
-
-  // Create support ticket
-  createSupportTicket: async (ticketData) => {
-    try {
-      const response = await api.post('/support/tickets', ticketData);
-      return response.data || response;
-    } catch (error) {
-      console.error('Failed to create support ticket:', error);
-      throw error;
-    }
-  },
-
-  // Get ticket messages
-  getTicketMessages: async (ticketId) => {
-    try {
-      const response = await api.get(`/support/tickets/${ticketId}/messages`);
-      return response.data || response;
-    } catch (error) {
-      console.error('Failed to fetch ticket messages:', error);
-      return [];
-    }
-  },
-
-  // Reply to ticket
-  replyToTicket: async (ticketId, message) => {
-    try {
-      const response = await api.post(`/support/tickets/${ticketId}/reply`, { message });
-      return response.data || response;
-    } catch (error) {
-      console.error('Failed to reply to ticket:', error);
-      throw error;
-    }
-  },
-
-  // Get wishlist
-  getWishlist: async () => {
-    try {
-      const response = await api.get('/wishlist');
-      return response.data || response;
-    } catch (error) {
-      console.error('Failed to fetch wishlist:', error);
-      return [];
-    }
-  },
-
-  // Add to wishlist
-  addToWishlist: async (productId) => {
-    try {
-      const response = await api.post('/wishlist', { productId });
-      return response.data || response;
-    } catch (error) {
-      console.error('Failed to add to wishlist:', error);
-      throw error;
-    }
-  },
-
-  // Remove from wishlist
-  removeFromWishlist: async (productId) => {
-    try {
-      const response = await api.delete(`/wishlist/${productId}`);
-      return response.data || response;
-    } catch (error) {
-      console.error('Failed to remove from wishlist:', error);
-      throw error;
-    }
-  },
-
-  // Check if product is in wishlist
-  isInWishlist: async (productId) => {
-    try {
-      const wishlist = await customerService.getWishlist();
-      return wishlist.some(item => item.productId === productId || item.productId._id === productId);
-    } catch (error) {
-      console.error('Failed to check wishlist:', error);
-      return false;
-    }
-  },
-
-  // Get customer reviews
-  getReviews: async (params = {}) => {
-    try {
-      const queryParams = new URLSearchParams(params).toString();
-      const endpoint = queryParams ? `/reviews?${queryParams}` : '/reviews';
-      const response = await api.get(endpoint);
-      return response.data || response;
-    } catch (error) {
-      console.error('Failed to fetch reviews:', error);
-      return [];
-    }
-  },
-
-  // Submit review
-  submitReview: async (productId, reviewData) => {
-    try {
-      const response = await api.post(`/reviews/${productId}`, reviewData);
-      return response.data || response;
-    } catch (error) {
-      console.error('Failed to submit review:', error);
-      throw error;
-    }
-  },
-
-  // Update review
-  updateReview: async (reviewId, reviewData) => {
-    try {
-      const response = await api.put(`/reviews/${reviewId}`, reviewData);
-      return response.data || response;
-    } catch (error) {
-      console.error('Failed to update review:', error);
-      throw error;
-    }
-  },
-
-  // Delete review
-  deleteReview: async (reviewId) => {
-    try {
-      const response = await api.delete(`/reviews/${reviewId}`);
-      return response.data || response;
-    } catch (error) {
-      console.error('Failed to delete review:', error);
-      throw error;
-    }
-  },
-
-  // Get customer settings
-  getSettings: async () => {
-    try {
-      const userId = getCurrentUserId();
-      if (!userId) throw new Error('Not authenticated');
-      
-      const response = await api.get(`/users/${userId}/settings`);
-      return response.data || response;
-    } catch (error) {
-      console.error('Failed to fetch settings:', error);
-      return {};
-    }
-  },
-
-  // Update customer settings
-  updateSettings: async (settingsData) => {
-    try {
-      const userId = getCurrentUserId();
-      if (!userId) throw new Error('Not authenticated');
-      
-      const response = await api.put(`/users/${userId}/settings`, settingsData);
-      return response.data || response;
-    } catch (error) {
-      console.error('Failed to update settings:', error);
-      throw error;
-    }
-  },
-
-  // Get order history with filters
   getOrderHistory: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams(filters).toString();
-      const endpoint = queryParams ? `/orders/my-orders?${queryParams}` : '/orders/my-orders';
+      const endpoint = queryParams ? `${API_PATHS.ORDERS.MY_ORDERS}?${queryParams}` : API_PATHS.ORDERS.MY_ORDERS;
       const response = await api.get(endpoint);
-      
-      // Handle different response structures
       if (response?.orders) return response.orders;
       if (response?.order) return response.order;
       if (response?.data?.orders) return response.data.orders;
@@ -610,7 +384,6 @@ export const customerService = {
     }
   },
 
-  // Track order by order number
   trackOrderByNumber: async (orderNumber) => {
     try {
       const response = await api.get(`/orders/track/${orderNumber}`);
@@ -621,16 +394,13 @@ export const customerService = {
     }
   },
 
-  // Get customer metrics
   getMetrics: async () => {
     try {
       const orders = await customerService.getOrderHistory({ limit: 1000 });
-      
       const totalSpent = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
       const totalOrders = orders.length;
       const completedOrders = orders.filter(o => o.status === 'Delivered' || o.status === 'Completed').length;
       const pendingOrders = orders.filter(o => o.status !== 'Delivered' && o.status !== 'Completed' && o.status !== 'Cancelled').length;
-      
       return {
         totalSpent,
         totalOrders,

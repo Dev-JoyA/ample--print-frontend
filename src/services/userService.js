@@ -12,7 +12,7 @@ export const userService = {
   getAddress: (userId) => api.get(API_PATHS.USERS.ADDRESS(userId)),
 
   updateProfile: (userId, data) =>
-    api.put(API_PATHS.USERS.PROFILE(userId), data),
+    api.put(API_PATHS.USERS.UPDATE_PROFILE(userId), data),
 
   deleteUser: (userId) => api.delete(API_PATHS.USERS.BY_ID(userId)),
 

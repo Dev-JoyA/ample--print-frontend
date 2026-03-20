@@ -18,7 +18,7 @@ const InvoiceCard = ({
       'Paid': 'green',
       'Overdue': 'red',
       'Cancelled': 'gray',
-      'Received': 'blue', // Customer-friendly version of Sent
+      'Received': 'blue',
       'Processing': 'gray'
     };
     return colors[status] || 'gray';
@@ -35,7 +35,6 @@ const InvoiceCard = ({
     });
   };
 
-  // Debug log to see what data is being received
   console.log('InvoiceCard received:', {
     id: invoice.id,
     invoiceNumber: invoice.invoiceNumber,
@@ -47,39 +46,23 @@ const InvoiceCard = ({
     originalStatus: invoice.originalStatus
   });
 
-  // Calculate amounts from invoice data
   const totalAmount = invoice.totalAmount || invoice.amount || 0;
   const paidAmount = invoice.amountPaid || 0;
   const remainingAmount = invoice.remainingAmount || (totalAmount - paidAmount);
   const depositAmount = invoice.depositAmount || 0;
-
-  // Determine if invoice is fully paid
   const isFullyPaid = remainingAmount <= 0 || invoice.status === 'Paid';
 
-  // Get customer-friendly status display based on original status
   const getDisplayStatus = () => {
-    // If we have the original status, use that to determine display
     const originalStatus = invoice.originalStatus || invoice.status;
-    
-    // Transform admin status to customer-friendly terms
     if (originalStatus === 'Sent') return 'Received';
     if (originalStatus === 'Draft') return 'Processing';
-    
     return originalStatus;
   };
 
   const displayStatus = getDisplayStatus();
 
-  // Get badge color based on original status
   const getBadgeColor = () => {
     const originalStatus = invoice.originalStatus || invoice.status;
-    
-    // if (invoice.invoiceType === 'shipping') {
-    //   if (originalStatus === 'Draft' || originalStatus === 'Sent') {
-    //     return 'teal';
-    //   }
-    // }
-    
     const colors = {
       'Draft': 'gray',
       'Sent': 'blue',
@@ -95,75 +78,68 @@ const InvoiceCard = ({
   const badgeColor = getBadgeColor();
 
   return (
-    <div className="bg-slate-900/50 backdrop-blur-sm border border-gray-800 rounded-xl overflow-hidden hover:border-gray-700 transition-all h-full flex flex-col">
-      {/* Header */}
-      <div className="p-6 border-b border-gray-800">
-        <div className="flex justify-between items-start mb-4">
+    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-gray-800 bg-slate-900/50 backdrop-blur-sm transition-all hover:border-gray-700">
+      <div className="border-b border-gray-800 p-4 sm:p-5 md:p-6">
+        <div className="mb-3 flex flex-wrap items-start justify-between gap-2 sm:mb-4">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <p className="text-sm text-gray-400">Invoice</p>
+            <div className="mb-1 flex flex-wrap items-center gap-2">
+              <p className="text-xs text-gray-400 sm:text-sm">Invoice</p>
               {invoice.invoiceType === 'shipping' && (
-                <span className="text-xs bg-teal-600/20 text-teal-400 px-2 py-0.5 rounded-full border border-teal-700">
+                <span className="rounded-full border border-teal-700 bg-teal-600/20 px-2 py-0.5 text-xs text-teal-400">
                   Shipping
                 </span>
               )}
               {invoice.invoiceType === 'main' && (
-                <span className="text-xs bg-blue-600/20 text-blue-400 px-2 py-0.5 rounded-full border border-blue-700">
+                <span className="rounded-full border border-blue-700 bg-blue-600/20 px-2 py-0.5 text-xs text-blue-400">
                   Order
                 </span>
               )}
             </div>
-            <h3 className="text-xl font-bold text-white">{invoice.invoiceNumber || 'N/A'}</h3>
+            <h3 className="text-base font-bold text-white sm:text-lg md:text-xl">{invoice.invoiceNumber || 'N/A'}</h3>
             {invoice.orderNumber && (
-              <p className="text-xs text-gray-500 mt-1">Order: {invoice.orderNumber}</p>
+              <p className="mt-1 text-xs text-gray-500">Order: {invoice.orderNumber}</p>
             )}
           </div>
-          <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium bg-${badgeColor}-900/50 text-${badgeColor}-400 border border-${badgeColor}-700`}>
+          <span className={`inline-block rounded-full px-2 py-1 text-xs font-medium sm:px-3 bg-${badgeColor}-900/50 text-${badgeColor}-400 border border-${badgeColor}-700`}>
             {displayStatus}
           </span>
         </div>
 
-        {/* Amount Section */}
-        <div className="space-y-2">
-          {/* Total Amount */}
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-400">Total:</span>
-            <span className="text-lg font-bold text-white">{formatCurrency(totalAmount)}</span>
+        <div className="space-y-1 sm:space-y-2">
+          <div className="flex flex-wrap justify-between items-center gap-1">
+            <span className="text-xs text-gray-400 sm:text-sm">Total:</span>
+            <span className="text-base font-bold text-white sm:text-lg">{formatCurrency(totalAmount)}</span>
           </div>
 
-          {/* Paid Amount - Only show if > 0 */}
           {paidAmount > 0 && (
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-400">Paid:</span>
-              <span className="text-md font-semibold text-green-400">{formatCurrency(paidAmount)}</span>
+            <div className="flex flex-wrap justify-between items-center gap-1">
+              <span className="text-xs text-gray-400 sm:text-sm">Paid:</span>
+              <span className="text-sm font-semibold text-green-400 sm:text-base">{formatCurrency(paidAmount)}</span>
             </div>
           )}
 
-          {/* Deposit Required - Only show if deposit exists and not paid */}
           {depositAmount > 0 && paidAmount === 0 && (
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-400">Deposit Required:</span>
-              <span className="text-md font-semibold text-yellow-400">{formatCurrency(depositAmount)}</span>
+            <div className="flex flex-wrap justify-between items-center gap-1">
+              <span className="text-xs text-gray-400 sm:text-sm">Deposit Required:</span>
+              <span className="text-sm font-semibold text-yellow-400 sm:text-base">{formatCurrency(depositAmount)}</span>
             </div>
           )}
 
-          {/* Remaining Balance - Only show if not fully paid */}
           {!isFullyPaid && remainingAmount > 0 && (
-            <div className="flex justify-between items-center pt-1 border-t border-gray-800 mt-1">
-              <span className="text-sm font-medium text-gray-300">Remaining:</span>
-              <span className="text-lg font-bold text-primary">{formatCurrency(remainingAmount)}</span>
+            <div className="mt-1 flex flex-wrap justify-between items-center gap-1 border-t border-gray-800 pt-1 sm:mt-2 sm:pt-2">
+              <span className="text-xs font-medium text-gray-300 sm:text-sm">Remaining:</span>
+              <span className="text-base font-bold text-primary sm:text-lg">{formatCurrency(remainingAmount)}</span>
             </div>
           )}
         </div>
 
-        {/* Date */}
-        <div className="mt-4 text-sm">
-          <div className="flex justify-between">
+        <div className="mt-3 text-xs sm:mt-4 sm:text-sm">
+          <div className="flex flex-wrap justify-between gap-1">
             <span className="text-gray-400">Issued:</span>
             <span className="text-white">{formatDate(invoice.createdAt || invoice.issueDate)}</span>
           </div>
           {invoice.dueDate && !isFullyPaid && (
-            <div className="flex justify-between mt-1">
+            <div className="mt-1 flex flex-wrap justify-between gap-1">
               <span className="text-gray-400">Due:</span>
               <span className="text-white">{formatDate(invoice.dueDate)}</span>
             </div>
@@ -171,16 +147,15 @@ const InvoiceCard = ({
         </div>
       </div>
 
-      {/* Items (expandable) */}
       {invoice.items && invoice.items.length > 0 && (
         <div className="border-b border-gray-800">
           <button
             onClick={() => setExpanded(!expanded)}
-            className="w-full px-6 py-3 flex items-center justify-between text-sm text-gray-400 hover:text-white transition-colors"
+            className="flex w-full items-center justify-between px-4 py-2 text-xs text-gray-400 transition-colors hover:text-white sm:px-5 sm:py-2.5 sm:text-sm md:px-6 md:py-3"
           >
             <span>View Items ({invoice.items.length})</span>
             <svg
-              className={`w-5 h-5 transform transition-transform ${expanded ? 'rotate-180' : ''}`}
+              className={`h-4 w-4 transform transition-transform sm:h-5 sm:w-5 ${expanded ? 'rotate-180' : ''}`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -190,9 +165,9 @@ const InvoiceCard = ({
           </button>
           
           {expanded && (
-            <div className="px-6 pb-4 space-y-2">
+            <div className="space-y-2 px-4 pb-3 sm:px-5 sm:pb-4 md:px-6">
               {invoice.items.map((item, index) => (
-                <div key={index} className="flex justify-between text-sm">
+                <div key={index} className="flex flex-wrap justify-between gap-1 text-xs sm:text-sm">
                   <span className="text-gray-400">
                     {item.description} x{item.quantity}
                   </span>
@@ -204,15 +179,14 @@ const InvoiceCard = ({
         </div>
       )}
 
-      {/* Actions */}
-      <div className="p-6 mt-auto">
-        <div className="flex gap-3">
+      <div className="mt-auto p-4 sm:p-5 md:p-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
           {!isFullyPaid && invoice.status !== 'Cancelled' && (
             <Button
               variant="primary"
               size="sm"
               onClick={() => onPay(invoice)}
-              className="flex-1"
+              className="w-full sm:flex-1"
             >
               Pay Now
             </Button>
@@ -221,18 +195,17 @@ const InvoiceCard = ({
             variant="secondary"
             size="sm"
             onClick={() => onDownload(invoice)}
-            className="flex-1"
+            className="w-full sm:flex-1"
             icon="📥"
           >
             Download
           </Button>
         </div>
 
-        {/* View Details Link */}
-        <div className="mt-4 text-center">
+        <div className="mt-3 text-center sm:mt-4">
           <Link 
             href={`/invoices/${invoice.id}`}
-            className="text-sm text-primary hover:text-primary-dark transition-colors"
+            className="text-xs text-primary transition-colors hover:text-primary-dark sm:text-sm"
           >
             View Full Details →
           </Link>

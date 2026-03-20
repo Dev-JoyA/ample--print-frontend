@@ -4,13 +4,15 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import Button from '@/components/ui/Button';
+import SEOHead from '@/components/common/SEOHead';
 import { paymentService } from '@/services/paymentService';
+import { METADATA } from '@/lib/metadata';
 
 export default function PaymentVerifyPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const reference = searchParams.get('reference');
-  const trxref = searchParams.get('trxref'); // Paystack sometimes uses this
+  const trxref = searchParams.get('trxref');
 
   const [verifying, setVerifying] = useState(true);
   const [success, setSuccess] = useState(false);
@@ -41,8 +43,6 @@ export default function PaymentVerifyPage() {
       if (transactionData?.transactionStatus === 'completed') {
         setSuccess(true);
         setTransaction(transactionData);
-        
-        // Clear pending payment from session
         sessionStorage.removeItem('pending_payment_reference');
         sessionStorage.removeItem('pending_payment_invoice');
       } else {
@@ -75,100 +75,118 @@ export default function PaymentVerifyPage() {
 
   if (verifying) {
     return (
-      <DashboardLayout userRole="customer">
-        <div className="min-h-[60vh] flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-20 h-20 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
-            <h2 className="text-2xl font-bold text-white mb-2">Verifying Payment</h2>
-            <p className="text-gray-400">Please wait while we confirm your payment...</p>
+      <>
+        <SEOHead
+          title="Verifying Payment"
+          description="Please wait while we verify your payment"
+          robots="noindex, nofollow"
+        />
+        <DashboardLayout userRole="customer">
+          <div className="flex min-h-[60vh] items-center justify-center">
+            <div className="text-center">
+              <div className="mx-auto mb-6 h-16 w-16 animate-spin rounded-full border-4 border-primary border-t-transparent sm:h-20 sm:w-20"></div>
+              <h2 className="mb-2 text-xl font-bold text-white sm:text-2xl">Verifying Payment</h2>
+              <p className="text-sm text-gray-400 sm:text-base">Please wait while we confirm your payment...</p>
+            </div>
           </div>
-        </div>
-      </DashboardLayout>
+        </DashboardLayout>
+      </>
     );
   }
 
   return (
-    <DashboardLayout userRole="customer">
-      <div className="max-w-2xl mx-auto px-4 py-16">
-        {success ? (
-          <div className="bg-[#0A0A0A] rounded-xl border border-gray-800 p-8 text-center">
-            <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            
-            <h2 className="text-3xl font-bold text-white mb-2">Payment Successful!</h2>
-            <p className="text-gray-400 mb-8">
-              Your payment has been confirmed. Your order is now in production.
-            </p>
-            
-            {transaction && (
-              <div className="bg-[#0F0F0F] rounded-lg p-4 mb-8 text-left">
-                <div className="flex justify-between mb-2">
-                  <span className="text-gray-400">Amount:</span>
-                  <span className="text-white font-bold">
-                    ₦{transaction.transactionAmount?.toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-gray-400">Reference:</span>
-                  <span className="text-white font-mono text-sm">{transaction.transactionId}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Date:</span>
-                  <span className="text-white">
-                    {new Date(transaction.createdAt).toLocaleString()}
-                  </span>
-                </div>
+    <>
+      <SEOHead
+        title={success ? "Payment Successful" : "Payment Failed"}
+        description={success ? "Your payment has been confirmed successfully" : "Payment verification failed"}
+        robots="noindex, nofollow"
+      />
+      <DashboardLayout userRole="customer">
+        <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12 lg:py-16">
+          {success ? (
+            <div className="rounded-xl border border-gray-800 bg-[#0A0A0A] p-6 text-center sm:p-8">
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/20 sm:h-20 sm:w-20">
+                <svg className="h-8 w-8 text-green-500 sm:h-10 sm:w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
               </div>
-            )}
-            
-            <div className="flex gap-4 justify-center">
-              <Button
-                variant="primary"
-                onClick={handleViewInvoice}
-              >
-                View Invoice
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={handleViewOrder}
-              >
-                Track Order
-              </Button>
+              
+              <h2 className="mb-2 text-2xl font-bold text-white sm:text-3xl">Payment Successful!</h2>
+              <p className="mb-6 text-sm text-gray-400 sm:mb-8 sm:text-base">
+                Your payment has been confirmed. Your order is now in production.
+              </p>
+              
+              {transaction && (
+                <div className="mb-6 rounded-lg bg-[#0F0F0F] p-4 text-left sm:mb-8">
+                  <div className="flex flex-wrap justify-between gap-2 mb-2">
+                    <span className="text-sm text-gray-400 sm:text-base">Amount:</span>
+                    <span className="text-sm font-bold text-white sm:text-base">
+                      ₦{transaction.transactionAmount?.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap justify-between gap-2 mb-2">
+                    <span className="text-sm text-gray-400 sm:text-base">Reference:</span>
+                    <span className="font-mono text-xs text-white break-all sm:text-sm">{transaction.transactionId}</span>
+                  </div>
+                  <div className="flex flex-wrap justify-between gap-2">
+                    <span className="text-sm text-gray-400 sm:text-base">Date:</span>
+                    <span className="text-sm text-white sm:text-base">
+                      {new Date(transaction.createdAt).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              )}
+              
+              <div className="flex flex-col gap-3 sm:flex-row sm:justify-center sm:gap-4">
+                <Button
+                  variant="primary"
+                  onClick={handleViewInvoice}
+                  className="w-full sm:w-auto"
+                >
+                  View Invoice
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={handleViewOrder}
+                  className="w-full sm:w-auto"
+                >
+                  Track Order
+                </Button>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="bg-[#0A0A0A] rounded-xl border border-gray-800 p-8 text-center">
-            <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+          ) : (
+            <div className="rounded-xl border border-gray-800 bg-[#0A0A0A] p-6 text-center sm:p-8">
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-500/20 sm:h-20 sm:w-20">
+                <svg className="h-8 w-8 text-red-500 sm:h-10 sm:w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              
+              <h2 className="mb-2 text-2xl font-bold text-white sm:text-3xl">Payment Failed</h2>
+              <p className="mb-6 text-sm text-gray-400 sm:mb-8 sm:text-base">
+                {error || 'We could not verify your payment. Please try again or contact support.'}
+              </p>
+              
+              <div className="flex flex-col gap-3 sm:flex-row sm:justify-center sm:gap-4">
+                <Button
+                  variant="primary"
+                  onClick={() => router.push('/invoices')}
+                  className="w-full sm:w-auto"
+                >
+                  Back to Invoices
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => router.push('/support')}
+                  className="w-full sm:w-auto"
+                >
+                  Contact Support
+                </Button>
+              </div>
             </div>
-            
-            <h2 className="text-3xl font-bold text-white mb-2">Payment Failed</h2>
-            <p className="text-gray-400 mb-8">
-              {error || 'We could not verify your payment. Please try again or contact support.'}
-            </p>
-            
-            <div className="flex gap-4 justify-center">
-              <Button
-                variant="primary"
-                onClick={() => router.push('/invoices')}
-              >
-                Back to Invoices
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() => router.push('/support')}
-              >
-                Contact Support
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
-    </DashboardLayout>
+          )}
+        </div>
+      </DashboardLayout>
+    </>
   );
 }

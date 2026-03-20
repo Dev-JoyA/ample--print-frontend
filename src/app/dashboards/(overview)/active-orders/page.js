@@ -7,10 +7,11 @@ import DashboardLayout from '@/components/layouts/DashboardLayout';
 import OrderCard from '@/components/cards/OrderCard';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import SEOHead from '@/components/common/SEOHead';
+import { METADATA } from '@/lib/metadata';
 import { useProtectedRoute } from '@/app/lib/auth';
 import { orderService } from '@/services/orderService';
 
-// Define the order statuses locally
 const OrderStatus = {
   Pending: "Pending",
   OrderReceived: "OrderReceived",
@@ -32,7 +33,6 @@ const OrderStatus = {
   Delivered: "Delivered",
 };
 
-// Statuses that are considered "active" (not completed)
 const ACTIVE_STATUSES = [
   OrderStatus.Pending,
   OrderStatus.OrderReceived,
@@ -49,7 +49,6 @@ const ACTIVE_STATUSES = [
   OrderStatus.FinalPaid,
 ];
 
-// Statuses where customer can still add products
 const EDITABLE_STATUSES = [
   OrderStatus.Pending,
   OrderStatus.OrderReceived,
@@ -96,7 +95,6 @@ export default function ActiveOrdersPage() {
       
       console.log('Fetching active orders for user:', user?._id);
       
-      // Try getUserActiveOrders first (this is the dedicated endpoint)
       let ordersData = [];
       
       try {
@@ -104,7 +102,6 @@ export default function ActiveOrdersPage() {
         const response = await orderService.getUserActiveOrders();
         console.log('getUserActiveOrders response:', response);
         
-        // Check different possible response structures
         if (response.orders && Array.isArray(response.orders)) {
           ordersData = response.orders;
           console.log('Found orders in response.orders:', ordersData.length);
@@ -122,14 +119,12 @@ export default function ActiveOrdersPage() {
         console.log('getUserActiveOrders failed:', err.message);
       }
       
-      // If no orders from getUserActiveOrders, try getMyOrders as fallback
       if (ordersData.length === 0) {
         try {
           console.log('Attempting getMyOrders as fallback...');
           const response = await orderService.getMyOrders({ limit: 100 });
           console.log('getMyOrders response:', response);
           
-          // Check different possible response structures
           if (response.order && Array.isArray(response.order)) {
             ordersData = response.order;
             console.log('Found orders in response.order:', ordersData.length);
@@ -162,18 +157,15 @@ export default function ActiveOrdersPage() {
         createdAt: o.createdAt
       })));
       
-      // Filter active orders (exclude completed, shipped, ready for shipping)
       const activeOrders = ordersData
         .filter(order => {
           if (!order || !order.status) return false;
-          // Explicitly exclude certain statuses
           if (order.status === OrderStatus.Completed) return false;
           if (order.status === OrderStatus.Shipped) return false;
           if (order.status === OrderStatus.ReadyForShipping) return false;
           if (order.status === OrderStatus.Delivered) return false;
           if (order.status === OrderStatus.Cancelled) return false;
           
-          // Include if it's in our active statuses list
           return ACTIVE_STATUSES.includes(order.status);
         })
         .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
@@ -197,9 +189,7 @@ export default function ActiveOrdersPage() {
 
   const handleAddProduct = (orderId) => {
     setAddingToOrder(orderId);
-    // Store the order ID in sessionStorage so the collections page knows which order to add to
     sessionStorage.setItem('addingToOrderId', orderId);
-    // Navigate to collections page
     router.push('/collections/all/products');
   };
 
@@ -230,6 +220,7 @@ export default function ActiveOrdersPage() {
   if (authLoading || loading) {
     return (
       <DashboardLayout userRole="customer">
+        <SEOHead {...METADATA.dashboard.customer} />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex justify-center items-center min-h-[60vh]">
             <div className="text-center">
@@ -244,49 +235,47 @@ export default function ActiveOrdersPage() {
 
   return (
     <DashboardLayout userRole="customer">
+      <SEOHead {...METADATA.dashboard.customer} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">Active Orders</h1>
-            <p className="text-gray-400">
+            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Active Orders</h1>
+            <p className="text-gray-400 text-sm sm:text-base">
               {orders.length} {orders.length === 1 ? 'order' : 'orders'} in progress
             </p>
           </div>
-          <div className="flex gap-3">
-            <Link href="/new-order">
-              <Button variant="primary" size="md" className="gap-2">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link href="/new-order" className="w-full sm:w-auto">
+              <Button variant="primary" size="md" className="w-full sm:w-auto gap-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
                 New Order
               </Button>
             </Link>
-            <Link href="/order-history">
-              <Button variant="outline" size="md">
+            <Link href="/order-history" className="w-full sm:w-auto">
+              <Button variant="outline" size="md" className="w-full sm:w-auto">
                 View All Orders
               </Button>
             </Link>
           </div>
         </div>
 
-        {/* Error Message */}
         {error && (
-          <div className="mb-6 p-4 bg-red-900/30 border border-red-700 rounded-lg flex items-center gap-3">
+          <div className="mb-6 p-4 bg-red-900/30 border border-red-700 rounded-lg flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <p className="text-red-200 text-sm">{error}</p>
+            <p className="text-red-200 text-sm flex-1">{error}</p>
             <button 
               onClick={fetchActiveOrders}
-              className="ml-auto text-sm text-red-400 hover:text-red-300 underline"
+              className="text-sm text-red-400 hover:text-red-300 underline"
             >
               Retry
             </button>
           </div>
         )}
 
-        {/* Search Bar */}
         <div className="mb-6">
           <Input
             type="text"
@@ -302,9 +291,8 @@ export default function ActiveOrdersPage() {
           />
         </div>
 
-        {/* Active Orders List */}
         {filteredOrders.length === 0 ? (
-          <div className="bg-slate-900/50 rounded-xl border border-gray-800 p-12 text-center">
+          <div className="bg-slate-900/50 rounded-xl border border-gray-800 p-8 sm:p-12 text-center">
             {searchTerm ? (
               <>
                 <p className="text-gray-400 mb-3">No orders match your search</p>
@@ -317,13 +305,12 @@ export default function ActiveOrdersPage() {
               </>
             ) : (
               <>
-                <div className="text-6xl mb-4">📦</div>
-                <h3 className="text-xl font-semibold text-white mb-2">No Active Orders</h3>
-                <p className="text-gray-400 mb-6">You don't have any active orders at the moment</p>
+                <div className="text-5xl sm:text-6xl mb-4">📦</div>
+                <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">No Active Orders</h3>
+                <p className="text-gray-400 text-sm sm:text-base mb-6">You don't have any active orders at the moment</p>
                 
-                {/* Debug info in development */}
                 {process.env.NODE_ENV === 'development' && (
-                  <div className="mt-4 p-3 bg-gray-800 rounded-lg text-left">
+                  <div className="mt-4 p-3 bg-gray-800 rounded-lg text-left overflow-x-auto">
                     <p className="text-xs text-gray-400">Check the browser console (F12) for detailed logs</p>
                   </div>
                 )}
@@ -337,7 +324,7 @@ export default function ActiveOrdersPage() {
             )}
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {filteredOrders.map((order) => (
               <div 
                 key={order._id} 
@@ -356,20 +343,17 @@ export default function ActiveOrdersPage() {
                   onClick={() => router.push(`/orders/${order._id}`)}
                 />
                 
-                {/* Add Product Section - Only show if order is editable */}
                 {canAddProduct(order) && (
-                  <div className="px-6 pb-4 pt-2 border-t border-gray-800 mt-2">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-400">
-                          {getStatusMessage(order)}
-                        </p>
-                      </div>
+                  <div className="px-4 sm:px-6 pb-4 pt-2 border-t border-gray-800 mt-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <p className="text-sm text-gray-400 text-center sm:text-left">
+                        {getStatusMessage(order)}
+                      </p>
                       <Button
                         variant="secondary"
                         size="sm"
                         onClick={() => handleAddProduct(order._id)}
-                        className="gap-2"
+                        className="gap-2 w-full sm:w-auto"
                         disabled={addingToOrder === order._id}
                       >
                         {addingToOrder === order._id ? (
@@ -390,10 +374,9 @@ export default function ActiveOrdersPage() {
                   </div>
                 )}
 
-                {/* Message for non-editable orders */}
                 {!canAddProduct(order) && !['Completed', 'Shipped', 'Delivered', 'Cancelled'].includes(order.status) && (
-                  <div className="px-6 pb-4 pt-2 border-t border-gray-800 mt-2">
-                    <p className="text-sm text-yellow-500">
+                  <div className="px-4 sm:px-6 pb-4 pt-2 border-t border-gray-800 mt-2">
+                    <p className="text-sm text-yellow-500 text-center sm:text-left">
                       ⚠️ {getStatusMessage(order)}
                     </p>
                   </div>
@@ -403,9 +386,8 @@ export default function ActiveOrdersPage() {
           </div>
         )}
 
-        {/* Summary Section */}
         {orders.length > 0 && (
-          <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="bg-slate-900/50 rounded-lg border border-gray-800 p-4">
               <p className="text-gray-400 text-sm">Total Active Orders</p>
               <p className="text-2xl font-bold text-white">{orders.length}</p>
@@ -416,10 +398,10 @@ export default function ActiveOrdersPage() {
                 {orders.filter(o => EDITABLE_STATUSES.includes(o.status)).length}
               </p>
             </div>
-            <div className="bg-slate-900/50 rounded-lg border border-gray-800 p-4">
+            <div className="bg-slate-900/50 rounded-lg border border-gray-800 p-4 sm:col-span-2 lg:col-span-1">
               <p className="text-gray-400 text-sm">Total Value</p>
               <p className="text-2xl font-bold text-white">
-                ${orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0).toLocaleString()}
+                ₦{orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0).toLocaleString()}
               </p>
             </div>
           </div>

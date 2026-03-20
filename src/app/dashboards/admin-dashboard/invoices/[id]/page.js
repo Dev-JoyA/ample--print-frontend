@@ -6,8 +6,10 @@ import Link from 'next/link';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import Button from '@/components/ui/Button';
 import StatusBadge from '@/components/ui/StatusBadge';
+import SEOHead from '@/components/common/SEOHead';
 import { invoiceService } from '@/services/invoiceService';
 import { profileService } from '@/services/profileService';
+import { METADATA } from '@/lib/metadata';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -49,7 +51,6 @@ export default function InvoiceDetailPage() {
       } else {
         setInvoice(invoiceData);
         
-        // Extract userId properly
         let userId = null;
         
         if (invoiceData.orderId?.userId) {
@@ -138,7 +139,6 @@ export default function InvoiceDetailPage() {
       creator: 'Ample Print Hub'
     });
 
-    // Header
     doc.setFontSize(24);
     doc.setTextColor(0, 0, 0);
     doc.text('AMPLE PRINT HUB', 20, 20);
@@ -148,7 +148,6 @@ export default function InvoiceDetailPage() {
     doc.text('5, Boyle Street, Somolu, Lagos', 20, 30);
     doc.text('Email: ampleprinthub@gmail.com', 20, 35);
 
-    // Invoice details
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
     doc.text(`Invoice #${invoice?.invoiceNumber || ''}`, 150, 20);
@@ -158,7 +157,6 @@ export default function InvoiceDetailPage() {
     doc.text(`Status: ${invoice?.status || ''}`, 150, 35);
     doc.text(`Type: ${invoice?.invoiceType || 'main'}`, 150, 40);
 
-    // Customer details
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
     doc.text('Bill To:', 20, 55);
@@ -172,7 +170,6 @@ export default function InvoiceDetailPage() {
     doc.setTextColor(100, 100, 100);
     doc.text(customerEmail, 20, 72);
 
-    // Items table
     const tableColumn = ['Description', 'Quantity', 'Unit Price', 'Total'];
     const tableRows = invoice?.items?.map(item => [
       item.description,
@@ -206,7 +203,6 @@ export default function InvoiceDetailPage() {
     const finalY = doc.lastAutoTable.finalY || 150;
     const summaryY = finalY + 15;
     
-    // Summary box
     doc.setFillColor(245, 245, 245);
     doc.rect(120, summaryY - 5, 70, 65, 'F');
     
@@ -248,7 +244,6 @@ export default function InvoiceDetailPage() {
     doc.text('Total:', 125, lineY + 3);
     doc.text(`₦${invoice?.totalAmount?.toLocaleString() || '0'}`, 170, lineY + 3, { align: 'right' });
 
-    // Payment Instructions
     const paymentY = summaryY + 75;
     
     doc.setFillColor(240, 248, 255);
@@ -266,7 +261,6 @@ export default function InvoiceDetailPage() {
     const splitInstructions = doc.splitTextToSize(instructions, 160);
     doc.text(splitInstructions, 25, paymentY + 8);
 
-    // Notes
     if (invoice?.notes) {
       const notesY = paymentY + 45;
       doc.setFontSize(10);
@@ -281,12 +275,11 @@ export default function InvoiceDetailPage() {
       doc.text(splitNotes, 20, notesY + 7);
     }
 
-    // Footer
     const footerY = 270;
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
     doc.text('Thank you for your business!', 105, footerY, { align: 'center' });
-    doc.text('Invoice is subject to change', 105, footerY + 5, { align: 'center' }); // Added this line
+    doc.text('Invoice is subject to change', 105, footerY + 5, { align: 'center' });
     doc.text('For inquiries, contact ampleprinthub@gmail.com', 105, footerY + 10, { align: 'center' });
 
     doc.save(`Invoice-${invoice?.invoiceNumber || 'draft'}.pdf`);
@@ -320,179 +313,179 @@ export default function InvoiceDetailPage() {
 
   if (loading) {
     return (
-      <DashboardLayout userRole="admin">
-        <div className="flex justify-center items-center min-h-[60vh]">
-          <div className="text-white">Loading invoice...</div>
-        </div>
-      </DashboardLayout>
+      <>
+        <SEOHead {...METADATA.dashboard.admin} />
+        <DashboardLayout userRole="admin">
+          <div className="flex justify-center items-center min-h-[60vh]">
+            <div className="text-white">Loading invoice...</div>
+          </div>
+        </DashboardLayout>
+      </>
     );
   }
 
   if (!invoice) {
     return (
-      <DashboardLayout userRole="admin">
-        <div className="text-center py-16">
-          <p className="text-gray-400">Invoice not found</p>
-          <button
-            onClick={() => router.back()}
-            className="mt-4 text-primary hover:text-primary-dark"
-          >
-            Go Back
-          </button>
-        </div>
-      </DashboardLayout>
+      <>
+        <SEOHead {...METADATA.dashboard.admin} />
+        <DashboardLayout userRole="admin">
+          <div className="text-center py-16">
+            <p className="text-gray-400">Invoice not found</p>
+            <button
+              onClick={() => router.back()}
+              className="mt-4 text-primary hover:text-primary-dark"
+            >
+              Go Back
+            </button>
+          </div>
+        </DashboardLayout>
+      </>
     );
   }
 
   return (
-    <DashboardLayout userRole="admin">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 text-gray-400 hover:text-white mb-4 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back
-          </button>
-          
-          <div className="flex items-center justify-between">
+    <>
+      <SEOHead {...METADATA.dashboard.admin} />
+      <DashboardLayout userRole="admin">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="mb-6 sm:mb-8">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center gap-2 text-gray-400 hover:text-white mb-4 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="text-sm sm:text-base">Back</span>
+            </button>
+            
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">Invoice Details</h1>
+                <p className="text-gray-400 text-sm sm:text-base">{invoice.invoiceNumber}</p>
+              </div>
+              <div className="self-start sm:self-auto">
+                <StatusBadge status={invoice.status} />
+              </div>
+            </div>
+          </div>
+
+          <div ref={invoiceRef} className="bg-slate-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-5 sm:p-6 space-y-5 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white">AMPLE PRINT HUB</h2>
+                <p className="text-gray-400 text-xs sm:text-sm mt-1">5, Boyle Street, Somolu, Lagos</p>
+                <p className="text-gray-400 text-xs sm:text-sm">Email: ampleprinthub@gmail.com</p>
+              </div>
+              <div className="text-left sm:text-right">
+                <p className="text-gray-400 text-xs sm:text-sm">Date: {formatDate(invoice.createdAt)}</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-800/30 rounded-lg p-4">
+              <h3 className="text-white font-medium mb-2">Bill To:</h3>
+              <p className="text-white font-medium text-sm sm:text-base">
+                {customerName !== 'Customer' ? customerName : 
+                 `${customerFirstName} ${customerLastName}`.trim() || 'Customer'}
+              </p>
+              <p className="text-gray-400 text-xs sm:text-sm">{customerEmail}</p>
+            </div>
+
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2">Invoice Details</h1>
-              <p className="text-gray-400">{invoice.invoiceNumber}</p>
-            </div>
-            <StatusBadge status={invoice.status} />
-          </div>
-        </div>
-
-        {/* Invoice Content */}
-        <div ref={invoiceRef} className="bg-slate-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-6 space-y-6">
-          {/* Header Info */}
-          <div className="flex justify-between items-start">
-            <div>
-              <h2 className="text-2xl font-bold text-white">AMPLE PRINT HUB</h2>
-              <p className="text-gray-400 text-sm mt-1">5, Boyle Street, Somolu, Lagos</p>
-              <p className="text-gray-400 text-sm">Email: ampleprinthub@gmail.com</p>
-            </div>
-            <div className="text-right">
-              <p className="text-gray-400 text-sm">Date: {formatDate(invoice.createdAt)}</p>
-            </div>
-          </div>
-
-          {/* Customer Info */}
-          <div className="bg-slate-800/30 rounded-lg p-4">
-            <h3 className="text-white font-medium mb-2">Bill To:</h3>
-            <p className="text-white font-medium">
-              {customerName !== 'Customer' ? customerName : 
-               `${customerFirstName} ${customerLastName}`.trim() || 'Customer'}
-            </p>
-            <p className="text-gray-400 text-sm">{customerEmail}</p>
-          </div>
-
-          {/* Items */}
-          <div>
-            <h3 className="text-white font-medium mb-4">Items</h3>
-            <div className="space-y-3">
-              {invoice.items?.map((item, index) => (
-                <div key={index} className="flex justify-between items-center p-3 bg-slate-800/30 rounded-lg">
-                  <div>
-                    <p className="text-white font-medium">{item.description}</p>
-                    <p className="text-sm text-gray-400">
-                      {item.quantity} × {formatCurrency(item.unitPrice)}
+              <h3 className="text-white font-medium mb-4">Items</h3>
+              <div className="space-y-3">
+                {invoice.items?.map((item, index) => (
+                  <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 p-3 bg-slate-800/30 rounded-lg">
+                    <div>
+                      <p className="text-white font-medium text-sm sm:text-base">{item.description}</p>
+                      <p className="text-xs sm:text-sm text-gray-400">
+                        {item.quantity} × {formatCurrency(item.unitPrice)}
+                      </p>
+                    </div>
+                    <p className="text-primary font-bold text-sm sm:text-base">
+                      {formatCurrency(item.total)}
                     </p>
                   </div>
-                  <p className="text-primary font-bold">
-                    {formatCurrency(item.total)}
-                  </p>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-slate-800/30 rounded-lg p-4 space-y-2">
+              <div className="flex justify-between text-xs sm:text-sm">
+                <span className="text-gray-400">Subtotal</span>
+                <span className="text-white">{formatCurrency(invoice.subtotal)}</span>
+              </div>
+              {invoice.discount > 0 && (
+                <div className="flex justify-between text-xs sm:text-sm">
+                  <span className="text-gray-400">Discount</span>
+                  <span className="text-green-400">-{formatCurrency(invoice.discount)}</span>
                 </div>
-              ))}
+              )}
+              {invoice.depositAmount > 0 && (
+                <div className="flex justify-between text-xs sm:text-sm">
+                  <span className="text-gray-400">Deposit Required</span>
+                  <span className="text-yellow-400">{formatCurrency(invoice.depositAmount)}</span>
+                </div>
+              )}
+              <div className="flex justify-between pt-2 border-t border-gray-700">
+                <span className="text-white font-medium text-sm sm:text-base">Total Amount</span>
+                <span className="text-lg sm:text-xl font-bold text-primary">{formatCurrency(invoice.totalAmount)}</span>
+              </div>
             </div>
-          </div>
 
-          {/* Summary */}
-          <div className="bg-slate-800/30 rounded-lg p-4 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Subtotal</span>
-              <span className="text-white">{formatCurrency(invoice.subtotal)}</span>
-            </div>
-            {invoice.discount > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Discount</span>
-                <span className="text-green-400">-{formatCurrency(invoice.discount)}</span>
+            {invoice.invoiceType === 'shipping' && (
+              <div className="bg-yellow-900/20 border border-yellow-800 rounded-lg p-3">
+                <p className="text-xs sm:text-sm text-yellow-400">
+                  ⚠️ This is a shipping invoice. Payment is required for delivery.
+                </p>
               </div>
             )}
-            {invoice.depositAmount > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Deposit Required</span>
-                <span className="text-yellow-400">{formatCurrency(invoice.depositAmount)}</span>
-              </div>
-            )}
-            <div className="flex justify-between pt-2 border-t border-gray-700">
-              <span className="text-white font-medium">Total Amount</span>
-              <span className="text-xl font-bold text-primary">{formatCurrency(invoice.totalAmount)}</span>
-            </div>
-          </div>
 
-          {/* Invoice Type Notice */}
-          {invoice.invoiceType === 'shipping' && (
-            <div className="bg-yellow-900/20 border border-yellow-800 rounded-lg p-3">
-              <p className="text-sm text-yellow-400">
-                ⚠️ This is a shipping invoice. Payment is required for delivery.
+            <div>
+              <h3 className="text-white font-medium mb-2">Payment Instructions</h3>
+              <p className="text-gray-400 text-xs sm:text-sm whitespace-pre-wrap">
+                Please login to your dashboard to make payment. You can make payment via bank transfer or Paystack.
               </p>
             </div>
-          )}
 
-          {/* Payment Instructions */}
-          <div>
-            <h3 className="text-white font-medium mb-2">Payment Instructions</h3>
-            <p className="text-gray-400 text-sm whitespace-pre-wrap">
-              Please login to your dashboard to make payment. You can make payment via bank transfer or Paystack.
-            </p>
-          </div>
-
-          {/* Important Notice */}
-          <div className="bg-red-900/20 border border-red-800 rounded-lg p-3">
-            <p className="text-sm text-red-400 font-medium">
-              ⚠️ IMPORTANT: Invoice is subject to change
-            </p>
-          </div>
-
-          {/* Notes */}
-          {invoice.notes && (
-            <div>
-              <h3 className="text-white font-medium mb-2">Notes</h3>
-              <p className="text-gray-400 text-sm">{invoice.notes}</p>
+            <div className="bg-red-900/20 border border-red-800 rounded-lg p-3">
+              <p className="text-xs sm:text-sm text-red-400 font-medium">
+                ⚠️ IMPORTANT: Invoice is subject to change
+              </p>
             </div>
-          )}
 
-          {/* Actions */}
-          <div className="flex gap-3 pt-4 border-t border-gray-800">
-            {invoice.status === 'Draft' && (
+            {invoice.notes && (
+              <div>
+                <h3 className="text-white font-medium mb-2">Notes</h3>
+                <p className="text-gray-400 text-xs sm:text-sm">{invoice.notes}</p>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-800">
+              {invoice.status === 'Draft' && (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  onClick={handleSendInvoice}
+                  disabled={sending}
+                  className="flex-1"
+                >
+                  {sending ? 'Sending...' : 'Send to Customer'}
+                </Button>
+              )}
               <Button
-                variant="primary"
+                variant="secondary"
                 size="lg"
-                onClick={handleSendInvoice}
-                disabled={sending}
+                onClick={handleDownloadInvoice}
+                disabled={downloading}
                 className="flex-1"
               >
-                {sending ? 'Sending...' : 'Send to Customer'}
+                {downloading ? 'Generating PDF...' : 'Download PDF'}
               </Button>
-            )}
-            <Button
-              variant="secondary"
-              size="lg"
-              onClick={handleDownloadInvoice}
-              disabled={downloading}
-              className="flex-1"
-            >
-              {downloading ? 'Generating PDF...' : 'Download PDF'}
-            </Button>
+            </div>
           </div>
         </div>
-      </div>
-    </DashboardLayout>
+      </DashboardLayout>
+    </>
   );
 }
