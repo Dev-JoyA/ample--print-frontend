@@ -5,11 +5,13 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import Button from '@/components/ui/Button';
+import SEOHead from '@/components/common/SEOHead';
+import { METADATA } from '@/lib/metadata';
 import { collectionService } from '@/services/collectionService';
 import { productService } from '@/services/productService';
 import { useAuthCheck } from '@/app/lib/auth';
 
-export default function CollectionDetailPage() {
+export default function Page() {
   const params = useParams();
   const router = useRouter();
   const collectionId = params.id;
@@ -54,25 +56,18 @@ export default function CollectionDetailPage() {
 
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
-    
-    // If it's already a full URL
     if (imagePath.startsWith('http')) return imagePath;
-    
-    // Extract just the filename from the path
     let filename = imagePath;
-    
-    // If it's a full path like /uploads/filename.jpg or uploads/filename.jpg
     if (imagePath.includes('/')) {
       filename = imagePath.split('/').pop();
     }
-    
-    // Construct the URL using your download endpoint
     return `http://localhost:4001/api/v1/attachments/download/${filename}`;
   };
 
   if (loading) {
     return (
       <DashboardLayout userRole="admin">
+        <SEOHead {...METADATA.dashboard.admin} />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="relative">
             <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
@@ -85,37 +80,36 @@ export default function CollectionDetailPage() {
 
   return (
     <DashboardLayout userRole="admin">
+      <SEOHead {...METADATA.dashboard.admin} />
       <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-sm text-gray-400 mb-6 flex-wrap">
-            <Link href="/dashboards/admin-dashboard" className="hover:text-red-400">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-400 mb-4 sm:mb-6 flex-wrap">
+            <Link href="/dashboards/admin-dashboard" className="hover:text-red-400 transition">
               Dashboard
             </Link>
             <span>›</span>
-            <Link href="/dashboards/admin-dashboard/collections" className="hover:text-red-400">
+            <Link href="/dashboards/admin-dashboard/collections" className="hover:text-red-400 transition">
               Collections
             </Link>
             <span>›</span>
-            <span className="text-white truncate max-w-[300px]">{collection?.name}</span>
+            <span className="text-white truncate max-w-[200px] sm:max-w-[300px]">{collection?.name}</span>
           </nav>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-900/30 border border-red-700 rounded-lg text-red-200">
+            <div className="mb-6 p-4 bg-red-900/30 border border-red-700 rounded-lg text-red-200 text-sm">
               {error}
             </div>
           )}
 
-          {/* Collection Header */}
-          <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl border border-gray-800 p-8 mb-8">
+          <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl border border-gray-800 p-6 sm:p-8 mb-6 sm:mb-8">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-              <div className="flex items-center gap-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-red-600/20 to-purple-600/20 rounded-2xl flex items-center justify-center text-5xl">
+              <div className="flex items-center gap-4 sm:gap-6">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-red-600/20 to-purple-600/20 rounded-2xl flex items-center justify-center text-4xl sm:text-5xl">
                   📁
                 </div>
                 <div>
-                  <h1 className="text-3xl md:text-4xl font-bold text-white">{collection?.name}</h1>
-                  <div className="flex items-center gap-4 mt-2 text-gray-400">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white break-words">{collection?.name}</h1>
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-2 text-gray-400 text-sm">
                     <span className="flex items-center gap-1">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -131,9 +125,9 @@ export default function CollectionDetailPage() {
                   </div>
                 </div>
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Link href={`/dashboards/admin-dashboard/collections/${collectionId}/edit`}>
-                  <Button variant="secondary" size="lg" className="gap-2">
+                  <Button variant="secondary" size="lg" className="gap-2 w-full sm:w-auto">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                     </svg>
@@ -141,7 +135,7 @@ export default function CollectionDetailPage() {
                   </Button>
                 </Link>
                 <Link href={`/dashboards/admin-dashboard/products/create?collectionId=${collectionId}`}>
-                  <Button variant="primary" size="lg" className="gap-2">
+                  <Button variant="primary" size="lg" className="gap-2 w-full sm:w-auto">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
@@ -152,12 +146,11 @@ export default function CollectionDetailPage() {
             </div>
           </div>
 
-          {/* Products Section */}
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-white">Products in this Collection</h2>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <h2 className="text-xl sm:text-2xl font-bold text-white">Products in this Collection</h2>
               <Link href={`/dashboards/admin-dashboard/collections/${collectionId}/products`}>
-                <Button variant="ghost" size="sm" className="gap-1">
+                <Button variant="ghost" size="sm" className="gap-1 w-full sm:w-auto">
                   View All
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -167,10 +160,10 @@ export default function CollectionDetailPage() {
             </div>
 
             {products.length === 0 ? (
-              <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl border border-gray-800 p-16 text-center">
-                <div className="text-8xl mb-6 opacity-50">📦</div>
-                <h3 className="text-2xl font-semibold text-white mb-3">No products yet</h3>
-                <p className="text-gray-400 mb-8">Get started by adding your first product to this collection</p>
+              <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl border border-gray-800 p-12 sm:p-16 text-center">
+                <div className="text-6xl sm:text-8xl mb-6 opacity-50">📦</div>
+                <h3 className="text-xl sm:text-2xl font-semibold text-white mb-3">No products yet</h3>
+                <p className="text-gray-400 text-sm sm:text-base mb-6 sm:mb-8">Get started by adding your first product to this collection</p>
                 <Link href={`/dashboards/admin-dashboard/products/create?collectionId=${collectionId}`}>
                   <Button variant="primary" size="lg">
                     Add Your First Product
@@ -179,32 +172,30 @@ export default function CollectionDetailPage() {
               </div>
             ) : (
               <>
-                {/* Product Grid Preview */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {products.slice(0, 6).map(product => (
                     <Link
                       key={product._id}
                       href={`/dashboards/admin-dashboard/products/${product._id}`}
                       className="group bg-slate-900/50 backdrop-blur-sm border border-gray-800 rounded-xl overflow-hidden hover:border-red-600/50 hover:shadow-xl hover:shadow-red-600/10 transition-all duration-300 cursor-pointer"
                     >
-                      <div className="relative h-48 bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden">
+                      <div className="relative h-40 sm:h-48 bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden">
                         {product.image || product.images?.[0] ? (
                           <div className="w-full h-full flex items-center justify-center bg-gray-800">
                             <img
                               src={getImageUrl(product.image || product.images?.[0])}
                               alt={product.name}
                               className="w-full h-full object-contain p-2"
-                              style={{ maxHeight: '192px', maxWidth: '100%' }}
+                              style={{ maxHeight: '160px', maxWidth: '100%' }}
                               onError={(e) => {
                                 e.target.onerror = null;
                                 e.target.src = 'https://via.placeholder.com/400x300?text=No+Image';
-                                e.target.className = 'w-full h-full object-contain p-2';
                               }}
                             />
                           </div>
                         ) : (
                           <div className="flex items-center justify-center w-full h-full">
-                            <span className="text-6xl text-gray-700">📦</span>
+                            <span className="text-5xl sm:text-6xl text-gray-700">📦</span>
                           </div>
                         )}
                         
@@ -215,21 +206,21 @@ export default function CollectionDetailPage() {
                         )}
                       </div>
 
-                      <div className="p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="font-semibold text-white group-hover:text-red-400 transition line-clamp-1 flex-1">
+                      <div className="p-3 sm:p-4">
+                        <div className="flex items-start justify-between mb-2 gap-2">
+                          <h3 className="font-semibold text-white group-hover:text-red-400 transition line-clamp-1 text-sm sm:text-base">
                             {product.name}
                           </h3>
-                          <span className="text-sm font-bold text-red-400 ml-2 whitespace-nowrap">
+                          <span className="text-xs sm:text-sm font-bold text-red-400 whitespace-nowrap">
                             ₦{product.price?.toLocaleString()}
                           </span>
                         </div>
 
-                        <p className="text-sm text-gray-400 line-clamp-2 mb-3 min-h-[40px]">
+                        <p className="text-xs sm:text-sm text-gray-400 line-clamp-2 mb-3 min-h-[32px] sm:min-h-[40px]">
                           {product.description || 'No description'}
                         </p>
 
-                        <div className="flex items-center justify-between text-xs text-gray-500 border-t border-gray-800 pt-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500 border-t border-gray-800 pt-3">
                           <span className="flex items-center gap-1">
                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -244,7 +235,7 @@ export default function CollectionDetailPage() {
                               {product.dimension.width} × {product.dimension.height}
                             </span>
                           )}
-                          <span className="font-mono bg-slate-800 px-2 py-1 rounded">
+                          <span className="font-mono bg-slate-800 px-2 py-1 rounded text-xs">
                             #{product._id.slice(-4)}
                           </span>
                         </div>
@@ -253,11 +244,10 @@ export default function CollectionDetailPage() {
                   ))}
                 </div>
 
-                {/* View All Link */}
                 {products.length > 6 && (
-                  <div className="text-center mt-8">
+                  <div className="text-center mt-6 sm:mt-8">
                     <Link href={`/dashboards/admin-dashboard/collections/${collectionId}/products`}>
-                      <Button variant="secondary" size="lg" className="gap-2">
+                      <Button variant="secondary" size="lg" className="gap-2 w-full sm:w-auto">
                         View All {products.length} Products
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -267,21 +257,20 @@ export default function CollectionDetailPage() {
                   </div>
                 )}
 
-                {/* Quick Stats */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
-                  <div className="bg-slate-900/50 backdrop-blur-sm rounded-lg border border-gray-800 p-4">
-                    <div className="text-sm text-gray-400">Total Products</div>
-                    <div className="text-2xl font-bold text-white">{products.length}</div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-6 sm:mt-8">
+                  <div className="bg-slate-900/50 backdrop-blur-sm rounded-lg border border-gray-800 p-3 sm:p-4">
+                    <div className="text-xs sm:text-sm text-gray-400">Total Products</div>
+                    <div className="text-xl sm:text-2xl font-bold text-white">{products.length}</div>
                   </div>
-                  <div className="bg-slate-900/50 backdrop-blur-sm rounded-lg border border-gray-800 p-4">
-                    <div className="text-sm text-gray-400">Active Products</div>
-                    <div className="text-2xl font-bold text-green-400">
+                  <div className="bg-slate-900/50 backdrop-blur-sm rounded-lg border border-gray-800 p-3 sm:p-4">
+                    <div className="text-xs sm:text-sm text-gray-400">Active Products</div>
+                    <div className="text-xl sm:text-2xl font-bold text-green-400">
                       {products.filter(p => p.status !== 'inactive').length}
                     </div>
                   </div>
-                  <div className="bg-slate-900/50 backdrop-blur-sm rounded-lg border border-gray-800 p-4">
-                    <div className="text-sm text-gray-400">Average Price</div>
-                    <div className="text-2xl font-bold text-blue-400">
+                  <div className="bg-slate-900/50 backdrop-blur-sm rounded-lg border border-gray-800 p-3 sm:p-4">
+                    <div className="text-xs sm:text-sm text-gray-400">Average Price</div>
+                    <div className="text-xl sm:text-2xl font-bold text-blue-400">
                       ₦{products.length > 0 
                         ? Math.round(products.reduce((acc, p) => acc + (p.price || 0), 0) / products.length).toLocaleString()
                         : 0

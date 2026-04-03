@@ -1,15 +1,5 @@
-/**
- * API path constants – aligned with backend routes (base: /api/v1).
- * Use with API_BASE_URL from env so full URL = API_BASE_URL + path.
- * 
- * IMPORTANT: Admin and SuperAdmin signup endpoints are NOT exposed here
- * because they should only be accessible through protected routes.
- * SuperAdmin accounts should be created via database seeding only.
- */
 export const API_PATHS = {
-  // Auth - Public endpoints (accessible to everyone)
   AUTH: {
-    // Customer endpoints (public)
     SIGN_UP: "/auth/sign-up",
     SIGN_IN: "/auth/sign-in",
     FORGOT_PASSWORD: "/auth/forgot-password",
@@ -23,13 +13,11 @@ export const API_PATHS = {
     GOOGLE: "/auth/google",
     GOOGLE_SUCCESS: "/auth/google/success",
     GOOGLE_FAILURE: "/auth/google/failure",
-    
-    // Admin management endpoints
     DEACTIVATE_ADMIN: "/auth/deactivate-admin",
     REACTIVATE_ADMIN: "/auth/reactivate-admin",
+    ADMIN_SIGN_UP: "/auth/admin-sign-up",
+    SUPERADMIN_SIGN_UP: "/auth/superadmin-sign-up",
   },
-  
-  // Users
   USERS: {
     LIST: "/users",
     BY_ID: (userId) => `/users/${userId}`,
@@ -38,15 +26,12 @@ export const API_PATHS = {
     ROLE: (userId) => `/users/${userId}/role`,
     ACTIVENESS: (userId) => `/users/${userId}/activeness`,
   },
-  
-  // Collections & products
   COLLECTIONS: {
     LIST: "/collections",
     BY_ID: (id) => `/collections/${id}`,
     ALL_PRODUCTS: (collectionId) => `/collections/${collectionId}/all-products`,
     CREATE_PRODUCT: (collectionId) => `/collections/${collectionId}/products`,
   },
-  
   PRODUCTS: {
     LIST: "/products",
     BY_ID: (id) => `/products/${id}`,
@@ -55,13 +40,9 @@ export const API_PATHS = {
     UPDATE: (id) => `/products/${id}`,
     DELETE: (id) => `/products/${id}`,
   },
-  
-  // Attachments
   ATTACHMENTS: {
     DOWNLOAD: (filename) => `/attachments/download/${filename}`,
   },
-  
-  // Design
   DESIGN: {
     UPLOAD: (orderId) => `/design/orders/${orderId}`,
     UPDATE: (designId) => `/design/update/${designId}`,
@@ -75,8 +56,6 @@ export const API_PATHS = {
     FILTER: "/design/filter",
     MY_DESIGNS: "/design/my-designs",
   },
-  
-  // Orders
   ORDERS: {
     CREATE: "/orders/create",
     MY_ORDERS: "/orders/my-orders",
@@ -85,13 +64,12 @@ export const API_PATHS = {
     SUPERADMIN_CREATE: (customerId) => `/orders/super-admin/create/${customerId}`,
     LIST: "/orders",
     FILTER: "/orders/filter",
-    NEEDING_INVOICE: "/orders/ready-for-invoice", 
+    NEEDING_INVOICE: "/orders/ready-for-invoice",
     READY_FOR_INVOICE: "/orders/ready-for-invoice",
     SEARCH: (orderNumber) => `/orders/search/${orderNumber}`,
     MY_ACTIVE_ORDERS: "/orders/my-active-orders",
+    ADD_ITEM: (orderId) => `/orders/${orderId}/items`,
   },
-  
-  // Feedback
   FEEDBACK: {
     CREATE: "/feedback",
     USER_LIST: "/feedback/user",
@@ -100,9 +78,9 @@ export const API_PATHS = {
     RESPOND: (feedbackId) => `/feedback/${feedbackId}/respond`,
     STATUS: (feedbackId) => `/feedback/${feedbackId}/status`,
     BY_ORDER: (orderId) => `/feedback/order/${orderId}`,
+    ALL: "/feedback/all",
   },
-  
-    CUSTOMER_BRIEFS: {
+  CUSTOMER_BRIEFS: {
     SUBMIT: (orderId, productId) => `/customer-briefs/customer/orders/${orderId}/products/${productId}/brief`,
     UPDATE: (orderId, productId) => `/customer-briefs/customer/orders/${orderId}/products/${productId}/brief`,
     MY_BRIEFS: "/customer-briefs/customer/briefs",
@@ -116,9 +94,7 @@ export const API_PATHS = {
     MARK_AS_VIEWED: (briefId) => `/customer-briefs/briefs/${briefId}/view`,
     ORDER_STATUS: (orderId) => `/customer-briefs/briefs/order/${orderId}/status`,
     ORDER_ALL: (orderId) => `/customer-briefs/briefs/order/${orderId}/all`,
-    },
-
-  // Invoices
+  },
   INVOICES: {
     CREATE_FOR_ORDER: (orderId) => `/invoices/order/${orderId}`,
     CREATE_SHIPPING: (orderId, shippingId) => `/invoices/shipping/order/${orderId}/shipping/${shippingId}`,
@@ -132,9 +108,8 @@ export const API_PATHS = {
     BY_ORDER_NUMBER: (orderNumber) => `/invoices/order-number/${orderNumber}`,
     MY_INVOICES: "/invoices/my-invoices",
     FILTER: "/invoices/filter",
+    PDF: (invoiceId) => `/invoices/${invoiceId}/pdf`,
   },
-
-  // Payments
   PAYMENTS: {
     PAYSTACK_INITIALIZE: "/payments/paystack/initialize",
     PAYSTACK_VERIFY: "/payments/paystack/verify",
@@ -144,17 +119,47 @@ export const API_PATHS = {
     BY_ORDER: (orderId) => `/payments/order/${orderId}`,
     BY_INVOICE: (invoiceId) => `/payments/invoice/${invoiceId}`,
     MY_TRANSACTIONS: "/payments/my-transactions",
-  }
+  },
+  DISCOUNTS: {
+    ACTIVE: "/discounts/active",
+    LIST: "/discounts",
+    BY_ID: (id) => `/discounts/${id}`,
+    CREATE: "/discounts",
+    UPDATE: (id) => `/discounts/${id}`,
+    TOGGLE: (id) => `/discounts/${id}/toggle`,
+    DELETE: (id) => `/discounts/${id}`,
+    VALIDATE: "/discounts/validate",
+  },
+  SHIPPING: {
+    BY_ORDER: (orderId) => `/shipping/order/${orderId}`,
+    BY_ID: (shippingId) => `/shipping/${shippingId}`,
+    CREATE: (orderId) => `/shipping/order/${orderId}`,
+    UPDATE_TRACKING: (shippingId) => `/shipping/${shippingId}/tracking`,
+    UPDATE_STATUS: (shippingId) => `/shipping/${shippingId}/status`,
+    ALL: "/shipping/all",
+    FILTER: "/shipping/filter",
+    NEEDING_INVOICE: "/shipping/needing-invoice",
+    PENDING: "/shipping/pending",
+  },
+  NOTIFICATIONS: {
+    HISTORY: "/notifications/history",
+    UNREAD_COUNT: "/notifications/unread-count",
+    MARK_READ: (notificationId) => `/notifications/${notificationId}/read`,
+    MARK_ALL_READ: "/notifications/mark-all-read",
+    DELETE: (notificationId) => `/notifications/${notificationId}`,
+    CLEAR_ALL: "/notifications/clear-all",
+  },
+  CART: {
+    ACTIVE_ORDERS: "/orders/my-orders",
+  },
 };
 
-/** Cookie names used by the app */
 export const COOKIE_NAMES = {
   TOKEN: "token",
   REFRESH_TOKEN: "refreshToken",
 };
 
-/** Default request timeouts / limits */
 export const API_DEFAULTS = {
   PAGINATION_PAGE: 1,
-  PAGINATION_LIMIT: 10
+  PAGINATION_LIMIT: 10,
 };

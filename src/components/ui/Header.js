@@ -11,43 +11,34 @@ import ProfileDropdown from './ProfileDropdown';
 
 const Header = ({ onSearch, showSearch = true }) => {
   const pathname = usePathname();
-  const { isAuthenticated, loading, user } = useAuth(); // Get user from auth
+  const { isAuthenticated, loading, user } = useAuth();
   
-  // Don't show header on auth pages or if not authenticated
   const isAuthPage = pathname?.startsWith('/auth/');
   
   if (isAuthPage || !isAuthenticated || loading) {
     return null;
   }
 
-  // Determine user role - you might need to adjust this based on your auth structure
   const userRole = user?.role?.toLowerCase() || 'customer';
 
   return (
-    <header className="sticky top-0 z-40 bg-slate-950 border-b border-gray-800">
-      <div className="flex items-center justify-between px-6 py-4">
-        {/* Logo/Brand - visible on mobile when search is hidden */}
+    <header className="sticky top-0 z-40 border-b border-gray-800 bg-slate-950">
+      <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
         {!showSearch && (
           <Link href="/dashboards/customer-dashboard" className="lg:hidden">
-            <span className="text-xl font-bold text-white">Ample Print</span>
+            <span className="text-lg font-bold text-white sm:text-xl">Ample Print</span>
           </Link>
         )}
 
-        {/* Search Bar - conditionally shown */}
         {showSearch && (
-          <div className="flex-1 max-w-2xl">
+          <div className="w-full max-w-md flex-1 sm:max-w-xl lg:max-w-2xl">
             <SearchBar userRole={userRole} />
           </div>
         )}
         
-        <div className="flex items-center gap-4 ml-auto">
-          {/* Notifications */}
+        <div className="flex items-center gap-2 sm:gap-4">
           <NotificationBell />
-
-          {/* Shopping Cart - Only for customers */}
           {userRole === 'customer' && <CartIcon />}
-
-          {/* User Profile Dropdown */}
           <ProfileDropdown />
         </div>
       </div>

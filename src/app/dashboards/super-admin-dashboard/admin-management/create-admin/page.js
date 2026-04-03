@@ -1,9 +1,13 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Button from '@/components/ui/Button';
+import DashboardLayout from "@/components/layouts/DashboardLayout";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import SEOHead from "@/components/common/SEOHead";
 import { adminService } from "@/services/adminService";
 import { useAuthCheck } from "@/app/lib/auth";
+import { METADATA } from "@/lib/metadata";
 
 const CreateAdminPage = () => {
     const router = useRouter();
@@ -44,7 +48,6 @@ const CreateAdminPage = () => {
             
             setSuccess("Admin created successfully! They will receive an email to set their password.");
             
-            // Clear form
             setFormData({
                 firstName: "",
                 lastName: "",
@@ -55,7 +58,6 @@ const CreateAdminPage = () => {
                 address: "",
             });
             
-            // Wait a moment then redirect
             setTimeout(() => {
                 router.push("/dashboards/super-admin-dashboard/admin-management");
             }, 2000);
@@ -69,168 +71,184 @@ const CreateAdminPage = () => {
     };
 
     return (
-        <div className="p-6">
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-white">Create New Admin</h1>
-                <p className="text-gray-400">Add a new administrator to the system</p>
-            </div>
+        <>
+            <SEOHead {...METADATA.dashboard.superAdmin} title="Create New Admin" />
+            <DashboardLayout userRole="super-admin">
+                <div className="min-h-screen bg-slate-950 px-4 py-8 sm:px-6 lg:px-8">
+                    <div className="mx-auto max-w-4xl">
+                        <div className="mb-6">
+                            <button
+                                onClick={() => router.back()}
+                                className="mb-4 flex items-center gap-2 text-gray-400 transition-colors hover:text-white"
+                            >
+                                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                                Back
+                            </button>
+                            <h1 className="text-3xl font-bold text-white sm:text-4xl">Create New Admin</h1>
+                            <p className="mt-2 text-sm text-gray-400">Add a new administrator to the system</p>
+                        </div>
 
-            {error && (
-                <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-200">
-                    Error: {error}
-                </div>
-            )}
+                        {error && (
+                            <div className="mb-4 rounded-lg border border-red-700 bg-red-900/50 p-3 text-sm text-red-200">
+                                Error: {error}
+                            </div>
+                        )}
 
-            {success && (
-                <div className="mb-4 p-3 bg-green-900/50 border border-green-700 rounded-lg text-green-200">
-                    {success}
-                </div>
-            )}
+                        {success && (
+                            <div className="mb-4 rounded-lg border border-green-700 bg-green-900/50 p-3 text-sm text-green-200">
+                                {success}
+                            </div>
+                        )}
 
-            <form onSubmit={handleSubmit} className="bg-slate-900 rounded-lg p-6 border border-gray-800">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex flex-col">
-                        <label className="font-bold text-[12px] text-gray-300 mb-1" htmlFor="firstName">
-                            First Name <span className="text-red-500">*</span>
-                        </label>
-                        <input 
-                            className="bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 text-white" 
-                            type="text" 
-                            id="firstName"
-                            name="firstName"
-                            value={formData.firstName}
-                            onChange={handleChange}
-                            placeholder="Enter first name" 
-                            required 
-                            disabled={loading}
-                        />
-                    </div>
-                    
-                    <div className="flex flex-col">
-                        <label className="font-bold text-[12px] text-gray-300 mb-1" htmlFor="lastName">
-                            Last Name <span className="text-red-500">*</span>
-                        </label>
-                        <input 
-                            className="bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 text-white" 
-                            type="text" 
-                            id="lastName"
-                            name="lastName"
-                            value={formData.lastName}
-                            onChange={handleChange}
-                            placeholder="Enter last name" 
-                            required 
-                            disabled={loading}
-                        />
-                    </div>
-                    
-                    <div className="flex flex-col">
-                        <label className="font-bold text-[12px] text-gray-300 mb-1" htmlFor="email">
-                            Email <span className="text-red-500">*</span>
-                        </label>
-                        <input 
-                            className="bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 text-white" 
-                            type="email" 
-                            id="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            placeholder="Enter email" 
-                            required 
-                            disabled={loading}
-                        />
-                    </div>
-                    
-                    <div className="flex flex-col">
-                        <label className="font-bold text-[12px] text-gray-300 mb-1" htmlFor="userName">
-                            Username <span className="text-red-500">*</span>
-                        </label>
-                        <input 
-                            className="bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 text-white" 
-                            type="text" 
-                            id="userName"
-                            name="userName"
-                            value={formData.userName}
-                            onChange={handleChange}
-                            placeholder="Enter username" 
-                            required 
-                            disabled={loading}
-                        />
-                    </div>
-                    
-                    <div className="flex flex-col">
-                        <label className="font-bold text-[12px] text-gray-300 mb-1" htmlFor="phoneNumber">
-                            Phone Number <span className="text-red-500">*</span>
-                        </label>
-                        <input 
-                            className="bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 text-white" 
-                            type="tel" 
-                            id="phoneNumber"
-                            name="phoneNumber"
-                            value={formData.phoneNumber}
-                            onChange={handleChange}
-                            placeholder="Enter phone number" 
-                            required 
-                            disabled={loading}
-                        />
-                    </div>
-                    
-                    <div className="flex flex-col">
-                        <label className="font-bold text-[12px] text-gray-300 mb-1" htmlFor="password">
-                            Temporary Password <span className="text-red-500">*</span>
-                        </label>
-                        <input 
-                            className="bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 text-white" 
-                            type="password" 
-                            id="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            placeholder="Enter temporary password" 
-                            required 
-                            disabled={loading}
-                            minLength={5}
-                        />
-                        <p className="text-xs text-gray-500 mt-1">Minimum 5 characters</p>
-                    </div>
-                    
-                    <div className="md:col-span-2 flex flex-col">
-                        <label className="font-bold text-[12px] text-gray-300 mb-1" htmlFor="address">
-                            Address
-                        </label>
-                        <input 
-                            className="bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 text-white" 
-                            type="text" 
-                            id="address"
-                            name="address"
-                            value={formData.address}
-                            onChange={handleChange}
-                            placeholder="Enter address (optional)"
-                            disabled={loading}
-                        />
-                    </div>
-                </div>
+                        <form onSubmit={handleSubmit} className="rounded-xl border border-gray-800 bg-slate-900/50 p-6 backdrop-blur-sm">
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div className="flex flex-col">
+                                    <label className="mb-1 text-xs font-bold text-gray-300" htmlFor="firstName">
+                                        First Name <span className="text-red-500">*</span>
+                                    </label>
+                                    <Input
+                                        type="text"
+                                        id="firstName"
+                                        name="firstName"
+                                        value={formData.firstName}
+                                        onChange={handleChange}
+                                        placeholder="Enter first name"
+                                        required
+                                        disabled={loading}
+                                        className="w-full"
+                                    />
+                                </div>
+                                
+                                <div className="flex flex-col">
+                                    <label className="mb-1 text-xs font-bold text-gray-300" htmlFor="lastName">
+                                        Last Name <span className="text-red-500">*</span>
+                                    </label>
+                                    <Input
+                                        type="text"
+                                        id="lastName"
+                                        name="lastName"
+                                        value={formData.lastName}
+                                        onChange={handleChange}
+                                        placeholder="Enter last name"
+                                        required
+                                        disabled={loading}
+                                        className="w-full"
+                                    />
+                                </div>
+                                
+                                <div className="flex flex-col">
+                                    <label className="mb-1 text-xs font-bold text-gray-300" htmlFor="email">
+                                        Email <span className="text-red-500">*</span>
+                                    </label>
+                                    <Input
+                                        type="email"
+                                        id="email"
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        placeholder="Enter email"
+                                        required
+                                        disabled={loading}
+                                        className="w-full"
+                                    />
+                                </div>
+                                
+                                <div className="flex flex-col">
+                                    <label className="mb-1 text-xs font-bold text-gray-300" htmlFor="userName">
+                                        Username <span className="text-red-500">*</span>
+                                    </label>
+                                    <Input
+                                        type="text"
+                                        id="userName"
+                                        name="userName"
+                                        value={formData.userName}
+                                        onChange={handleChange}
+                                        placeholder="Enter username"
+                                        required
+                                        disabled={loading}
+                                        className="w-full"
+                                    />
+                                </div>
+                                
+                                <div className="flex flex-col">
+                                    <label className="mb-1 text-xs font-bold text-gray-300" htmlFor="phoneNumber">
+                                        Phone Number <span className="text-red-500">*</span>
+                                    </label>
+                                    <Input
+                                        type="tel"
+                                        id="phoneNumber"
+                                        name="phoneNumber"
+                                        value={formData.phoneNumber}
+                                        onChange={handleChange}
+                                        placeholder="Enter phone number"
+                                        required
+                                        disabled={loading}
+                                        className="w-full"
+                                    />
+                                </div>
+                                
+                                <div className="flex flex-col">
+                                    <label className="mb-1 text-xs font-bold text-gray-300" htmlFor="password">
+                                        Temporary Password <span className="text-red-500">*</span>
+                                    </label>
+                                    <Input
+                                        type="password"
+                                        id="password"
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        placeholder="Enter temporary password"
+                                        required
+                                        disabled={loading}
+                                        minLength={5}
+                                        className="w-full"
+                                    />
+                                    <p className="mt-1 text-xs text-gray-500">Minimum 5 characters</p>
+                                </div>
+                                
+                                <div className="flex flex-col md:col-span-2">
+                                    <label className="mb-1 text-xs font-bold text-gray-300" htmlFor="address">
+                                        Address
+                                    </label>
+                                    <Input
+                                        type="text"
+                                        id="address"
+                                        name="address"
+                                        value={formData.address}
+                                        onChange={handleChange}
+                                        placeholder="Enter address (optional)"
+                                        disabled={loading}
+                                        className="w-full"
+                                    />
+                                </div>
+                            </div>
 
-                <div className="flex justify-end gap-3 mt-6">
-                    <Button 
-                        variant="secondary" 
-                        size="md"
-                        onClick={() => router.back()}
-                        type="button"
-                        disabled={loading}
-                    >
-                        Cancel
-                    </Button>
-                    <Button 
-                        variant="primary" 
-                        size="md"
-                        type="submit"
-                        disabled={loading}
-                    >
-                        {loading ? "Creating..." : "Create Admin"}
-                    </Button>
+                            <div className="mt-6 flex justify-end gap-3">
+                                <Button
+                                    variant="secondary"
+                                    size="md"
+                                    onClick={() => router.back()}
+                                    type="button"
+                                    disabled={loading}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    variant="primary"
+                                    size="md"
+                                    type="submit"
+                                    disabled={loading}
+                                >
+                                    {loading ? "Creating..." : "Create Admin"}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </form>
-        </div>
+            </DashboardLayout>
+        </>
     );
 };
 

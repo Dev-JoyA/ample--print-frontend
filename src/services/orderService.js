@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { API_PATHS, API_DEFAULTS } from "@/lib/constants";
+import { API_PATHS } from "@/lib/constants";
 
 export const orderService = {
   create: (data) => api.post(API_PATHS.ORDERS.CREATE, data),
@@ -31,16 +31,12 @@ export const orderService = {
     return api.get(q ? `${API_PATHS.ORDERS.FILTER}?${q}` : API_PATHS.ORDERS.FILTER);
   },
 
-  // DEPRECATED: Use getOrdersReadyForInvoice instead
-  // Keeping for backward compatibility
   getNeedingInvoice: (params = {}) => {
     console.warn("⚠️ getNeedingInvoice is deprecated. Use getOrdersReadyForInvoice instead.");
     const q = new URLSearchParams(params || {}).toString();
-    // Both point to the same endpoint now
     return api.get(q ? `${API_PATHS.ORDERS.READY_FOR_INVOICE}?${q}` : API_PATHS.ORDERS.READY_FOR_INVOICE);
   },
 
-  // RECOMMENDED: Use this method for orders ready for invoice
   getOrdersReadyForInvoice: async (params = {}) => {
     console.log("📋 Fetching orders ready for invoice");
     try {
@@ -50,36 +46,31 @@ export const orderService = {
       return response;
     } catch (error) {
       console.error("❌ Failed to fetch orders ready for invoice:", error);
-      // Return empty result instead of throwing
       return { orders: [], total: 0 };
     }
   },
 
- searchByOrderNumber: async (orderNumber) => {
-  console.log(`🔍 Searching for order: ${orderNumber}`);
-  try {
-    const response = await api.get(`/orders/search/${orderNumber}`);
-    console.log('Search response:', response);
-    return response;
-  } catch (error) {
-    // If it's a "not found" error, return null instead of throwing
-    if (error.status === 404 || 
-        (error.status === 400 && error.data?.message === "Order not found")) {
-      console.log('ℹ️ Order not found (expected for fallback)');
-      return null; // Return null instead of throwing
+  searchByOrderNumber: async (orderNumber) => {
+    console.log(`🔍 Searching for order: ${orderNumber}`);
+    try {
+      const response = await api.get(API_PATHS.ORDERS.SEARCH(orderNumber));
+      console.log('Search response:', response);
+      return response;
+    } catch (error) {
+      if (error.status === 404 || (error.status === 400 && error.data?.message === "Order not found")) {
+        console.log('ℹ️ Order not found (expected for fallback)');
+        return null;
+      }
+      console.error('Failed to search order:', error);
+      throw error;
     }
-    
-    // For other errors, still throw
-    console.error('Failed to search order:', error);
-    throw error;
-  }
-},
+  },
 
   addItemToOrder: (orderId, data) => 
-    api.post(`/orders/${orderId}/items`, data),
+    api.post(API_PATHS.ORDERS.ADD_ITEM(orderId), data),
 
   getUserActiveOrders: (params = {}) => {
     const q = new URLSearchParams(params).toString();
-    return api.get(`/orders/my-active-orders${q ? `?${q}` : ''}`);
+    return api.get(`${API_PATHS.ORDERS.MY_ACTIVE_ORDERS}${q ? `?${q}` : ''}`);
   },    
 };

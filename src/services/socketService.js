@@ -57,7 +57,6 @@ class SocketService {
         console.error('❌ Socket error:', error);
       });
 
-      // Listen to all events for debugging
       this.socket.onAny((eventName, ...args) => {
         console.log(`📨 Received event: ${eventName}`, args[0]);
       });
@@ -73,20 +72,17 @@ class SocketService {
   joinRooms() {
     if (!this.socket) return;
 
-    // Join role-based rooms
     if (this.userRole) {
       const roleMap = {
         'super-admin': 'SuperAdmin',
         'admin': 'Admin',
         'customer': 'Customer'
       };
-      
       const role = roleMap[this.userRole] || this.userRole;
       this.socket.emit('joinRoom', role);
       console.log(`📡 Joined room for role: ${role}`);
     }
 
-    // Join user-specific room
     if (this.userId) {
       const userRoom = `user-${this.userId}`;
       this.socket.emit('joinRoom', userRoom);
@@ -99,18 +95,13 @@ class SocketService {
 
     console.log('Setting up socket event listeners');
 
-    // Listen to user-specific room events
     if (this.userId) {
       const userRoomName = `user-${this.userId}`;
       this.socket.on(userRoomName, (data) => {
         console.log(`📨 Message in user room:`, data);
-        
-        // Forward all events from user room to named listeners
         if (data.type) {
           this.notifyListeners(data.type, data);
         }
-        
-        // Check for specific event types based on data structure
         if (data.invoiceId) {
           if (data.message?.includes('created')) this.notifyListeners('invoice-created', data);
           if (data.message?.includes('updated')) this.notifyListeners('invoice-updated', data);
@@ -118,28 +109,22 @@ class SocketService {
           if (data.message?.includes('deleted')) this.notifyListeners('invoice-deleted', data);
           if (data.message?.includes('payment')) this.notifyListeners('invoice-payment-updated', data);
         }
-        
         if (data.orderId) {
           if (data.status) this.notifyListeners('order-status-updated', data);
         }
-        
         if (data.designId) {
           this.notifyListeners('designUploaded', data);
         }
-        
         if (data.briefId) {
           this.notifyListeners('admin-brief-response', data);
         }
-        
         if (data.feedbackId) {
           this.notifyListeners('feedback-response', data);
         }
-        
         if (data.transactionId) {
           if (data.status === 'approved') this.notifyListeners('payment-verified', data);
           if (data.status === 'rejected') this.notifyListeners('payment-rejected', data);
         }
-        
         if (data.shippingId) {
           if (data.trackingNumber) this.notifyListeners('tracking-updated', data);
           else this.notifyListeners('shipping-created', data);
@@ -147,7 +132,6 @@ class SocketService {
       });
     }
 
-    // Room-based event listeners
     const roomEvents = [
       'new-order', 'order-ready-for-invoice', 'order-ready-for-shipping',
       'new-invoice', 'invoice-created', 'invoice-updated', 'invoice-sent', 

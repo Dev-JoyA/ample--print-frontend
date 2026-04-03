@@ -7,14 +7,15 @@ const Textarea = ({
   className = '',
   required = false,
   rows = 4,
+  disabled = false,
   ...props
 }) => {
   return (
     <div className={`w-full ${className}`}>
       {label && (
-        <label className="block text-sm font-medium text-gray-300 mb-2">
+        <label className="mb-1 block text-xs font-medium text-gray-300 sm:mb-2 sm:text-sm">
           {label}
-          {required && <span className="text-primary ml-1">*</span>}
+          {required && <span className="ml-1 text-primary">*</span>}
         </label>
       )}
       <textarea
@@ -22,14 +23,15 @@ const Textarea = ({
         value={value}
         onChange={onChange}
         rows={rows}
-        className={`w-full px-4 py-2.5 bg-slate-900 border ${
+        disabled={disabled}
+        className={`w-full rounded-xl border bg-slate-900 px-3 py-2 text-sm text-white placeholder-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent sm:px-4 sm:py-2.5 sm:text-base ${
           error ? 'border-red-500' : 'border-gray-700'
-        } rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors resize-none`}
+        } resize-none disabled:cursor-not-allowed disabled:opacity-50`}
         required={required}
         {...props}
       />
       {error && (
-        <p className="mt-1 text-sm text-red-400">{error}</p>
+        <p className="mt-1 text-xs text-red-400 sm:text-sm">{error}</p>
       )}
     </div>
   );

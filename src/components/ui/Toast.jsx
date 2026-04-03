@@ -43,18 +43,18 @@ export const Toast = ({ message, type = 'info', duration = 5000, onClose }) => {
   };
 
   return (
-    <div className={`fixed bottom-4 right-4 z-50 max-w-md p-4 rounded-lg border ${getTypeStyles()} backdrop-blur-sm animate-slide-up`}>
-      <div className="flex items-start gap-3">
-        <span className="text-xl">{getIcon()}</span>
-        <p className="text-sm flex-1">{message}</p>
+    <div className={`fixed bottom-4 right-4 z-50 max-w-xs animate-slide-up rounded-lg border p-3 backdrop-blur-sm sm:max-w-md sm:p-4 ${getTypeStyles()}`}>
+      <div className="flex items-start gap-2 sm:gap-3">
+        <span className="text-base sm:text-xl">{getIcon()}</span>
+        <p className="text-xs flex-1 sm:text-sm">{message}</p>
         <button
           onClick={() => {
             setIsVisible(false);
             setTimeout(onClose, 300);
           }}
-          className="text-gray-400 hover:text-white"
+          className="text-gray-400 transition hover:text-white"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-3 w-3 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -63,7 +63,6 @@ export const Toast = ({ message, type = 'info', duration = 5000, onClose }) => {
   );
 };
 
-// Toast Container
 export const ToastContainer = ({ toasts, removeToast }) => {
   return (
     <div className="fixed bottom-4 right-4 z-50 space-y-2">

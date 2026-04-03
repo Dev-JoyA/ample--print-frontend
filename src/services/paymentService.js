@@ -1,10 +1,10 @@
 import { api } from "@/lib/api";
+import { API_PATHS } from "@/lib/constants";
 
 export const paymentService = {
-  // Initialize Paystack payment (Customer only)
   initializePaystack: async (data) => {
     try {
-      const response = await api.post('/payments/paystack/initialize', data);
+      const response = await api.post(API_PATHS.PAYMENTS.PAYSTACK_INITIALIZE, data);
       return response;
     } catch (error) {
       console.error('Failed to initialize payment:', error);
@@ -12,10 +12,9 @@ export const paymentService = {
     }
   },
 
-  // Verify Paystack payment
   verifyPaystack: async (reference) => {
     try {
-      const response = await api.get(`/payments/paystack/verify?reference=${reference}`);
+      const response = await api.get(`${API_PATHS.PAYMENTS.PAYSTACK_VERIFY}?reference=${reference}`);
       return response;
     } catch (error) {
       console.error('Failed to verify payment:', error);
@@ -23,10 +22,9 @@ export const paymentService = {
     }
   },
 
-  // Upload bank transfer receipt (Customer only)
   uploadBankTransferReceipt: async (formData) => {
     try {
-      const response = await api.upload('/payments/bank-transfer/upload-receipt', formData);
+      const response = await api.upload(API_PATHS.PAYMENTS.BANK_TRANSFER_UPLOAD, formData);
       return response;
     } catch (error) {
       console.error('Failed to upload receipt:', error);
@@ -34,10 +32,9 @@ export const paymentService = {
     }
   },
 
-  // Verify bank transfer (Super Admin only)
   verifyBankTransfer: async (transactionId, data) => {
     try {
-      const response = await api.post(`/payments/bank-transfer/verify/${transactionId}`, data);
+      const response = await api.post(API_PATHS.PAYMENTS.BANK_TRANSFER_VERIFY(transactionId), data);
       return response;
     } catch (error) {
       console.error('Failed to verify bank transfer:', error);
@@ -45,17 +42,13 @@ export const paymentService = {
     }
   },
 
-  // Get pending bank transfers (Super Admin only)
   getPendingBankTransfers: async (params = {}) => {
     try {
       const queryParams = new URLSearchParams();
-      
       if (params.page) queryParams.append('page', params.page);
       if (params.limit) queryParams.append('limit', params.limit);
-      
       const queryString = queryParams.toString();
-      const endpoint = queryString ? `/payments/bank-transfer/pending?${queryString}` : '/payments/bank-transfer/pending';
-      
+      const endpoint = queryString ? `${API_PATHS.PAYMENTS.BANK_TRANSFER_PENDING}?${queryString}` : API_PATHS.PAYMENTS.BANK_TRANSFER_PENDING;
       const response = await api.get(endpoint);
       return response;
     } catch (error) {
@@ -64,10 +57,9 @@ export const paymentService = {
     }
   },
 
-  // Get transactions by order
   getByOrder: async (orderId) => {
     try {
-      const response = await api.get(`/payments/order/${orderId}`);
+      const response = await api.get(API_PATHS.PAYMENTS.BY_ORDER(orderId));
       return response;
     } catch (error) {
       console.error('Failed to fetch order transactions:', error);
@@ -75,10 +67,9 @@ export const paymentService = {
     }
   },
 
-  // Get transactions by invoice
   getByInvoice: async (invoiceId) => {
     try {
-      const response = await api.get(`/payments/invoice/${invoiceId}`);
+      const response = await api.get(API_PATHS.PAYMENTS.BY_INVOICE(invoiceId));
       return response;
     } catch (error) {
       console.error('Failed to fetch invoice transactions:', error);
@@ -86,17 +77,13 @@ export const paymentService = {
     }
   },
 
-  // Get current user's transactions (Customer only)
   getMyTransactions: async (params = {}) => {
     try {
       const queryParams = new URLSearchParams();
-      
       if (params.page) queryParams.append('page', params.page);
       if (params.limit) queryParams.append('limit', params.limit);
-      
       const queryString = queryParams.toString();
-      const endpoint = queryString ? `/payments/my-transactions?${queryString}` : '/payments/my-transactions';
-      
+      const endpoint = queryString ? `${API_PATHS.PAYMENTS.MY_TRANSACTIONS}?${queryString}` : API_PATHS.PAYMENTS.MY_TRANSACTIONS;
       const response = await api.get(endpoint);
       return response;
     } catch (error) {

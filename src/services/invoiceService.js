@@ -1,10 +1,23 @@
 import { api } from "@/lib/api";
+import { API_PATHS } from "@/lib/constants";
+
+const getToken = () => {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("token="));
+  return match ? decodeURIComponent(match.split("=")[1]) : null;
+};
+
+const API_BASE_URL =
+  typeof process !== "undefined"
+    ? process.env.NEXT_PUBLIC_API_URL || "http://localhost:4001/api/v1"
+    : "http://localhost:4001/api/v1";
 
 export const invoiceService = {
-  // Create shipping invoice (Admin only)
   createShippingInvoice: async (orderId, shippingId, data) => {
     try {
-      const response = await api.post(`/invoices/shipping/order/${orderId}/shipping/${shippingId}`, data);
+      const response = await api.post(API_PATHS.INVOICES.CREATE_SHIPPING(orderId, shippingId), data);
       return response;
     } catch (error) {
       console.error('Failed to create shipping invoice:', error);
@@ -12,23 +25,20 @@ export const invoiceService = {
     }
   },
 
-  // Update invoice (draft only)
-    update: async (invoiceId, data) => {
+  update: async (invoiceId, data) => {
     try {
-        console.log(`Updating invoice ${invoiceId} with:`, data);
-        const response = await api.put(`/invoices/${invoiceId}`, data);
-        return response;
+      console.log(`Updating invoice ${invoiceId} with:`, data);
+      const response = await api.put(API_PATHS.INVOICES.UPDATE(invoiceId), data);
+      return response;
     } catch (error) {
-        console.error('Failed to update invoice:', error);
-        throw error;
+      console.error('Failed to update invoice:', error);
+      throw error;
     }
-    },
+  },
 
-
-  // Delete invoice (draft only, Super Admin only)
   delete: async (invoiceId) => {
     try {
-      const response = await api.delete(`/invoices/${invoiceId}`);
+      const response = await api.delete(API_PATHS.INVOICES.DELETE(invoiceId));
       return response;
     } catch (error) {
       console.error('Failed to delete invoice:', error);
@@ -36,10 +46,9 @@ export const invoiceService = {
     }
   },
 
-  // Get invoice by invoice number
   getByNumber: async (invoiceNumber) => {
     try {
-      const response = await api.get(`/invoices/number/${invoiceNumber}`);
+      const response = await api.get(API_PATHS.INVOICES.BY_NUMBER(invoiceNumber));
       return response;
     } catch (error) {
       console.error('Failed to fetch invoice by number:', error);
@@ -47,10 +56,9 @@ export const invoiceService = {
     }
   },
 
-  // Get invoice by order ID
   getByOrderId: async (orderId) => {
     try {
-      const response = await api.get(`/invoices/order-id/${orderId}`);
+      const response = await api.get(API_PATHS.INVOICES.BY_ORDER_ID(orderId));
       return response;
     } catch (error) {
       console.error('Failed to fetch invoice by order:', error);
@@ -58,10 +66,9 @@ export const invoiceService = {
     }
   },
 
-  // Get invoice by order number
   getByOrderNumber: async (orderNumber) => {
     try {
-      const response = await api.get(`/invoices/order-number/${orderNumber}`);
+      const response = await api.get(API_PATHS.INVOICES.BY_ORDER_NUMBER(orderNumber));
       return response;
     } catch (error) {
       console.error('Failed to fetch invoice by order number:', error);
@@ -69,17 +76,13 @@ export const invoiceService = {
     }
   },
 
-  // Get user's invoices (Customer only)
   getMyInvoices: async (params = {}) => {
     try {
       const queryParams = new URLSearchParams();
-      
       if (params.page) queryParams.append('page', params.page);
       if (params.limit) queryParams.append('limit', params.limit);
-      
       const queryString = queryParams.toString();
-      const endpoint = queryString ? `/invoices/my-invoices?${queryString}` : '/invoices/my-invoices';
-      
+      const endpoint = queryString ? `${API_PATHS.INVOICES.MY_INVOICES}?${queryString}` : API_PATHS.INVOICES.MY_INVOICES;
       const response = await api.get(endpoint);
       return response;
     } catch (error) {
@@ -88,20 +91,16 @@ export const invoiceService = {
     }
   },
 
-  // Filter invoices (Admin only)
   filter: async (params = {}) => {
     try {
       const queryParams = new URLSearchParams();
-      
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
           queryParams.append(key, value);
         }
       });
-      
       const queryString = queryParams.toString();
-      const endpoint = queryString ? `/invoices/filter?${queryString}` : '/invoices/filter';
-      
+      const endpoint = queryString ? `${API_PATHS.INVOICES.FILTER}?${queryString}` : API_PATHS.INVOICES.FILTER;
       const response = await api.get(endpoint);
       return response;
     } catch (error) {
@@ -109,17 +108,14 @@ export const invoiceService = {
       return { invoices: [], total: 0 };
     }
   },
-  // Get orders ready for invoice
+
   getOrdersReadyForInvoice: async (params = {}) => {
     try {
       const queryParams = new URLSearchParams();
-      
       if (params.page) queryParams.append('page', params.page);
       if (params.limit) queryParams.append('limit', params.limit);
-      
       const queryString = queryParams.toString();
-      const endpoint = queryString ? `/orders/ready-for-invoice?${queryString}` : '/orders/ready-for-invoice';
-      
+      const endpoint = queryString ? `${API_PATHS.ORDERS.READY_FOR_INVOICE}?${queryString}` : API_PATHS.ORDERS.READY_FOR_INVOICE;
       const response = await api.get(endpoint);
       return response;
     } catch (error) {
@@ -128,7 +124,6 @@ export const invoiceService = {
     }
   },
 
-  // Get order details with products and briefs
   getOrderWithBriefs: async (orderId) => {
     try {
       const response = await api.get(`/orders/${orderId}/with-briefs`);
@@ -139,10 +134,9 @@ export const invoiceService = {
     }
   },
 
-  // Create invoice for order
   createForOrder: async (orderId, data) => {
     try {
-      const response = await api.post(`/invoices/order/${orderId}`, data);
+      const response = await api.post(API_PATHS.INVOICES.CREATE_FOR_ORDER(orderId), data);
       return response;
     } catch (error) {
       console.error('Failed to create invoice:', error);
@@ -150,18 +144,14 @@ export const invoiceService = {
     }
   },
 
-  // Get all invoices
   getAll: async (params = {}) => {
     try {
       const queryParams = new URLSearchParams();
-      
       if (params.page) queryParams.append('page', params.page);
       if (params.limit) queryParams.append('limit', params.limit);
       if (params.status) queryParams.append('status', params.status);
-      
       const queryString = queryParams.toString();
-      const endpoint = queryString ? `/invoices/all?${queryString}` : '/invoices/all';
-      
+      const endpoint = queryString ? `${API_PATHS.INVOICES.ALL}?${queryString}` : API_PATHS.INVOICES.ALL;
       const response = await api.get(endpoint);
       return response;
     } catch (error) {
@@ -170,10 +160,9 @@ export const invoiceService = {
     }
   },
 
-  // Get invoice by ID
   getById: async (invoiceId) => {
     try {
-      const response = await api.get(`/invoices/id/${invoiceId}`);
+      const response = await api.get(API_PATHS.INVOICES.BY_ID(invoiceId));
       return response;
     } catch (error) {
       console.error('Failed to fetch invoice:', error);
@@ -181,10 +170,9 @@ export const invoiceService = {
     }
   },
 
-  // Send invoice to customer
   send: async (invoiceId) => {
     try {
-      const response = await api.post(`/invoices/${invoiceId}/send`);
+      const response = await api.post(API_PATHS.INVOICES.SEND(invoiceId));
       return response;
     } catch (error) {
       console.error('Failed to send invoice:', error);
@@ -192,24 +180,21 @@ export const invoiceService = {
     }
   },
 
-  // Download invoice as PDF
-downloadInvoice: async (invoiceId) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/invoices/${invoiceId}/pdf`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${getToken()}`,
-      },
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to download invoice');
+  downloadInvoice: async (invoiceId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}${API_PATHS.INVOICES.PDF(invoiceId)}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to download invoice');
+      }
+      return await response.blob();
+    } catch (error) {
+      console.error('Failed to download invoice:', error);
+      throw error;
     }
-    
-    return await response.blob();
-  } catch (error) {
-    console.error('Failed to download invoice:', error);
-    throw error;
-  }
-},
+  },
 };

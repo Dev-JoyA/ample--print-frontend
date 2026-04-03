@@ -16,20 +16,19 @@ const SearchBar = ({
   const [showResults, setShowResults] = useState(false);
   const searchRef = useRef(null);
 
-  // Only show for admin and super-admin
   if (userRole === 'customer') {
     return (
-      <div className="my-3 ml-[12rem] flex-1 max-w-2xl">
+      <div className="my-3 ml-0 flex-1 max-w-full sm:ml-8 md:ml-12 lg:ml-16">
         <div className="relative">
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-200">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-200">
+            <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
           <input
             type="text"
             placeholder="Track your order..."
-            className="w-[20rem] pl-10 pr-4 py-2 bg-[#2a2a2a] border border-[#3a3a3a] rounded-2xl text-white text-[14px] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            className="w-full rounded-2xl border border-[#3a3a3a] bg-[#2a2a2a] px-3 py-2 pl-8 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary sm:w-64 sm:pl-10 sm:text-base"
             onFocus={() => router.push('/order-tracking')}
             readOnly
           />
@@ -38,7 +37,6 @@ const SearchBar = ({
     );
   }
 
-  // Close results when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
@@ -49,7 +47,6 @@ const SearchBar = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
       if (query.length >= 3) {
@@ -69,11 +66,9 @@ const SearchBar = ({
     try {
       let orders = [];
       
-      // Check if query looks like an order number (contains ORD-)
       const isOrderNumber = query.toUpperCase().includes('ORD-');
       
       if (isOrderNumber) {
-        // Try exact match first
         try {
           const response = await orderService.searchByOrderNumber(query.toUpperCase());
           const orderData = response?.order || response?.data || response;
@@ -82,8 +77,6 @@ const SearchBar = ({
           }
         } catch (err) {
           console.log('Order not found by exact number');
-          
-          // If exact match fails, try searching by partial order number
           try {
             const filterResponse = await orderService.filter({ 
               search: query.toUpperCase(),
@@ -95,7 +88,6 @@ const SearchBar = ({
           }
         }
       } else {
-        // Search by customer name/email
         const response = await orderService.filter({ 
           search: query,
           limit: 10
@@ -113,7 +105,6 @@ const SearchBar = ({
   };
 
   const handleChange = (e) => {
-    // Convert to uppercase for order numbers
     const value = e.target.value.toUpperCase();
     setQuery(value);
   };
@@ -154,17 +145,16 @@ const SearchBar = ({
   };
 
   return (
-    <div ref={searchRef} className="relative my-3 ml-[12rem] flex-1 max-w-2xl">
-      {/* Search Input */}
+    <div ref={searchRef} className="relative my-3 flex-1 max-w-full sm:ml-8 md:ml-12 lg:ml-16">
       <div className="relative">
-        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-200">
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-200">
           {loading ? (
-            <svg className="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-4 w-4 animate-spin sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
           ) : (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           )}
@@ -176,39 +166,36 @@ const SearchBar = ({
           onKeyDown={handleKeyDown}
           onFocus={() => results.length > 0 && setShowResults(true)}
           placeholder={placeholder}
-          className="w-[20rem] pl-10 pr-4 py-2 bg-[#2a2a2a] border border-[#3a3a3a] rounded-2xl text-white text-[14px] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent uppercase"
-          style={{ textTransform: 'uppercase' }}
+          className="w-full rounded-2xl border border-[#3a3a3a] bg-[#2a2a2a] px-3 py-2 pl-8 text-sm uppercase text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary sm:w-80 sm:pl-10 sm:text-base"
         />
       </div>
 
-      {/* Search Results Dropdown */}
       {showResults && results.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-[#1e1e1e] border border-[#333333] rounded-xl shadow-2xl max-h-[70vh] overflow-y-auto z-50">
-          <div className="p-4">
-            <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+        <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[70vh] overflow-y-auto rounded-xl border border-[#333333] bg-[#1e1e1e] shadow-2xl">
+          <div className="p-3 sm:p-4">
+            <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold text-white sm:mb-3 sm:text-sm">
               <span>📦</span> Orders ({results.length})
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {results.map((order) => (
-                <div key={order._id} className="bg-[#2a2a2a] rounded-lg overflow-hidden">
-                  {/* Order Summary */}
+                <div key={order._id} className="overflow-hidden rounded-lg bg-[#2a2a2a]">
                   <Link href={`/dashboards/${userRole === 'super-admin' ? 'super' : 'admin'}-dashboard/orders/${order._id}`}>
-                    <div className="p-3 hover:bg-[#3a3a3a] transition cursor-pointer">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                            <span className="text-lg">📦</span>
+                    <div className="cursor-pointer p-2 transition hover:bg-[#3a3a3a] sm:p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/10 sm:h-8 sm:w-8">
+                            <span className="text-sm sm:text-lg">📦</span>
                           </div>
                           <div>
-                            <p className="text-white font-medium">{order.orderNumber}</p>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs font-medium text-white sm:text-sm">{order.orderNumber}</p>
+                            <p className="text-[10px] text-gray-400 sm:text-xs">
                               {getCustomerName(order)} • {order.items?.length} items
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-primary font-bold text-sm">{formatCurrency(order.totalAmount)}</p>
-                          <span className={`text-xs ${getStatusColor(order.status)}`}>
+                          <p className="text-xs font-bold text-primary sm:text-sm">{formatCurrency(order.totalAmount)}</p>
+                          <span className={`text-[10px] ${getStatusColor(order.status)} sm:text-xs`}>
                             {order.status}
                           </span>
                         </div>
@@ -222,10 +209,9 @@ const SearchBar = ({
         </div>
       )}
 
-      {/* No Results */}
       {showResults && query.length >= 3 && results.length === 0 && !loading && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-[#1e1e1e] border border-[#333333] rounded-xl shadow-2xl p-8 text-center z-50">
-          <p className="text-gray-400">No orders found for "{query}"</p>
+        <div className="absolute left-0 right-0 top-full z-50 mt-2 rounded-xl border border-[#333333] bg-[#1e1e1e] p-6 text-center shadow-2xl sm:p-8">
+          <p className="text-xs text-gray-400 sm:text-sm">No orders found for "{query}"</p>
         </div>
       )}
     </div>

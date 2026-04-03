@@ -12,8 +12,8 @@ const Sidebar = ({ userRole = 'customer' }) => {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [effectiveRole, setEffectiveRole] = useState(userRole);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  // Also check token directly as backup
   useEffect(() => {
     const token = document.cookie
       .split('; ')
@@ -40,6 +40,16 @@ const Sidebar = ({ userRole = 'customer' }) => {
       setEffectiveRole(userRole);
     }
   }, [userRole]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsMobileOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const customerNavItems = [
     { name: 'Dashboard', href: '/dashboards', icon: '📊' },
@@ -118,52 +128,88 @@ const Sidebar = ({ userRole = 'customer' }) => {
     }
   };
 
-  return (
-    <aside className="fixed border-x border-dark-light left-0 bg-slate-950 top-0 h-screen w-[14rem] flex flex-col z-50">
-      {/* Logo */}
-      <div className="p-6 ">
-        <div className="flex items-center gap-2 ">
-          <div className="flex items-center gap-2">
-            <img className="w-17 h-17" src="/images/logo/logo.png" alt="Logo" />
-          </div>
+  const toggleMobileMenu = () => {
+    setIsMobileOpen(!isMobileOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileOpen(false);
+  };
+
+  const sidebarContent = (
+    <>
+      <div className="p-4 sm:p-6">
+        <div className="flex items-center gap-2">
+          <img className="h-14 w-14 sm:h-16 sm:w-16" src="/images/logo/logo.png" alt="Logo" />
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 pt-10 pb-[10rem] pr-4 pb-4 overflow-y-auto">
+      <nav className="flex-1 overflow-y-auto px-2 pb-4 sm:px-4">
         {navItems.map((item) => {
           const active = isActive(item.href);
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-4 py-2 font-semibold text-[14px] text-gray-50 rounded-lg transition-colors ${
+              onClick={closeMobileMenu}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition-colors sm:px-4 sm:text-base ${
                 active
                   ? 'bg-primary text-white'
                   : 'text-gray-300 hover:bg-dark-light hover:text-white'
               }`}
             >
-              <span className="text-xl">{item.icon}</span>
+              <span className="text-base sm:text-xl">{item.icon}</span>
               <span className="font-medium">{item.name}</span>
             </Link>
           );
         })}
       </nav>
 
-      {/* Logout */}
-      <div className="p-4 border-t border-dark-light">
+      <div className="border-t border-dark-light p-3 sm:p-4">
         <button
           onClick={handleLogout}
           disabled={isLoggingOut}
-          className={`flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-dark-light hover:text-white w-full transition-colors ${
-            isLoggingOut ? 'opacity-50 cursor-not-allowed' : ''
+          className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-dark-light hover:text-white sm:px-4 sm:py-3 sm:text-base ${
+            isLoggingOut ? 'cursor-not-allowed opacity-50' : ''
           }`}
         >
-          <span className="text-xl">{isLoggingOut ? '⏳' : '🚪'}</span>
+          <span className="text-base sm:text-xl">{isLoggingOut ? '⏳' : '🚪'}</span>
           <span className="font-medium">{isLoggingOut ? 'Logging out...' : 'Log Out'}</span>
         </button>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={toggleMobileMenu}
+        className="fixed left-4 top-4 z-50 rounded-lg bg-slate-800 p-2 text-white lg:hidden"
+        aria-label="Menu"
+      >
+        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      {/* Mobile Sidebar Overlay */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={closeMobileMenu}
+        />
+      )}
+
+      {/* Sidebar - Mobile: Fixed drawer, Desktop: Static */}
+      <aside
+        className={`fixed left-0 top-0 z-40 flex h-full w-64 flex-col border-r border-dark-light bg-slate-950 transition-transform duration-300 lg:static lg:translate-x-0 ${
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
+      >
+        {sidebarContent}
+      </aside>
+    </>
   );
 };
 

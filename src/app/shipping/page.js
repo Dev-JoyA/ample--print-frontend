@@ -6,10 +6,12 @@ import DashboardLayout from '@/components/layouts/DashboardLayout';
 import Button from '@/components/ui/Button';
 import StatusBadge from '@/components/ui/StatusBadge';
 import Textarea from '@/components/ui/Textarea';
+import SEOHead from '@/components/common/SEOHead';
 import { useAuthCheck } from '@/app/lib/auth';
 import { profileService } from '@/services/profileService';
 import { orderService } from '@/services/orderService';
 import { shippingService } from '@/services/shippingService';
+import { METADATA } from '@/lib/metadata';
 
 export default function ShippingPage() {
   const router = useRouter();
@@ -60,7 +62,6 @@ export default function ShippingPage() {
     try {
       setLoading(true);
       
-      // Fetch both profile and order in parallel
       const [profileResponse, orderResponse] = await Promise.all([
         profileService.getMyProfile(),
         orderService.getById(orderId)
@@ -69,15 +70,12 @@ export default function ShippingPage() {
       console.log('Profile response:', profileResponse);
       console.log('Order response:', orderResponse);
       
-      // Handle profile data
       const userData = profileResponse?.user || profileResponse?.data || profileResponse;
       setProfile(userData);
       
-      // Handle order data
       const orderData = orderResponse?.order || orderResponse?.data || orderResponse;
       setOrder(orderData);
       
-      // Initialize shipping data with profile info
       if (userData) {
         setShippingData({
           phone: userData.phoneNumber || '',
@@ -105,30 +103,25 @@ export default function ShippingPage() {
       setSaving(true);
       setError('');
 
-      // Prepare shipping data based on shipping option
       let shippingPayload;
       
       if (shippingOption === 'pickup') {
-        // Pickup option
         shippingPayload = {
           shippingMethod: 'pickup',
           shippingCost: 0,
           pickupNotes: pickupNotes.trim() || 'Customer will pick up from store'
         };
       } else {
-        // Delivery options (pay-on-delivery or prepaid) - need address
         if (!shippingData.address || !shippingData.city || !shippingData.state) {
           setError('Please fill in all address fields');
           setSaving(false);
           return;
         }
 
-        // Get recipient name from profile
         const recipientName = profile ? 
           `${profile.firstName || ''} ${profile.lastName || ''}`.trim() : 
           'Customer';
 
-        // Combine delivery notes with shipping option info
         const fullDeliveryNotes = [
           shippingOption === 'pay-on-delivery' ? 'Pay on delivery' : 'Prepaid delivery',
           deliveryNotes.trim() ? ` - ${deliveryNotes.trim()}` : ''
@@ -151,10 +144,8 @@ export default function ShippingPage() {
 
       console.log('Saving shipping for order:', orderId, shippingPayload);
 
-      // Use the shipping service to create shipping record
       await shippingService.create(orderId, shippingPayload);
 
-      // Redirect based on selection
       if (shippingOption === 'pay-on-delivery') {
         router.push(`/order-history/${orderId}?message=pay-on-delivery`);
       } else if (shippingOption === 'pickup') {
@@ -186,415 +177,425 @@ export default function ShippingPage() {
 
   if (loading) {
     return (
-      <DashboardLayout userRole="customer">
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="flex justify-center items-center min-h-[60vh]">
-            <div className="text-white">Loading...</div>
+      <>
+        <SEOHead
+          title="Shipping Options"
+          description="Select shipping method for your order"
+          robots="noindex, nofollow"
+        />
+        <DashboardLayout userRole="customer">
+          <div className="mx-auto max-w-4xl px-4 py-8">
+            <div className="flex min-h-[60vh] items-center justify-center">
+              <div className="text-white">Loading...</div>
+            </div>
           </div>
-        </div>
-      </DashboardLayout>
+        </DashboardLayout>
+      </>
     );
   }
 
   if (!order) {
     return (
-      <DashboardLayout userRole="customer">
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="text-center py-16">
-            <p className="text-gray-400">Order not found</p>
-            <Button
-              variant="primary"
-              onClick={() => router.push('/shipping/orders')}
-              className="mt-4"
-            >
-              Back to Orders
-            </Button>
+      <>
+        <SEOHead
+          title="Order Not Found"
+          description="The requested order could not be found"
+          robots="noindex, nofollow"
+        />
+        <DashboardLayout userRole="customer">
+          <div className="mx-auto max-w-4xl px-4 py-8">
+            <div className="py-16 text-center">
+              <p className="text-gray-400">Order not found</p>
+              <Button
+                variant="primary"
+                onClick={() => router.push('/shipping/orders')}
+                className="mt-4"
+              >
+                Back to Orders
+              </Button>
+            </div>
           </div>
-        </div>
-      </DashboardLayout>
+        </DashboardLayout>
+      </>
     );
   }
 
   return (
-    <DashboardLayout userRole="customer">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className='flex items-center gap-3 mb-8'>
-          <img src="/images/logo/shipping.png" alt="shipping logo" className="w-12 h-12 object-contain" />
-          <div>
-            <h1 className="text-4xl font-bold text-white">Shipping</h1>
-            <p className="text-gray-400 text-sm mt-1">Select how you want to receive your order</p>
-          </div>
-        </div>
-
-        {/* Order Summary Card */}
-        <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-gray-800 rounded-xl p-6 mb-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Order Details</h2>
-          <div className="flex flex-wrap items-start justify-between gap-4">
+    <>
+      <SEOHead
+        title="Shipping Options"
+        description={`Select shipping method for order ${order.orderNumber}`}
+      />
+      <DashboardLayout userRole="customer">
+        <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+          <div className="mb-6 flex items-center gap-3 sm:mb-8">
+            <img src="/images/logo/shipping.png" alt="shipping logo" className="h-10 w-10 object-contain sm:h-12 sm:w-12" />
             <div>
-              <div className="flex items-center gap-3 mb-2">
-                <h3 className="text-xl font-bold text-white">{order.orderNumber}</h3>
-                <StatusBadge status={order.status} />
-              </div>
-              <p className="text-gray-400 text-sm mb-1">{getProductSummary()}</p>
-              <p className="text-gray-400 text-sm">Total: <span className="text-primary font-bold">{formatCurrency(order.totalAmount)}</span></p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-gray-500">Order placed</p>
-              <p className="text-sm text-white">{new Date(order.createdAt).toLocaleDateString()}</p>
-            </div>
-          </div>
-        </div>
-
-        {error && (
-          <div className="mb-6 p-3 bg-red-900/20 border border-red-800 rounded-lg">
-            <p className="text-sm text-red-400">{error}</p>
-          </div>
-        )}
-
-        <div className="space-y-6">
-          {/* Shipping Options */}
-          <div className="bg-slate-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-6">
-            <h2 className="text-xl font-semibold text-white mb-6">Select Shipping Option for Order #{order.orderNumber}</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Pickup Option */}
-              <div
-                onClick={() => {
-                  setShippingOption('pickup');
-                  setDeliveryType(null);
-                  setDeliveryNotes('');
-                }}
-                className={`p-5 border-2 rounded-xl cursor-pointer transition-all ${
-                  shippingOption === 'pickup'
-                    ? 'border-primary bg-primary/10'
-                    : 'border-gray-800 hover:border-primary/50 bg-slate-800/30'
-                }`}
-              >
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-14 h-14 bg-primary/20 rounded-xl flex items-center justify-center mb-3">
-                    <span className="text-3xl">🏢</span>
-                  </div>
-                  <div className="mb-3">
-                    <h3 className="text-white font-semibold">Pickup</h3>
-                    <p className="text-gray-400 text-xs mt-1">Collect from our office</p>
-                  </div>
-                  <input
-                    type="radio"
-                    checked={shippingOption === 'pickup'}
-                    onChange={() => {
-                      setShippingOption('pickup');
-                      setDeliveryType(null);
-                      setDeliveryNotes('');
-                    }}
-                    className="w-5 h-5 text-primary"
-                  />
-                </div>
-              </div>
-
-              {/* Pay on Delivery Option */}
-              <div
-                onClick={() => {
-                  setShippingOption('pay-on-delivery');
-                  setDeliveryType('own');
-                }}
-                className={`p-5 border-2 rounded-xl cursor-pointer transition-all ${
-                  shippingOption === 'pay-on-delivery'
-                    ? 'border-green-500 bg-green-500/10'
-                    : 'border-gray-800 hover:border-green-500/50 bg-slate-800/30'
-                }`}
-              >
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-14 h-14 bg-green-500/20 rounded-xl flex items-center justify-center mb-3">
-                    <span className="text-3xl">💵</span>
-                  </div>
-                  <div className="mb-3">
-                    <h3 className="text-white font-semibold">Pay on Delivery</h3>
-                    <p className="text-gray-400 text-xs mt-1">Pay delivery agent directly</p>
-                  </div>
-                  <input
-                    type="radio"
-                    checked={shippingOption === 'pay-on-delivery'}
-                    onChange={() => {
-                      setShippingOption('pay-on-delivery');
-                      setDeliveryType('own');
-                    }}
-                    className="w-5 h-5 text-green-500"
-                  />
-                </div>
-              </div>
-
-              {/* Delivery (Prepaid) Option */}
-              <div
-                onClick={() => {
-                  setShippingOption('delivery');
-                  setDeliveryType('own');
-                }}
-                className={`p-5 border-2 rounded-xl cursor-pointer transition-all ${
-                  shippingOption === 'delivery'
-                    ? 'border-primary bg-primary/10'
-                    : 'border-gray-800 hover:border-primary/50 bg-slate-800/30'
-                }`}
-              >
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-14 h-14 bg-primary/20 rounded-xl flex items-center justify-center mb-3">
-                    <span className="text-3xl">🚚</span>
-                  </div>
-                  <div className="mb-3">
-                    <h3 className="text-white font-semibold">Delivery</h3>
-                    <p className="text-gray-400 text-xs mt-1">Prepaid shipping</p>
-                  </div>
-                  <input
-                    type="radio"
-                    checked={shippingOption === 'delivery'}
-                    onChange={() => {
-                      setShippingOption('delivery');
-                      setDeliveryType('own');
-                    }}
-                    className="w-5 h-5 text-primary"
-                  />
-                </div>
-              </div>
+              <h1 className="text-2xl font-bold text-white sm:text-3xl sm:text-4xl">Shipping</h1>
+              <p className="mt-1 text-xs text-gray-400 sm:text-sm">Select how you want to receive your order</p>
             </div>
           </div>
 
-          {/* Address Selection - Only for delivery options */}
-          {shippingOption !== 'pickup' && (
-            <>
-              <div className="bg-slate-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Delivery Address for Order #{order.orderNumber}</h3>
-                
-                <div className="flex gap-4 mb-6">
-                  <button
-                    onClick={() => setDeliveryType('own')}
-                    className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${
-                      deliveryType === 'own'
-                        ? 'border-primary bg-primary/10 text-white'
-                        : 'border-gray-700 text-gray-400 hover:border-gray-600'
-                    }`}
-                  >
-                    <div className="font-medium">My Address</div>
-                    <div className="text-xs mt-1">Use address from profile</div>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setDeliveryType('new');
-                      setShippingData({
-                        phone: '',
-                        phoneCountryCode: '+234',
-                        address: '',
-                        city: '',
-                        state: '',
-                        country: 'Nigeria',
-                      });
-                    }}
-                    className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${
-                      deliveryType === 'new'
-                        ? 'border-primary bg-primary/10 text-white'
-                        : 'border-gray-700 text-gray-400 hover:border-gray-600'
-                    }`}
-                  >
-                    <div className="font-medium">New Address</div>
-                    <div className="text-xs mt-1">Enter different address</div>
-                  </button>
+          <div className="mb-6 rounded-xl border border-gray-800 bg-gradient-to-br from-slate-900 to-slate-950 p-4 sm:p-6">
+            <h2 className="mb-3 text-base font-semibold text-white sm:mb-4 sm:text-lg">Order Details</h2>
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div className="mb-2 flex flex-wrap items-center gap-2 sm:gap-3">
+                  <h3 className="text-base font-bold text-white sm:text-xl">{order.orderNumber}</h3>
+                  <StatusBadge status={order.status} />
                 </div>
-
-                <div className="space-y-4">
-                  {/* Phone Number with Country Code */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Phone Number
-                    </label>
-                    <div className="flex gap-2">
-                      <select
-                        value={shippingData.phoneCountryCode}
-                        onChange={(e) => handleInputChange('phoneCountryCode', e.target.value)}
-                        disabled={deliveryType === 'own' && profile?.phoneNumber}
-                        className="w-24 bg-slate-800 border border-gray-700 rounded-lg px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <option value="+234">🇳🇬 +234</option>
-                        <option value="+233">🇬🇭 +233</option>
-                        <option value="+254">🇰🇪 +254</option>
-                        <option value="+255">🇹🇿 +255</option>
-                        <option value="+256">🇺🇬 +256</option>
-                        <option value="+27">🇿🇦 +27</option>
-                        <option value="+1">🇺🇸 +1</option>
-                        <option value="+44">🇬🇧 +44</option>
-                      </select>
-                      <input
-                        type="tel"
-                        value={shippingData.phone}
-                        onChange={(e) => handleInputChange('phone', e.target.value)}
-                        placeholder="Phone number"
-                        disabled={deliveryType === 'own' && profile?.phoneNumber}
-                        className="flex-1 bg-slate-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                      />
-                    </div>
-                    {deliveryType === 'own' && profile?.phoneNumber && (
-                      <p className="text-xs text-gray-500 mt-1">Using phone number from your profile</p>
-                    )}
-                  </div>
-
-                  {/* Street Address */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Street Address <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={shippingData.address}
-                      onChange={(e) => handleInputChange('address', e.target.value)}
-                      placeholder="Enter street address"
-                      disabled={deliveryType === 'own' && profile?.address}
-                      className="w-full bg-slate-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                    />
-                  </div>
-
-                  {/* City and State */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        City <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={shippingData.city}
-                        onChange={(e) => handleInputChange('city', e.target.value)}
-                        placeholder="Enter city"
-                        disabled={deliveryType === 'own' && profile?.city}
-                        className="w-full bg-slate-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        State <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={shippingData.state}
-                        onChange={(e) => handleInputChange('state', e.target.value)}
-                        placeholder="Enter state"
-                        disabled={deliveryType === 'own' && profile?.state}
-                        className="w-full bg-slate-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Country */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Country <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={shippingData.country}
-                      onChange={(e) => handleInputChange('country', e.target.value)}
-                      disabled={deliveryType === 'own'}
-                      className="w-full bg-slate-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <option value="Nigeria">Nigeria</option>
-                      <option value="Ghana">Ghana</option>
-                      <option value="Kenya">Kenya</option>
-                      <option value="Tanzania">Tanzania</option>
-                      <option value="Uganda">Uganda</option>
-                      <option value="South Africa">South Africa</option>
-                      <option value="United States">United States</option>
-                      <option value="United Kingdom">United Kingdom</option>
-                    </select>
-                  </div>
-
-                  {/* Delivery Notes Field */}
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Delivery Notes (Optional)
-                    </label>
-                    <Textarea
-                      placeholder="Add any special instructions for delivery (e.g., landmark, gate code, preferred delivery time)"
-                      value={deliveryNotes}
-                      onChange={(e) => setDeliveryNotes(e.target.value)}
-                      rows={3}
-                      className="w-full bg-slate-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Add any special instructions for the delivery agent
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                {shippingOption === 'pay-on-delivery' && (
-                  <div className="bg-green-900/20 border border-green-800 rounded-lg p-4">
-                    <p className="text-sm text-green-400">
-                      <span className="font-bold text-green-300">Pay on Delivery: </span>
-                      You'll pay the delivery agent directly when you receive your order.
-                    </p>
-                  </div>
-                )}
-
-                {shippingOption === 'delivery' && (
-                  <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-4">
-                    <p className="text-sm text-blue-400">
-                      <span className="font-bold text-blue-300">Prepaid Delivery: </span>
-                      Shipping cost will be calculated and an invoice will be sent to you.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-
-          {/* Pickup Notes Field */}
-          {shippingOption === 'pickup' && (
-            <>
-              <div className="bg-slate-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Pickup Instructions</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Pickup Notes (Optional)
-                    </label>
-                    <Textarea
-                      placeholder="Add any special instructions for pickup (e.g., preferred pickup time, alternate contact)"
-                      value={pickupNotes}
-                      onChange={(e) => setPickupNotes(e.target.value)}
-                      rows={3}
-                      className="w-full bg-slate-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Add any special instructions for when you come to pick up your order
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-purple-900/20 border border-purple-800 rounded-lg p-4">
-                <p className="text-sm text-purple-400">
-                  <span className="font-bold text-purple-300">Pickup: </span>
-                  Your order #{order.orderNumber} will be available for pickup at our office.
+                <p className="text-xs text-gray-400 sm:text-sm">{getProductSummary()}</p>
+                <p className="text-xs text-gray-400 sm:text-sm">
+                  Total: <span className="font-bold text-primary">{formatCurrency(order.totalAmount)}</span>
                 </p>
               </div>
-            </>
+              <div className="text-right">
+                <p className="text-xs text-gray-500">Order placed</p>
+                <p className="text-xs text-white sm:text-sm">{new Date(order.createdAt).toLocaleDateString()}</p>
+              </div>
+            </div>
+          </div>
+
+          {error && (
+            <div className="mb-6 rounded-lg border border-red-800 bg-red-900/20 p-3">
+              <p className="text-sm text-red-400">{error}</p>
+            </div>
           )}
 
-          <div className="flex gap-4 pt-4">
-            <Button
-              variant="secondary"
-              onClick={() => router.back()}
-              className="flex-1 !border border-gray-700 hover:bg-slate-800"
-              disabled={saving}
-            >
-              Back
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleSubmit}
-              className="flex-1"
-              disabled={saving}
-            >
-              {saving ? 'Saving...' : 'Continue'}
-            </Button>
+          <div className="space-y-5 sm:space-y-6">
+            <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-4 backdrop-blur-sm sm:p-6">
+              <h2 className="mb-4 text-base font-semibold text-white sm:mb-6 sm:text-xl">Select Shipping Option for Order #{order.orderNumber}</h2>
+              
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+                <div
+                  onClick={() => {
+                    setShippingOption('pickup');
+                    setDeliveryType(null);
+                    setDeliveryNotes('');
+                  }}
+                  className={`cursor-pointer rounded-xl border-2 p-4 transition-all sm:p-5 ${
+                    shippingOption === 'pickup'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-gray-800 bg-slate-800/30 hover:border-primary/50'
+                  }`}
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/20 sm:mb-3 sm:h-14 sm:w-14">
+                      <span className="text-2xl sm:text-3xl">🏢</span>
+                    </div>
+                    <div className="mb-2 sm:mb-3">
+                      <h3 className="text-sm font-semibold text-white sm:text-base">Pickup</h3>
+                      <p className="text-xs text-gray-400 sm:text-sm">Collect from our office</p>
+                    </div>
+                    <input
+                      type="radio"
+                      checked={shippingOption === 'pickup'}
+                      onChange={() => {
+                        setShippingOption('pickup');
+                        setDeliveryType(null);
+                        setDeliveryNotes('');
+                      }}
+                      className="h-4 w-4 text-primary sm:h-5 sm:w-5"
+                    />
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => {
+                    setShippingOption('pay-on-delivery');
+                    setDeliveryType('own');
+                  }}
+                  className={`cursor-pointer rounded-xl border-2 p-4 transition-all sm:p-5 ${
+                    shippingOption === 'pay-on-delivery'
+                      ? 'border-green-500 bg-green-500/10'
+                      : 'border-gray-800 bg-slate-800/30 hover:border-green-500/50'
+                  }`}
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-green-500/20 sm:mb-3 sm:h-14 sm:w-14">
+                      <span className="text-2xl sm:text-3xl">💵</span>
+                    </div>
+                    <div className="mb-2 sm:mb-3">
+                      <h3 className="text-sm font-semibold text-white sm:text-base">Pay on Delivery</h3>
+                      <p className="text-xs text-gray-400 sm:text-sm">Pay delivery agent directly</p>
+                    </div>
+                    <input
+                      type="radio"
+                      checked={shippingOption === 'pay-on-delivery'}
+                      onChange={() => {
+                        setShippingOption('pay-on-delivery');
+                        setDeliveryType('own');
+                      }}
+                      className="h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => {
+                    setShippingOption('delivery');
+                    setDeliveryType('own');
+                  }}
+                  className={`cursor-pointer rounded-xl border-2 p-4 transition-all sm:p-5 ${
+                    shippingOption === 'delivery'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-gray-800 bg-slate-800/30 hover:border-primary/50'
+                  }`}
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/20 sm:mb-3 sm:h-14 sm:w-14">
+                      <span className="text-2xl sm:text-3xl">🚚</span>
+                    </div>
+                    <div className="mb-2 sm:mb-3">
+                      <h3 className="text-sm font-semibold text-white sm:text-base">Delivery</h3>
+                      <p className="text-xs text-gray-400 sm:text-sm">Prepaid shipping</p>
+                    </div>
+                    <input
+                      type="radio"
+                      checked={shippingOption === 'delivery'}
+                      onChange={() => {
+                        setShippingOption('delivery');
+                        setDeliveryType('own');
+                      }}
+                      className="h-4 w-4 text-primary sm:h-5 sm:w-5"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {shippingOption !== 'pickup' && (
+              <>
+                <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-4 backdrop-blur-sm sm:p-6">
+                  <h3 className="mb-3 text-base font-semibold text-white sm:mb-4 sm:text-lg">Delivery Address for Order #{order.orderNumber}</h3>
+                  
+                  <div className="mb-4 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:gap-4">
+                    <button
+                      onClick={() => setDeliveryType('own')}
+                      className={`rounded-lg border-2 py-2 px-3 transition-all sm:flex-1 sm:py-3 sm:px-4 ${
+                        deliveryType === 'own'
+                          ? 'border-primary bg-primary/10 text-white'
+                          : 'border-gray-700 text-gray-400 hover:border-gray-600'
+                      }`}
+                    >
+                      <div className="text-sm font-medium sm:text-base">My Address</div>
+                      <div className="text-xs sm:text-sm">Use address from profile</div>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setDeliveryType('new');
+                        setShippingData({
+                          phone: '',
+                          phoneCountryCode: '+234',
+                          address: '',
+                          city: '',
+                          state: '',
+                          country: 'Nigeria',
+                        });
+                      }}
+                      className={`rounded-lg border-2 py-2 px-3 transition-all sm:flex-1 sm:py-3 sm:px-4 ${
+                        deliveryType === 'new'
+                          ? 'border-primary bg-primary/10 text-white'
+                          : 'border-gray-700 text-gray-400 hover:border-gray-600'
+                      }`}
+                    >
+                      <div className="text-sm font-medium sm:text-base">New Address</div>
+                      <div className="text-xs sm:text-sm">Enter different address</div>
+                    </button>
+                  </div>
+
+                  <div className="space-y-3 sm:space-y-4">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-gray-300 sm:mb-2 sm:text-sm">
+                        Phone Number
+                      </label>
+                      <div className="flex gap-2">
+                        <select
+                          value={shippingData.phoneCountryCode}
+                          onChange={(e) => handleInputChange('phoneCountryCode', e.target.value)}
+                          disabled={deliveryType === 'own' && profile?.phoneNumber}
+                          className="w-20 rounded-lg border border-gray-700 bg-slate-800 px-2 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 sm:w-24 sm:px-3 sm:py-3"
+                        >
+                          <option value="+234">🇳🇬 +234</option>
+                          <option value="+233">🇬🇭 +233</option>
+                          <option value="+254">🇰🇪 +254</option>
+                          <option value="+255">🇹🇿 +255</option>
+                          <option value="+256">🇺🇬 +256</option>
+                          <option value="+27">🇿🇦 +27</option>
+                          <option value="+1">🇺🇸 +1</option>
+                          <option value="+44">🇬🇧 +44</option>
+                        </select>
+                        <input
+                          type="tel"
+                          value={shippingData.phone}
+                          onChange={(e) => handleInputChange('phone', e.target.value)}
+                          placeholder="Phone number"
+                          disabled={deliveryType === 'own' && profile?.phoneNumber}
+                          className="flex-1 rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 sm:px-4 sm:py-3"
+                        />
+                      </div>
+                      {deliveryType === 'own' && profile?.phoneNumber && (
+                        <p className="mt-1 text-xs text-gray-500">Using phone number from your profile</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-gray-300 sm:mb-2 sm:text-sm">
+                        Street Address <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={shippingData.address}
+                        onChange={(e) => handleInputChange('address', e.target.value)}
+                        placeholder="Enter street address"
+                        disabled={deliveryType === 'own' && profile?.address}
+                        className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 sm:px-4 sm:py-3"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-gray-300 sm:mb-2 sm:text-sm">
+                          City <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={shippingData.city}
+                          onChange={(e) => handleInputChange('city', e.target.value)}
+                          placeholder="Enter city"
+                          disabled={deliveryType === 'own' && profile?.city}
+                          className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 sm:px-4 sm:py-3"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-gray-300 sm:mb-2 sm:text-sm">
+                          State <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={shippingData.state}
+                          onChange={(e) => handleInputChange('state', e.target.value)}
+                          placeholder="Enter state"
+                          disabled={deliveryType === 'own' && profile?.state}
+                          className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 sm:px-4 sm:py-3"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-gray-300 sm:mb-2 sm:text-sm">
+                        Country <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={shippingData.country}
+                        onChange={(e) => handleInputChange('country', e.target.value)}
+                        disabled={deliveryType === 'own'}
+                        className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 sm:px-4 sm:py-3"
+                      >
+                        <option value="Nigeria">Nigeria</option>
+                        <option value="Ghana">Ghana</option>
+                        <option value="Kenya">Kenya</option>
+                        <option value="Tanzania">Tanzania</option>
+                        <option value="Uganda">Uganda</option>
+                        <option value="South Africa">South Africa</option>
+                        <option value="United States">United States</option>
+                        <option value="United Kingdom">United Kingdom</option>
+                      </select>
+                    </div>
+
+                    <div className="mt-3 sm:mt-4">
+                      <label className="mb-1 block text-xs font-medium text-gray-300 sm:mb-2 sm:text-sm">
+                        Delivery Notes (Optional)
+                      </label>
+                      <Textarea
+                        placeholder="Add any special instructions for delivery (e.g., landmark, gate code, preferred delivery time)"
+                        value={deliveryNotes}
+                        onChange={(e) => setDeliveryNotes(e.target.value)}
+                        rows={3}
+                        className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                      <p className="mt-1 text-xs text-gray-500">
+                        Add any special instructions for the delivery agent
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2 sm:space-y-3">
+                  {shippingOption === 'pay-on-delivery' && (
+                    <div className="rounded-lg border border-green-800 bg-green-900/20 p-3 sm:p-4">
+                      <p className="text-xs text-green-400 sm:text-sm">
+                        <span className="font-bold text-green-300">Pay on Delivery: </span>
+                        You'll pay the delivery agent directly when you receive your order.
+                      </p>
+                    </div>
+                  )}
+
+                  {shippingOption === 'delivery' && (
+                    <div className="rounded-lg border border-blue-800 bg-blue-900/20 p-3 sm:p-4">
+                      <p className="text-xs text-blue-400 sm:text-sm">
+                        <span className="font-bold text-blue-300">Prepaid Delivery: </span>
+                        Shipping cost will be calculated and an invoice will be sent to you.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+
+            {shippingOption === 'pickup' && (
+              <>
+                <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-4 backdrop-blur-sm sm:p-6">
+                  <h3 className="mb-3 text-base font-semibold text-white sm:mb-4 sm:text-lg">Pickup Instructions</h3>
+                  <div className="space-y-3 sm:space-y-4">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-gray-300 sm:mb-2 sm:text-sm">
+                        Pickup Notes (Optional)
+                      </label>
+                      <Textarea
+                        placeholder="Add any special instructions for pickup (e.g., preferred pickup time, alternate contact)"
+                        value={pickupNotes}
+                        onChange={(e) => setPickupNotes(e.target.value)}
+                        rows={3}
+                        className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                      <p className="mt-1 text-xs text-gray-500">
+                        Add any special instructions for when you come to pick up your order
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-purple-800 bg-purple-900/20 p-3 sm:p-4">
+                  <p className="text-xs text-purple-400 sm:text-sm">
+                    <span className="font-bold text-purple-300">Pickup: </span>
+                    Your order #{order.orderNumber} will be available for pickup at our office.
+                  </p>
+                </div>
+              </>
+            )}
+
+            <div className="flex flex-col gap-3 pt-3 sm:flex-row sm:gap-4 sm:pt-4">
+              <Button
+                variant="secondary"
+                onClick={() => router.back()}
+                className="flex-1 border border-gray-700 hover:bg-slate-800"
+                disabled={saving}
+              >
+                Back
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleSubmit}
+                className="flex-1"
+                disabled={saving}
+              >
+                {saving ? 'Saving...' : 'Continue'}
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
-    </DashboardLayout>
+      </DashboardLayout>
+    </>
   );
 }
