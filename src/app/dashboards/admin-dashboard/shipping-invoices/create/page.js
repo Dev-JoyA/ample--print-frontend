@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
@@ -11,7 +11,7 @@ import { shippingService } from '@/services/shippingService';
 import { orderService } from '@/services/orderService';
 import { METADATA } from '@/lib/metadata';
 
-export default function CreateShippingInvoicePage() {
+function CreateShippingInvoicePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const shippingId = searchParams.get('shippingId');
@@ -264,5 +264,13 @@ export default function CreateShippingInvoicePage() {
         </div>
       </DashboardLayout>
     </>
+  );
+}
+
+export default function CreateShippingInvoicePage() {
+  return (
+    <Suspense fallback={null}>
+      <CreateShippingInvoicePageContent />
+    </Suspense>
   );
 }

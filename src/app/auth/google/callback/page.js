@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { setAuthCookies } from "@/app/lib/auth";
 
-export default function GoogleCallbackPage() {
+function GoogleCallbackPageContent() {
   const router = useRouter();
   const params = useSearchParams();
 
@@ -29,4 +29,12 @@ export default function GoogleCallbackPage() {
   }, [params]);
 
   return <p>Signing you in…</p>;
+}
+
+export default function GoogleCallbackPage() {
+  return (
+    <Suspense fallback={<p>Signing you in…</p>}>
+      <GoogleCallbackPageContent />
+    </Suspense>
+  );
 }

@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from '@/components/ui/Button';
 import { authService } from "@/services/authService";
 import SEOHead from '@/components/common/SEOHead';
 import { METADATA } from '@/lib/metadata';
 
-const ResetPasswordPage = () => {
+function ResetPasswordPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const token = searchParams.get('token');
@@ -140,4 +140,10 @@ const ResetPasswordPage = () => {
     );
 }
 
-export default ResetPasswordPage;
+export default function ResetPasswordPage() {
+    return (
+        <Suspense fallback={null}>
+            <ResetPasswordPageContent />
+        </Suspense>
+    );
+}

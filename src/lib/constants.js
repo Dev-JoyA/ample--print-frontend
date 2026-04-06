@@ -152,6 +152,13 @@ export const API_PATHS = {
   CART: {
     ACTIVE_ORDERS: "/orders/my-orders",
   },
+  BANK_ACCOUNTS: {
+    ACTIVE: "/bank-accounts/active",
+    LIST: "/bank-accounts",
+    CREATE: "/bank-accounts",
+    SET_ACTIVE: (id) => `/bank-accounts/${id}/active`,
+    DELETE: (id) => `/bank-accounts/${id}`,
+  },
 };
 
 export const COOKIE_NAMES = {

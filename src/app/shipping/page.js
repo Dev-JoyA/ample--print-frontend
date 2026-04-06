@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import Button from '@/components/ui/Button';
@@ -13,7 +13,7 @@ import { orderService } from '@/services/orderService';
 import { shippingService } from '@/services/shippingService';
 import { METADATA } from '@/lib/metadata';
 
-export default function ShippingPage() {
+function ShippingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
@@ -597,5 +597,13 @@ export default function ShippingPage() {
         </div>
       </DashboardLayout>
     </>
+  );
+}
+
+export default function ShippingPage() {
+  return (
+    <Suspense fallback={null}>
+      <ShippingPageContent />
+    </Suspense>
   );
 }

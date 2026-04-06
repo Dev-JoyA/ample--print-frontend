@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Image from 'next/image';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import Button from '@/components/ui/Button';
@@ -12,6 +13,7 @@ import { productService } from '@/services/productService';
 import { orderService } from '@/services/orderService';
 import { customerBriefService } from '@/services/customerBriefService';
 import { METADATA, getProductMetadata } from '@/lib/metadata';
+import { getImageUrl, getProductImageUrl } from '@/lib/imageUtils';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -98,16 +100,6 @@ export default function ProductDetailPage() {
     } finally {
       setLoadingOrders(false);
     }
-  };
-
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return null;
-    if (imagePath.startsWith('http')) return imagePath;
-    let filename = imagePath;
-    if (imagePath.includes('/')) {
-      filename = imagePath.split('/').pop();
-    }
-    return `http://localhost:4001/api/v1/attachments/download/${filename}`;
   };
 
   const getAllImages = () => {
@@ -347,11 +339,24 @@ ${new Date().toLocaleString()}
                 <p className="mb-6 text-gray-400">
                   Please sign in or create an account to continue with your order.
                 </p>
+                <p className="mb-6 text-sm text-gray-300">
+                  <Link
+                    href={`/auth/sign-in?next=${encodeURIComponent(`/products/${productId}`)}`}
+                    className="text-primary underline hover:text-primary-dark"
+                  >
+                    Go to sign in
+                  </Link>
+                </p>
                 <div className="flex justify-end gap-3">
                   <Button variant="secondary" onClick={() => setShowAuthModal(false)}>
                     Cancel
                   </Button>
-                  <Button variant="primary" onClick={() => router.push('/auth/sign-in')}>
+                  <Button
+                    variant="primary"
+                    onClick={() =>
+                      router.push(`/auth/sign-in?next=${encodeURIComponent(`/products/${productId}`)}`)
+                    }
+                  >
                     Sign In
                   </Button>
                 </div>
@@ -787,7 +792,7 @@ ${new Date().toLocaleString()}
                 size="lg"
                 className="mt-4 w-full"
                 onClick={handleSubmitClick}
-                disabled={submitting || (!isAuthenticated)}
+                disabled={submitting}
               >
                 {submitting ? 'Processing...' : 'Continue to Order'}
               </Button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
@@ -12,7 +12,7 @@ import { invoiceService } from "@/services/invoiceService";
 import { profileService } from "@/services/profileService";
 import { METADATA } from "@/lib/metadata";
 
-export default function TransactionsPage() {
+function TransactionsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isPrintMode = searchParams.get("print") === "true";
@@ -513,5 +513,13 @@ export default function TransactionsPage() {
         </div>
       </DashboardLayout>
     </>
+  );
+}
+
+export default function TransactionsPage() {
+  return (
+    <Suspense fallback={null}>
+      <TransactionsPageContent />
+    </Suspense>
   );
 }

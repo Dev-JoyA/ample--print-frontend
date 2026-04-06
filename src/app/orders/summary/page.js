@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
@@ -12,7 +12,7 @@ import { orderService } from '@/services/orderService';
 import { customerBriefService } from '@/services/customerBriefService';
 import { METADATA, getOrderMetadata } from '@/lib/metadata';
 
-export default function OrderSummaryPage() {
+function OrderSummaryPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -269,5 +269,13 @@ export default function OrderSummaryPage() {
         </div>
       </DashboardLayout>
     </>
+  );
+}
+
+export default function OrderSummaryPage() {
+  return (
+    <Suspense fallback={null}>
+      <OrderSummaryPageContent />
+    </Suspense>
   );
 }

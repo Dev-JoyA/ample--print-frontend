@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import Button from '@/components/ui/Button';
@@ -12,9 +12,10 @@ import { invoiceService } from '@/services/invoiceService';
 import { orderService } from '@/services/orderService';
 import { productService } from '@/services/productService';
 import { paymentService } from '@/services/paymentService';
+import { bankAccountService } from '@/services/bankAccountService';
 import { METADATA } from '@/lib/metadata';
 
-export default function PaymentPage() {
+function PaymentPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const invoiceId = searchParams.get('invoiceId');
@@ -31,6 +32,7 @@ export default function PaymentPage() {
   const [receiptFile, setReceiptFile] = useState(null);
   const [paymentType, setPaymentType] = useState('full');
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [bankAccount, setBankAccount] = useState(null);
 
   useEffect(() => {
     if (!invoiceId) {
@@ -38,6 +40,7 @@ export default function PaymentPage() {
       return;
     }
     fetchInvoiceDetails();
+    fetchActiveBankAccount();
   }, [invoiceId]);
 
   useEffect(() => {
@@ -119,6 +122,17 @@ export default function PaymentPage() {
       setError('Failed to load invoice details');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchActiveBankAccount = async () => {
+    try {
+      const resp = await bankAccountService.getActive();
+      const acct = resp?.bankAccount ?? resp?.data?.bankAccount ?? resp?.data ?? resp;
+      setBankAccount(acct?.bankAccount ? acct.bankAccount : acct);
+    } catch (e) {
+      console.error("Failed to fetch active bank account:", e);
+      setBankAccount(null);
     }
   };
 
@@ -434,15 +448,21 @@ export default function PaymentPage() {
                   <div className="mb-5 grid grid-cols-1 gap-3 sm:mb-6 sm:grid-cols-3 sm:gap-4">
                     <div className="rounded-lg border border-gray-800 bg-[#0F0F0F] p-3 sm:p-4">
                       <p className="text-xs text-gray-400 sm:text-sm">Account Name</p>
-                      <p className="text-sm font-medium text-white sm:text-base">Ampleprinthub Limited</p>
+                      <p className="text-sm font-medium text-white sm:text-base">
+                        {bankAccount?.accountName || "Not available"}
+                      </p>
                     </div>
                     <div className="rounded-lg border border-gray-800 bg-[#0F0F0F] p-3 sm:p-4">
                       <p className="text-xs text-gray-400 sm:text-sm">Account Number</p>
-                      <p className="text-sm font-medium text-white sm:text-base">0123456789</p>
+                      <p className="text-sm font-medium text-white sm:text-base">
+                        {bankAccount?.accountNumber || "Not available"}
+                      </p>
                     </div>
                     <div className="rounded-lg border border-gray-800 bg-[#0F0F0F] p-3 sm:p-4">
                       <p className="text-xs text-gray-400 sm:text-sm">Bank</p>
-                      <p className="text-sm font-medium text-white sm:text-base">Access Bank</p>
+                      <p className="text-sm font-medium text-white sm:text-base">
+                        {bankAccount?.bankName || "Not available"}
+                      </p>
                     </div>
                   </div>
 
@@ -672,5 +692,13 @@ export default function PaymentPage() {
         </div>
       </DashboardLayout>
     </>
+  );
+}
+
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={null}>
+      <PaymentPageContent />
+    </Suspense>
   );
 }

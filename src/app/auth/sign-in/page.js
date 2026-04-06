@@ -1,15 +1,16 @@
 "use client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState, useEffect } from "react";
 import Button from "@/components/ui/Button";
 import { authService } from "@/services/authService";
 import { setAuthCookies } from "@/app/lib/auth";
 import SEOHead from '@/components/common/SEOHead';
 import { METADATA } from '@/lib/metadata';
 
-const Page = () => {
+function SignInPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -20,14 +21,21 @@ const Page = () => {
     const googleUser = sessionStorage.getItem('googleUser');
     if (googleUser) {
       try {
-        const userData = JSON.parse(googleUser);
-        const token = userData.token || userData.accessToken;
+        const parsed = JSON.parse(googleUser);
+        const userData = parsed.data ?? parsed;
+        const token = userData.accessToken ?? userData.token;
         const refreshToken = userData.refreshToken;
-        
+
         if (token) {
           setAuthCookies(token, refreshToken);
           sessionStorage.removeItem('googleUser');
-          
+
+          const next = searchParams?.get("next");
+          if (next && typeof next === "string" && next.startsWith("/")) {
+            router.push(next);
+            return;
+          }
+
           const role = userData.user?.role?.toLowerCase();
           if (role === "superadmin") router.push("/dashboards/super-admin-dashboard");
           else if (role === "admin") router.push("/dashboards/admin-dashboard");
@@ -37,7 +45,7 @@ const Page = () => {
         console.error('Failed to parse Google user data:', err);
       }
     }
-  }, [router]);
+  }, [router, searchParams]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,11 +53,22 @@ const Page = () => {
     setError("");
     try {
       const result = await authService.signIn(email, password);
-      const token = result.token ?? result.accessToken;
-      const refreshToken = result.refreshToken;
+
+      const data = result.data ?? result;
+      const token = data.accessToken ?? data.token;
+      const refreshToken = data.refreshToken;
+      const user = data.user;
+
       if (token) {
         setAuthCookies(token, refreshToken);
-        const role = result.user?.role?.toLowerCase();
+
+        const next = searchParams?.get("next");
+        if (next && typeof next === "string" && next.startsWith("/")) {
+          router.push(next);
+          return;
+        }
+
+        const role = user?.role?.toLowerCase();
         if (role === "superadmin") router.push("/dashboards/super-admin-dashboard");
         else if (role === "admin") router.push("/dashboards/admin-dashboard");
         else router.push("/dashboards");
@@ -82,7 +101,7 @@ const Page = () => {
               <p className="text-gray-300 text-xs sm:text-sm pt-2">Sign in to continue printing with the highest industry standards.</p>
             </div>
             <div>
-              <button 
+              <button
                 onClick={handleGoogleSignIn}
                 className="w-full flex flex-row justify-center items-center gap-2 border border-gray-700 rounded-lg px-4 py-2 my-6 sm:my-8 cursor-pointer hover:bg-gray-800 transition-colors"
               >
@@ -91,50 +110,48 @@ const Page = () => {
               </button>
               <div className="flex items-center justify-center gap-3 sm:gap-4 my-4 sm:my-6 w-full">
                 <span className="h-px flex-1 bg-gray-600"></span>
-                <p className="text-gray-400 text-xs sm:text-sm whitespace-nowrap">
-                  OR CONTINUE WITH EMAIL
-                </p>
+                <p className="text-gray-400 text-xs sm:text-sm whitespace-nowrap">OR CONTINUE WITH EMAIL</p>
                 <span className="h-px flex-1 bg-gray-600"></span>
               </div>
               <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
                 {error && (
                   <p className="text-red-500 text-sm bg-red-900/30 p-3 rounded-lg">{error}</p>
                 )}
-                
+
                 <div className="flex flex-col">
                   <label className="font-bold text-xs sm:text-sm" htmlFor="email">Email</label>
-                  <input 
-                    className="bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 text-white text-sm sm:text-base" 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    placeholder="Enter your email" 
-                    value={email} 
-                    onChange={(e) => setEmail(e.target.value)} 
-                    required 
+                  <input
+                    className="bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 text-white text-sm sm:text-base"
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
                     disabled={isLoading}
                   />
                 </div>
-                
+
                 <div className="flex flex-col">
                   <label className="font-bold text-xs sm:text-sm" htmlFor="password">Password</label>
                   <div className="relative">
-                    <input 
-                      className="bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 pr-10 w-full focus:outline-none focus:ring-2 focus:ring-red-600 text-white text-sm sm:text-base" 
+                    <input
+                      className="bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 pr-10 w-full focus:outline-none focus:ring-2 focus:ring-red-600 text-white text-sm sm:text-base"
                       type={showPassword ? "text" : "password"}
-                      id="password" 
-                      name="password" 
-                      placeholder="Enter your password" 
-                      value={password} 
-                      onChange={(e) => setPassword(e.target.value)} 
-                      required 
+                      id="password"
+                      name="password"
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
                       disabled={isLoading}
                     />
                     <button
                       type="button"
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                       onClick={() => setShowPassword(!showPassword)}
-                      tabIndex="-1"
+                      tabIndex={-1}
                     >
                       {showPassword ? (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,26 +169,28 @@ const Page = () => {
 
                 <div className="flex items-center justify-between mt-2">
                   <div className="flex items-center gap-2">
-                    <input 
-                      className="w-4 h-4 border-gray-700 rounded flex-shrink-0" 
-                      type="checkbox" 
-                      id="remember" 
-                      name="remember" 
+                    <input
+                      className="w-4 h-4 border-gray-700 rounded flex-shrink-0"
+                      type="checkbox"
+                      id="remember"
+                      name="remember"
                       disabled={isLoading}
                     />
                     <label htmlFor="remember" className="text-xs sm:text-sm text-gray-300">Remember me</label>
                   </div>
-                  <Link href="/auth/forgot-password" className="text-xs sm:text-sm text-red-600 hover:underline">Forgot password?</Link>
+                  <Link href="/auth/forgot-password" className="text-xs sm:text-sm text-red-600 hover:underline">
+                    Forgot password?
+                  </Link>
                 </div>
-                
+
                 <div className="flex justify-center mt-4 sm:mt-6 w-full">
-                  <Button 
-                    type="submit" 
-                    variant="primary" 
-                    size="md" 
-                    icon="→" 
-                    iconPosition="right" 
-                    className="w-full !justify-center" 
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="md"
+                    icon="→"
+                    iconPosition="right"
+                    className="w-full !justify-center"
                     disabled={isLoading}
                   >
                     {isLoading ? "Signing in…" : "Sign In"}
@@ -179,7 +198,7 @@ const Page = () => {
                 </div>
               </form>
             </div>
-                      
+
             <p className="font-carlito text-xs sm:text-sm flex justify-center text-gray-600 mt-4 sm:mt-6">
               Don't have an account?{" "}
               <Link href="/auth/sign-up" className="text-[#FF676A] hover:underline ml-1">Sign up</Link>
@@ -196,6 +215,12 @@ const Page = () => {
       </div>
     </>
   );
-};
+}
 
-export default Page;
+export default function SignInPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignInPageContent />
+    </Suspense>
+  );
+}

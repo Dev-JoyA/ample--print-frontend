@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import Button from '@/components/ui/Button';
@@ -11,7 +11,7 @@ import { designService } from '@/services/designService';
 import { feedbackService } from '@/services/feedbackService';
 import { METADATA } from '@/lib/metadata';
 
-export default function DesignUploadPage() {
+function DesignUploadPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderIdParam = searchParams.get('orderId');
@@ -490,5 +490,13 @@ export default function DesignUploadPage() {
         </div>
       </DashboardLayout>
     </>
+  );
+}
+
+export default function DesignUploadPage() {
+  return (
+    <Suspense fallback={null}>
+      <DesignUploadPageContent />
+    </Suspense>
   );
 }
