@@ -20,6 +20,8 @@ export default function OrderHistoryDetailPage() {
   useAuthCheck();
 
   const [loading, setLoading] = useState(true);
+  const [reorderLoading, setReorderLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [order, setOrder] = useState(null);
   const [orderInvoice, setOrderInvoice] = useState(null);
   const [shipping, setShipping] = useState(null);
@@ -123,6 +125,61 @@ export default function OrderHistoryDetailPage() {
   };
 
   const message = getMessageFromUrl();
+
+  const handleOrderAgain = async () => {
+    if (!order?.items?.length) return;
+    try {
+      setReorderLoading(true);
+      setError("");
+
+      const items = order.items
+        .map((it) => ({
+          productId: it.productId?._id || it.productId,
+          quantity: it.quantity,
+        }))
+        .filter((it) => !!it.productId && !!it.quantity);
+
+      const resp = await orderService.create({ items });
+      const newOrderId = resp?.order?._id || resp?.data?._id || resp?._id;
+
+      if (!newOrderId) {
+        throw new Error("Failed to create new order");
+      }
+
+      router.push(`/orders/summary?orderId=${newOrderId}`);
+    } catch (err) {
+      console.error("Order again failed:", err);
+      setError(err?.message || "Failed to replicate order. Please try again.");
+    } finally {
+      setReorderLoading(false);
+    }
+  };
+
+  const handleDeleteOrder = async () => {
+    if (!order?._id) return;
+    const ok = window.confirm(
+      "Delete this order? This action cannot be undone."
+    );
+    if (!ok) return;
+
+    try {
+      setDeleteLoading(true);
+      setError("");
+      await orderService.delete(order._id);
+      router.push("/order-history");
+    } catch (err) {
+      console.error("Delete order failed:", err);
+      setError(err?.message || "Failed to delete order");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const canAddToOrder = order?.status
+    ? ["Pending", "OrderReceived", "FilesUploaded", "AwaitingInvoice"].includes(order.status)
+    : false;
+
+  const canDeleteOrder = order?.status ? ["Pending", "OrderReceived"].includes(order.status) : false;
 
   if (loading) {
     return (
@@ -358,6 +415,33 @@ export default function OrderHistoryDetailPage() {
             <Link href="/order-history">
               <Button variant="secondary">Back to Order History</Button>
             </Link>
+
+            <Button
+              variant="primary"
+              onClick={handleOrderAgain}
+              disabled={reorderLoading || !order?.items?.length}
+            >
+              {reorderLoading ? "Creating..." : "Order Again"}
+            </Button>
+
+            {canAddToOrder && (
+              <Link href="/collections/all/products">
+                <Button variant="secondary" className="w-full sm:w-auto">
+                  Add More Items
+                </Button>
+              </Link>
+            )}
+
+            {canDeleteOrder && (
+              <Button
+                variant="danger"
+                onClick={handleDeleteOrder}
+                disabled={deleteLoading}
+                className="w-full sm:w-auto"
+              >
+                {deleteLoading ? "Deleting..." : "Delete Order"}
+              </Button>
+            )}
 
             {order.status === "Completed" && !order.shippingId && (
               <Link href={`/shipping?orderId=${order._id}`}>

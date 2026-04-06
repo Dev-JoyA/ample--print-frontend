@@ -7,3 +7,4 @@ export { designService } from "./designService";
 export { attachmentService, getAttachmentDownloadUrl } from "./attachmentService";
 export { feedbackService } from "./feedbackService";
 export { customerBriefService } from "./customerBriefService";
+export { bankAccountService } from "./bankAccountService";

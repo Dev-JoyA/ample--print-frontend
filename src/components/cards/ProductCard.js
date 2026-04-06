@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import StatusBadge from '../ui/StatusBadge';
 
@@ -18,6 +18,24 @@ const ProductCard = ({ product, onClick }) => {
     collectionId
   } = product;
 
+  const [imgError, setImgError] = useState(false);
+  const [imageUrl, setImageUrl] = useState(null);
+
+  useEffect(() => {
+    // Get the primary image
+    const primaryImage = image || (images && images[0]) || null;
+    
+    if (primaryImage) {
+      let filename = primaryImage;
+      if (primaryImage.includes('/')) {
+        filename = primaryImage.split('/').pop();
+      }
+      // Use the proxy URL to avoid CORS
+      const url = `/api/images/${encodeURIComponent(filename)}`;
+      setImageUrl(url);
+    }
+  }, [image, images]);
+
   const formatDeliveryTime = (deliveryString) => {
     if (!deliveryString) return '4-10 Days';
     const days = deliveryString.substring(0, 3);
@@ -31,30 +49,20 @@ const ProductCard = ({ product, onClick }) => {
     return null;
   };
 
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return null;
-    if (imagePath.startsWith('http')) return imagePath;
-    let filename = imagePath;
-    if (imagePath.includes('/')) {
-      filename = imagePath.split('/').pop();
-    }
-    return `http://localhost:4001/api/v1/attachments/download/${filename}`;
-  };
-
   return (
     <div
       className="group cursor-pointer overflow-hidden rounded-lg border border-dark-lighter bg-slate-950 transition-all hover:border-primary/50"
       onClick={onClick}
     >
       <div className="relative h-48 w-full overflow-hidden bg-slate-900 sm:h-56 md:h-64">
-        {image || images?.[0] ? (
+        {imageUrl && !imgError ? (
           <img
-            src={getImageUrl(image || images?.[0])}
+            src={imageUrl}
             alt={name}
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = 'https://via.placeholder.com/400x300?text=No+Image';
+            onError={() => {
+              console.log('Image failed to load:', imageUrl);
+              setImgError(true);
             }}
           />
         ) : (
@@ -87,7 +95,7 @@ const ProductCard = ({ product, onClick }) => {
           {formatDimensions() && <span>FORMAT {formatDimensions()}</span>}
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-dark-lighter">
+        <div className="flex items-center justify-between border-t border-dark-lighter pt-2">
           <div>
             <p className="text-xs font-bold text-red-600">STARTING AT</p>
             <p className="text-base font-bold text-white sm:text-lg">₦{price?.toLocaleString() || '0.00'}</p>

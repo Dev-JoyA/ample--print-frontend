@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
@@ -13,7 +13,7 @@ import { customerBriefService } from "@/services/customerBriefService";
 import { discountService } from "@/services/discountService";
 import { METADATA } from "@/lib/metadata";
 
-export default function CreateInvoicePage() {
+function CreateInvoicePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
@@ -656,5 +656,13 @@ export default function CreateInvoicePage() {
         </div>
       )}
     </>
+  );
+}
+
+export default function CreateInvoicePage() {
+  return (
+    <Suspense fallback={null}>
+      <CreateInvoicePageContent />
+    </Suspense>
   );
 }

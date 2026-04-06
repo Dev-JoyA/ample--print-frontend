@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
@@ -170,7 +170,7 @@ const getStatusPhases = (order) => {
   return phases;
 };
 
-export default function OrderTrackingPage() {
+function OrderTrackingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
@@ -769,5 +769,13 @@ export default function OrderTrackingPage() {
         </div>
       </DashboardLayout>
     </>
+  );
+}
+
+export default function OrderTrackingPage() {
+  return (
+    <Suspense fallback={null}>
+      <OrderTrackingPageContent />
+    </Suspense>
   );
 }

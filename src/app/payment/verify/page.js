@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import Button from '@/components/ui/Button';
@@ -8,7 +8,7 @@ import SEOHead from '@/components/common/SEOHead';
 import { paymentService } from '@/services/paymentService';
 import { METADATA } from '@/lib/metadata';
 
-export default function PaymentVerifyPage() {
+function PaymentVerifyPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const reference = searchParams.get('reference');
@@ -188,5 +188,13 @@ export default function PaymentVerifyPage() {
         </div>
       </DashboardLayout>
     </>
+  );
+}
+
+export default function PaymentVerifyPage() {
+  return (
+    <Suspense fallback={null}>
+      <PaymentVerifyPageContent />
+    </Suspense>
   );
 }

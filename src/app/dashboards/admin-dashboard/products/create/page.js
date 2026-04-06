@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import Button from '@/components/ui/Button';
@@ -10,7 +10,7 @@ import { collectionService } from '@/services/collectionService';
 import { useAuthCheck } from '@/app/lib/auth';
 import { METADATA } from '@/lib/metadata';
 
-export default function CreateProductPage() {
+function CreateProductPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedCollectionId = searchParams.get('collectionId');
@@ -602,5 +602,21 @@ export default function CreateProductPage() {
         </div>
       </DashboardLayout>
     </>
+  );
+}
+
+export default function CreateProductPage() {
+  return (
+    <Suspense
+      fallback={
+        <DashboardLayout userRole="admin">
+          <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+            <p className="text-gray-400">Loading...</p>
+          </div>
+        </DashboardLayout>
+      }
+    >
+      <CreateProductPageContent />
+    </Suspense>
   );
 }

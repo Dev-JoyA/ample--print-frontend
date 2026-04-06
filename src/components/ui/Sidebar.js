@@ -79,6 +79,7 @@ const Sidebar = ({ userRole = 'customer' }) => {
     { name: 'Discounts', href: '/dashboards/super-admin-dashboard/discounts', icon: '💰' },
     { name: 'Payment Verification', href: '/dashboards/super-admin-dashboard/payment-verification', icon: '✅' },
     { name: 'Financial Records', href: '/dashboards/super-admin-dashboard/financial-records', icon: '📊' },
+    { name: 'Bank Accounts', href: '/dashboards/super-admin-dashboard/bank-accounts', icon: '🏦' },
   ];
 
   const getNavItems = () => {
@@ -202,11 +203,16 @@ const Sidebar = ({ userRole = 'customer' }) => {
       )}
 
       {/* Sidebar - Mobile: Fixed drawer, Desktop: Static */}
-      <aside
+      {/* <aside
         className={`fixed left-0 top-0 z-40 flex h-full w-64 flex-col border-r border-dark-light bg-slate-950 transition-transform duration-300 lg:static lg:translate-x-0 ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
-      >
+      > */}
+      <aside
+        className={`fixed left-0 top-0 z-40 flex h-full w-64 flex-col border-r border-dark-light bg-slate-950 transition-transform duration-300 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
+            isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
+        >
         {sidebarContent}
       </aside>
     </>

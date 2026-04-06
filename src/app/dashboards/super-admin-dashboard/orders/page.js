@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
@@ -11,7 +11,7 @@ import { useAuthCheck } from "@/app/lib/auth";
 import { orderService } from "@/services/orderService";
 import { METADATA } from "@/lib/metadata";
 
-export default function SuperAdminOrdersPage() {
+function SuperAdminOrdersPageContent() {
   useAuthCheck();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -324,5 +324,13 @@ export default function SuperAdminOrdersPage() {
         </div>
       </DashboardLayout>
     </>
+  );
+}
+
+export default function SuperAdminOrdersPage() {
+  return (
+    <Suspense fallback={null}>
+      <SuperAdminOrdersPageContent />
+    </Suspense>
   );
 }
