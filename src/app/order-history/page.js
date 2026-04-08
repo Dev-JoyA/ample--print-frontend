@@ -68,6 +68,7 @@ export default function OrderHistoryPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalOrders, setTotalOrders] = useState(0);
   const [searchTimeout, setSearchTimeout] = useState(null);
+  const [deletingOrderId, setDeletingOrderId] = useState(null);
 
   const [stats, setStats] = useState({
     total: 0,
@@ -238,6 +239,34 @@ export default function OrderHistoryPage() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteOrder = async (orderId, orderStatus) => {
+    const canDelete = ["Pending", "FilesUploaded"].includes(orderStatus);
+    
+    if (!canDelete) {
+      alert("This order cannot be deleted because it has already been processed.");
+      return;
+    }
+
+    const confirmed = confirm("Are you sure you want to delete this order? This action cannot be undone.");
+    
+    if (!confirmed) return;
+
+    try {
+      setDeletingOrderId(orderId);
+      await orderService.delete(orderId);
+      
+      await fetchOrders();
+      await fetchAllOrderCounts();
+      
+    //   alert("Order deleted successfully.");
+    } catch (err) {
+      console.error("Failed to delete order:", err);
+      alert(err.message || "Failed to delete order. Please try again.");
+    } finally {
+      setDeletingOrderId(null);
     }
   };
 
@@ -478,29 +507,63 @@ export default function OrderHistoryPage() {
                 </div>
               )}
 
-              {orders.map((order) => (
-                <OrderCard
-                  key={order._id}
-                  order={{
-                    id: order._id,
-                    orderNumber: order.orderNumber,
-                    productName: order.items?.[0]?.productName || "Multiple Items",
-                    productImage: getImageUrl(order.items?.[0]?.productId?.images?.[0] || order.items?.[0]?.productSnapshot?.image),
-                    orderedDate: new Date(order.createdAt)
-                      .toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "2-digit",
-                        day: "2-digit"
-                      })
-                      .replace(/\//g, "-"),
-                    totalAmount: order.totalAmount,
-                    status: order.status,
-                    itemsCount: order.items?.length || 1,
-                    paymentStatus: order.paymentStatus
-                  }}
-                  onClick={() => router.push(`/orders/${order._id}`)}
-                />
-              ))}
+              {orders.map((order) => {
+                const canReorder = ["Shipped", "Cancelled", "Delivered", "Completed"].includes(order.status);
+                const canDelete = ["Pending", "FilesUploaded"].includes(order.status);
+                const isDeleting = deletingOrderId === order._id;
+                
+                return (
+                  <div key={order._id} className="relative">
+                    <OrderCard
+                      order={{
+                        id: order._id,
+                        orderNumber: order.orderNumber,
+                        productName: order.items?.[0]?.productName || "Multiple Items",
+                        productImage: getImageUrl(order.items?.[0]?.productId?.images?.[0] || order.items?.[0]?.productSnapshot?.image),
+                        orderedDate: new Date(order.createdAt)
+                          .toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit"
+                          })
+                          .replace(/\//g, "-"),
+                        totalAmount: order.totalAmount,
+                        status: order.status,
+                        itemsCount: order.items?.length || 1,
+                        paymentStatus: order.paymentStatus
+                      }}
+                      onClick={() => router.push(`/orders/${order._id}`)}
+                    />
+                    <div className="mt-2 flex justify-end gap-2">
+                      {canReorder && (
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/order-history/reorder/${order._id}`);
+                          }}
+                        >
+                          Order Again
+                        </Button>
+                      )}
+                      {canDelete && (
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          disabled={isDeleting}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteOrder(order._id, order.status);
+                          }}
+                        >
+                          {isDeleting ? "Deleting..." : "Delete Order"}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="rounded-xl border border-gray-800 bg-slate-900/30 py-16 text-center">

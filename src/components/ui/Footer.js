@@ -7,7 +7,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4 md:gap-8">
           <div className="col-span-1 md:col-span-2">
             <div className="mb-4 flex items-center gap-2">
-              <img className="h-14 w-14 sm:h-16 sm:w-16" src="/images/logo/logo.png" alt="Logo" />
+              <img className="h-16 sm:h-24 w-auto brightness-110 drop-shadow-md" src="/images/logo/logo.png" alt="Logo" />
             </div>
             <p className="mb-4 text-sm text-gray-400 sm:text-base">
               Your trusted partner for professional printing services. High-quality products, fast turnaround, and exceptional customer service.

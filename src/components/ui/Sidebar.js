@@ -141,7 +141,7 @@ const Sidebar = ({ userRole = 'customer' }) => {
     <>
       <div className="p-4 sm:p-6">
         <div className="flex items-center gap-2">
-          <img className="h-14 w-14 sm:h-16 sm:w-16" src="/images/logo/logo.png" alt="Logo" />
+          <img className="h-16 sm:h-24 w-auto brightness-110 drop-shadow-md" src="/images/logo/logo.png" alt="Logo" />
         </div>
       </div>
 

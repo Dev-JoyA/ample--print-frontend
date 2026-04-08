@@ -11,6 +11,7 @@ import { METADATA } from '@/lib/metadata';
 import { useAuthCheck } from '@/app/lib/auth';
 import { customerBriefService } from '@/services/customerBriefService';
 import { designService } from '@/services/designService';
+import { getImageUrl, getProductImageUrl } from '@/lib/imageUtils';
 
 export default function CustomerBriefDetailPage({ params }) {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function CustomerBriefDetailPage({ params }) {
   const [loading, setLoading] = useState(true);
   const [loadingConversation, setLoadingConversation] = useState(false);
   const [error, setError] = useState('');
+  const [hasAutoMarked, setHasAutoMarked] = useState(false);
   
   const [responseText, setResponseText] = useState('');
   const [responseFiles, setResponseFiles] = useState({
@@ -69,6 +71,25 @@ export default function CustomerBriefDetailPage({ params }) {
       fetchBriefDetails(resolvedParams.id);
     }
   }, [resolvedParams]);
+
+  // AUTO-MARK: When admin opens customer brief, mark it as viewed by admin
+  useEffect(() => {
+    const autoMarkAsViewedByAdmin = async () => {
+      if (!hasAutoMarked && brief?._id && !brief.viewedByAdmin) {
+        try {
+          await customerBriefService.markAsViewedByAdmin(brief._id);
+          setHasAutoMarked(true);
+          // Update local state
+          setBrief(prev => ({ ...prev, viewedByAdmin: true }));
+          console.log('Auto-marked brief as viewed by admin');
+        } catch (err) {
+          console.error('Failed to mark as viewed by admin:', err);
+        }
+      }
+    };
+    
+    autoMarkAsViewedByAdmin();
+  }, [brief?._id, brief?.viewedByAdmin, hasAutoMarked]);
 
   useEffect(() => {
     return () => {
@@ -128,7 +149,7 @@ export default function CustomerBriefDetailPage({ params }) {
   };
 
   const determineBriefStatus = (brief) => {
-    if (brief.viewed) return 'viewed';
+    if (brief.viewedByAdmin) return 'viewed';
     if (brief.hasAdminResponse) return 'responded';
     return 'pending';
   };
@@ -146,15 +167,6 @@ export default function CustomerBriefDetailPage({ params }) {
     }
   };
 
-  const getImageUrl = (path) => {
-    if (!path) return '';
-    if (path.startsWith('http')) return path;
-    let filename = path;
-    if (path.includes('/')) {
-      filename = path.split('/').pop();
-    }
-    return `http://localhost:4001/api/v1/attachments/download/${filename}`;
-  };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -418,6 +430,16 @@ export default function CustomerBriefDetailPage({ params }) {
               </div>
             </div>
           </div>
+
+          {/* Auto-mark status banner for admin */}
+          {!brief.viewedByAdmin && (
+            <div className="mb-6 bg-blue-900/30 border border-blue-700 rounded-lg p-3 sm:p-4">
+              <div className="flex items-center gap-2 text-blue-400">
+                <span className="text-sm">👁️</span>
+                <span className="text-sm font-medium">Auto-marked as viewed by admin</span>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1 space-y-6">
@@ -788,6 +810,7 @@ export default function CustomerBriefDetailPage({ params }) {
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
           <div className="relative max-w-4xl max-h-[90vh]">
             <img
+             key={previewImage} 
               src={previewImage}
               alt="Preview"
               className="max-w-full max-h-[90vh] object-contain"

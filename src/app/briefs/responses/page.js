@@ -89,11 +89,7 @@ export default function BriefResponsesPage() {
     try {
       setViewingId(response._id);
       
-      if (!response.viewed) {
-        await customerBriefService.markAsViewed(response._id);
-        showToast('Response marked as reviewed', 'success');
-      }
-      
+      // Navigate to the detail page where customer can take action
       router.push(`/briefs/${response._id}`);
     } catch (error) {
       console.error('Failed to view response:', error);
@@ -120,9 +116,9 @@ export default function BriefResponsesPage() {
     return (
       <DashboardLayout userRole="customer">
         <SEOHead {...METADATA.briefs} title="Admin Responses" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-          <div className="flex justify-center items-center min-h-[50vh] md:min-h-[60vh]">
-            <div className="animate-spin rounded-full h-10 w-10 md:h-12 md:w-12 border-b-2 border-primary"></div>
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 md:py-12">
+          <div className="flex min-h-[50vh] items-center justify-center md:min-h-[60vh]">
+            <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-primary md:h-12 md:w-12"></div>
           </div>
         </div>
       </DashboardLayout>
@@ -132,30 +128,30 @@ export default function BriefResponsesPage() {
   return (
     <DashboardLayout userRole="customer">
       <SEOHead {...METADATA.briefs} title="Admin Responses" />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 lg:py-12">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-12">
         <div className="mb-6 md:mb-8">
-          <div className="flex items-center gap-3 md:gap-4 mb-3 md:mb-4">
+          <div className="mb-3 flex items-center gap-3 md:mb-4">
             <Link href="/dashboards">
               <Button variant="ghost" size="sm" className="gap-1 md:gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
                 Back
               </Button>
             </Link>
           </div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">Admin Responses</h1>
-          <p className="text-gray-400 text-sm sm:text-base">Review responses from our team</p>
+          <h1 className="mb-2 text-2xl font-bold text-white sm:text-3xl md:text-4xl">Admin Responses</h1>
+          <p className="text-sm text-gray-400 sm:text-base">Review and respond to messages from our team</p>
         </div>
 
         {error && (
-          <div className="mb-6 p-3 sm:p-4 bg-red-900/30 border border-red-700 rounded-lg">
-            <p className="text-red-200 text-sm sm:text-base">{error}</p>
+          <div className="mb-6 rounded-lg border border-red-700 bg-red-900/30 p-3 sm:p-4">
+            <p className="text-sm text-red-200 sm:text-base">{error}</p>
           </div>
         )}
 
         <div className="mb-6 space-y-4">
-          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
+          <form onSubmit={handleSearch} className="flex flex-col gap-3 sm:flex-row">
             <Input
               type="text"
               placeholder="Search by order number or product..."
@@ -171,7 +167,7 @@ export default function BriefResponsesPage() {
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setFilter('all')}
-              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm transition ${
+              className={`rounded-lg px-3 py-1.5 text-xs transition sm:px-4 sm:py-2 sm:text-sm ${
                 filter === 'all' 
                   ? 'bg-primary text-white' 
                   : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
@@ -181,7 +177,7 @@ export default function BriefResponsesPage() {
             </button>
             <button
               onClick={() => setFilter('pending')}
-              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm transition ${
+              className={`rounded-lg px-3 py-1.5 text-xs transition sm:px-4 sm:py-2 sm:text-sm ${
                 filter === 'pending' 
                   ? 'bg-yellow-600 text-white' 
                   : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
@@ -191,7 +187,7 @@ export default function BriefResponsesPage() {
             </button>
             <button
               onClick={() => setFilter('reviewed')}
-              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm transition ${
+              className={`rounded-lg px-3 py-1.5 text-xs transition sm:px-4 sm:py-2 sm:text-sm ${
                 filter === 'reviewed' 
                   ? 'bg-green-600 text-white' 
                   : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
@@ -204,13 +200,13 @@ export default function BriefResponsesPage() {
 
         {loading ? (
           <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
           </div>
         ) : responses.length === 0 ? (
-          <div className="bg-slate-900/50 rounded-xl border border-gray-800 p-8 md:p-12 text-center">
-            <div className="text-5xl md:text-6xl mb-4">📬</div>
-            <h3 className="text-lg md:text-xl font-semibold text-white mb-2">No Responses Found</h3>
-            <p className="text-gray-400 text-sm md:text-base mb-6">
+          <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-8 text-center md:p-12">
+            <div className="mb-4 text-5xl md:text-6xl">📬</div>
+            <h3 className="mb-2 text-lg font-semibold text-white md:text-xl">No Responses Found</h3>
+            <p className="mb-6 text-sm text-gray-400 md:text-base">
               {searchTerm 
                 ? 'No responses match your search' 
                 : filter === 'pending'
@@ -226,7 +222,7 @@ export default function BriefResponsesPage() {
                   setFilter('all');
                   setPage(1);
                 }}
-                className="text-primary hover:text-primary-dark text-sm transition"
+                className="text-sm text-primary transition hover:text-primary-dark"
               >
                 Clear filters
               </button>
@@ -237,28 +233,28 @@ export default function BriefResponsesPage() {
             {responses.map((response) => (
               <div
                 key={response._id}
-                className={`bg-slate-900/30 rounded-xl border overflow-hidden cursor-pointer transition hover:bg-slate-900/50 ${
+                className={`cursor-pointer overflow-hidden rounded-xl border transition hover:bg-slate-900/50 ${
                   response.viewed 
-                    ? 'border-gray-800' 
+                    ? 'border-gray-800 bg-slate-900/30' 
                     : 'border-yellow-600/30 bg-gradient-to-r from-yellow-900/10 to-transparent'
                 }`}
                 onClick={() => handleViewResponse(response)}
               >
                 <div className="p-4 sm:p-5 md:p-6">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3 md:mb-4">
+                  <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between md:mb-4">
                     <div className="flex items-center gap-3">
                       <span className="text-2xl sm:text-3xl">📬</span>
                       <div>
-                        <h3 className="text-white font-medium text-sm sm:text-base">
+                        <h3 className="text-sm font-medium text-white sm:text-base">
                           Order #{response.orderId?.orderNumber || response.orderId}
                         </h3>
-                        <p className="text-xs sm:text-sm text-gray-400">
+                        <p className="text-xs text-gray-400 sm:text-sm">
                           {response.productId?.name || 'Unknown Product'}
                         </p>
                       </div>
                     </div>
                     {!response.viewed && (
-                      <span className="bg-yellow-600/20 text-yellow-400 text-xs px-2 py-1 rounded-full animate-pulse w-fit">
+                      <span className="w-fit animate-pulse rounded-full bg-yellow-600/20 px-2 py-1 text-xs text-yellow-400">
                         New
                       </span>
                     )}
@@ -272,48 +268,54 @@ export default function BriefResponsesPage() {
                       </div>
                     )}
                     {response.description && (
-                      <p className="text-xs sm:text-sm text-gray-400 line-clamp-2">
+                      <p className="line-clamp-2 text-xs text-gray-400 sm:text-sm">
                         {response.description}
                       </p>
                     )}
                     
                     <div className="flex flex-wrap gap-2">
                       {response.image && (
-                        <span className="text-xs bg-blue-600/20 text-blue-400 px-2 py-1 rounded-full">
+                        <span className="rounded-full bg-blue-600/20 px-2 py-1 text-xs text-blue-400">
                           📷 Image
                         </span>
                       )}
                       {response.voiceNote && (
-                        <span className="text-xs bg-green-600/20 text-green-400 px-2 py-1 rounded-full">
+                        <span className="rounded-full bg-green-600/20 px-2 py-1 text-xs text-green-400">
                           🎤 Voice
                         </span>
                       )}
                       {response.video && (
-                        <span className="text-xs bg-red-600/20 text-red-400 px-2 py-1 rounded-full">
+                        <span className="rounded-full bg-red-600/20 px-2 py-1 text-xs text-red-400">
                           🎥 Video
                         </span>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4">
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <span className="text-xs text-gray-500">
                       {formatDate(response.updatedAt)}
                     </span>
                     <Button
-                      variant="ghost"
+                      variant="primary"
                       size="sm"
-                      className="gap-1 w-full sm:w-auto"
-                      loading={viewingId === response._id}
+                      className="w-full gap-1 sm:w-auto"
+                      disabled={viewingId === response._id}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleViewResponse(response);
                       }}
                     >
-                      {response.viewed ? 'View Again' : 'Review Now'}
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
+                      {viewingId === response._id ? (
+                        <>
+                          <span className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent"></span>
+                          Loading...
+                        </>
+                      ) : response.viewed ? (
+                        'View Again'
+                      ) : (
+                        'Review Now'
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -321,21 +323,21 @@ export default function BriefResponsesPage() {
             ))}
 
             {totalPages > 1 && (
-              <div className="flex flex-wrap justify-center gap-2 mt-6">
+              <div className="mt-6 flex flex-wrap justify-center gap-2">
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-3 sm:px-4 py-2 bg-slate-800 rounded-lg text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-lg bg-slate-800 px-3 py-2 text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed sm:px-4"
                 >
                   Previous
                 </button>
-                <span className="px-3 sm:px-4 py-2 text-sm text-gray-400">
+                <span className="px-3 py-2 text-sm text-gray-400 sm:px-4">
                   Page {page} of {totalPages}
                 </span>
                 <button
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="px-3 sm:px-4 py-2 bg-slate-800 rounded-lg text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-lg bg-slate-800 px-3 py-2 text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed sm:px-4"
                 >
                   Next
                 </button>

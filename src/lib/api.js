@@ -32,7 +32,9 @@ async function handleResponse(response) {
   const data = isJson ? await response.json() : await response.text();
 
   if (!response.ok) {
-    const err = new Error(data?.message || `HTTP ${response.status}`);
+    const err = new Error(
+    (typeof data === "object" ? data?.message : data) || `HTTP ${response.status}`
+    );
     err.status = response.status;
     err.data = data;
     throw err;

@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
 import SEOHead from '@/components/common/SEOHead';
 import { useProtectedRoute } from '@/app/lib/auth';
 import { customerBriefService } from '@/services/customerBriefService';
@@ -38,6 +37,7 @@ export default function RespondToBriefPage({ params }) {
 
   const fetchOrderDetails = async () => {
     try {
+      setLoading(true);
       const response = await orderService.getById(orderId);
       const orderData = response?.order || response?.data || response;
       setOrder(orderData);
@@ -50,6 +50,9 @@ export default function RespondToBriefPage({ params }) {
       }
     } catch (error) {
       console.error('Failed to fetch order:', error);
+      showToast('Failed to load order details', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -74,7 +77,7 @@ export default function RespondToBriefPage({ params }) {
     }
   };
 
-  if (authLoading) {
+  if (authLoading || loading) {
     return (
       <DashboardLayout userRole="customer">
         <div className="flex min-h-[60vh] items-center justify-center">
@@ -143,10 +146,10 @@ export default function RespondToBriefPage({ params }) {
                 <Button
                   type="submit"
                   variant="primary"
-                  loading={submitting}
+                  disabled={submitting}
                   className="w-full sm:w-auto"
                 >
-                  Send Response
+                  {submitting ? 'Sending...' : 'Send Response'}
                 </Button>
               </div>
             </form>

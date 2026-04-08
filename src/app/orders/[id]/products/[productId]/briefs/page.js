@@ -6,6 +6,7 @@ import DashboardLayout from "@/components/layouts/DashboardLayout";
 import SEOHead from "@/components/common/SEOHead";
 import { useProtectedRoute } from "@/app/lib/auth";
 import { orderService } from "@/services/orderService";
+import { customerBriefService } from "@/services/customerBriefService";
 import ProductBriefThread from "@/app/briefs/productBriefThread";
 import { METADATA } from "@/lib/metadata";
 
@@ -23,12 +24,64 @@ export default function ProductBriefsPage() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [conversationStatus, setConversationStatus] = useState({
+    hasAdminResponse: false,
+    isAdminResponseViewed: false,
+    hasCustomerRespondedAfter: false,
+    isLocked: false,
+    adminMessageId: null
+  });
+  const [checkingStatus, setCheckingStatus] = useState(false);
 
   useEffect(() => {
     if (!authLoading && orderId) {
       fetchOrderDetails();
     }
   }, [authLoading, orderId]);
+
+  useEffect(() => {
+    if (orderId && productId && !loading) {
+      checkConversationStatus();
+    }
+  }, [orderId, productId, loading]);
+
+  const checkConversationStatus = async () => {
+    try {
+      setCheckingStatus(true);
+      const response = await customerBriefService.getByOrderAndProduct(orderId, productId);
+      
+      let data = null;
+      if (response?.data) {
+        data = response.data;
+      } else if (response) {
+        data = response;
+      }
+
+      if (data) {
+        const adminMessage = data?.admin || data?.superAdmin;
+        const customerMessage = data?.customer;
+        
+        const hasAdminResponse = !!adminMessage;
+        const isAdminResponseViewed = adminMessage?.viewed === true;
+        const hasCustomerRespondedAfter = customerMessage && adminMessage && 
+          new Date(customerMessage.createdAt) > new Date(adminMessage.createdAt);
+        
+        const isLocked = hasAdminResponse && isAdminResponseViewed && hasCustomerRespondedAfter;
+        
+        setConversationStatus({
+          hasAdminResponse,
+          isAdminResponseViewed,
+          hasCustomerRespondedAfter,
+          isLocked,
+          adminMessageId: adminMessage?._id || null
+        });
+      }
+    } catch (error) {
+      console.error("Failed to check conversation status:", error);
+    } finally {
+      setCheckingStatus(false);
+    }
+  };
 
   const fetchOrderDetails = async () => {
     try {
@@ -61,7 +114,7 @@ export default function ProductBriefsPage() {
     }
   };
 
-  if (authLoading || loading) {
+  if (authLoading || loading || checkingStatus) {
     return (
       <DashboardLayout userRole="customer">
         <div className="flex min-h-[60vh] items-center justify-center">
@@ -123,11 +176,68 @@ export default function ProductBriefsPage() {
             </div>
           </div>
 
+          {/* Locked Banner */}
+          {conversationStatus.isLocked && (
+            <div className="mb-6 rounded-lg border border-red-700 bg-red-900/30 p-4">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">🔒</span>
+                <div>
+                  <p className="font-medium text-red-400">Conversation Locked</p>
+                  <p className="text-sm text-gray-300 mt-1">
+                    You have already responded to the admin's message. Please wait for their next response.
+                    No further replies can be sent at this time.
+                  </p>
+                  <button
+                    onClick={() => router.push(`/orders/${orderId}`)}
+                    className="mt-3 rounded-lg bg-red-600 px-4 py-1.5 text-sm text-white transition hover:bg-red-700"
+                  >
+                    Back to Order
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Waiting Banner */}
+          {conversationStatus.hasAdminResponse && !conversationStatus.isAdminResponseViewed && (
+            <div className="mb-6 rounded-lg border border-yellow-700 bg-yellow-900/30 p-4">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">⏳</span>
+                <div>
+                  <p className="font-medium text-yellow-400">Awaiting Your Review</p>
+                  <p className="text-sm text-gray-300 mt-1">
+                    Admin has responded to your brief. The response will be marked as viewed automatically
+                    when you open the conversation below.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Success Banner */}
+          {conversationStatus.hasAdminResponse && 
+           conversationStatus.isAdminResponseViewed && 
+           conversationStatus.hasCustomerRespondedAfter && (
+            <div className="mb-6 rounded-lg border border-green-700 bg-green-900/30 p-4">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">✅</span>
+                <div>
+                  <p className="font-medium text-green-400">Response Sent</p>
+                  <p className="text-sm text-gray-300 mt-1">
+                    You have already responded to the admin. Please wait for their reply.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <ProductBriefThread
             orderId={orderId}
             productId={productId}
             productName={product?.productName || "Product"}
             orderNumber={order?.orderNumber}
+            isLocked={conversationStatus.isLocked}
+            adminMessageId={conversationStatus.adminMessageId}
           />
         </div>
       </DashboardLayout>

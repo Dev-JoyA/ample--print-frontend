@@ -974,7 +974,7 @@ export default function CustomerBriefsPage() {
         {previewImage && (
           <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[60] p-4">
             <div className="relative max-w-4xl max-h-[90vh]">
-              <img
+              <LazyImage
                 src={previewImage}
                 alt="Preview"
                 className="max-w-full max-h-[90vh] object-contain"
