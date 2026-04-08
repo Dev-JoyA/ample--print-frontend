@@ -12,7 +12,7 @@ export default function Home() {
         <header className="sticky top-0 z-50 bg-slate-950 border-b border-dark-light">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <img className="w-12 h-12 sm:w-17 sm:h-17" src="/images/logo/logo.png" alt="Ample Print Hub Logo" />
+              <img className="h-16 sm:h-24 w-auto brightness-110 drop-shadow-md" src="/images/logo/logo.png" alt="Logo" />
             </div>
             <nav className="hidden md:flex items-center gap-4 lg:gap-6">
               <Link href="/" className="font-[600] text-gray-400 hover:text-white transition-colors">Home</Link>

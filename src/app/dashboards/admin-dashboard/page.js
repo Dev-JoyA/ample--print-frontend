@@ -137,8 +137,12 @@ export default function AdminDashboard() {
     return 'Customer';
   };
 
-  const handleQuickFilter = (filter) => {
-    router.push(`/dashboards/admin-dashboard/orders?filter=${filter}`);
+//   const handleQuickFilter = (filter) => {
+//     router.push(`/dashboards/admin-dashboard/orders?filter=${filter}`);
+//   };
+
+const handleQuickFilter = () => {
+    router.push(`/dashboards/admin-dashboard/customer-briefs`);
   };
 
   const getImageUrl = (path) => {
@@ -199,7 +203,8 @@ export default function AdminDashboard() {
               />
             </div>
             
-            <div onClick={() => handleQuickFilter('pending-briefs')} className="cursor-pointer">
+            {/* <div onClick={() => handleQuickFilter('pending-briefs')} className="cursor-pointer"> */}
+             <div onClick={() => handleQuickFilter()} className="cursor-pointer">
               <SummaryCard
                 title="Pending Briefs"
                 value={stats.pendingBriefs.toString()}

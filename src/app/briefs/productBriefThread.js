@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import SEOHead from '@/components/common/SEOHead';
 import { METADATA } from '@/lib/metadata';
 import { customerBriefService } from '@/services/customerBriefService';
@@ -9,15 +10,40 @@ import { formatDistanceToNow } from 'date-fns';
 import Button from '@/components/ui/Button';
 
 export default function ProductBriefThread({ orderId, productId, productName, orderNumber }) {
+  const router = useRouter();
   const [conversation, setConversation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [responding, setResponding] = useState(false);
   const [responseText, setResponseText] = useState('');
   const [showResponseForm, setShowResponseForm] = useState(false);
+  const [hasAutoMarked, setHasAutoMarked] = useState(false);
 
   useEffect(() => {
     fetchFullConversation();
   }, [orderId, productId]);
+
+  // AUTO-MARK: When customer opens thread, mark admin response as viewed
+  useEffect(() => {
+    const autoMarkAsViewed = async () => {
+      if (!hasAutoMarked && conversation && !loading) {
+        const adminMessage = conversation?.admin || conversation?.superAdmin;
+        
+        // Only auto-mark if admin message exists AND has NOT been viewed
+        if (adminMessage && adminMessage.viewed === false) {
+          try {
+            await customerBriefService.markAsViewed(adminMessage._id);
+            setHasAutoMarked(true);
+            fetchFullConversation();
+            console.log('Auto-marked admin response as viewed');
+          } catch (error) {
+            console.error('Failed to auto-mark as viewed:', error);
+          }
+        }
+      }
+    };
+
+    autoMarkAsViewed();
+  }, [conversation, loading, hasAutoMarked]);
 
   const fetchFullConversation = async () => {
     try {
@@ -36,15 +62,6 @@ export default function ProductBriefThread({ orderId, productId, productName, or
       console.error('Failed to fetch conversation:', err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleMarkAsViewed = async (briefId) => {
-    try {
-      await customerBriefService.markAsViewed(briefId);
-      fetchFullConversation();
-    } catch (error) {
-      console.error('Failed to mark as viewed:', error);
     }
   };
 
@@ -100,7 +117,18 @@ export default function ProductBriefThread({ orderId, productId, productName, or
   }
 
   const hasCustomerBrief = !!conversation?.customer;
-  const hasAdminResponse = !!(conversation?.admin || conversation?.superAdmin);
+  const adminMessage = conversation?.admin || conversation?.superAdmin;
+  const hasAdminResponse = !!adminMessage;
+  const isAdminResponseViewed = adminMessage?.viewed === true;
+  
+  // Customer can ONLY respond if:
+  // 1. There is an admin response AND
+  // 2. The admin response has been viewed (meaning customer has seen it) AND
+  // 3. There is NO customer response AFTER this admin response
+  const hasCustomerRespondedAfter = conversation?.customer && 
+    new Date(conversation.customer.createdAt) > new Date(adminMessage?.createdAt);
+  
+  const canRespond = hasAdminResponse && isAdminResponseViewed && !hasCustomerRespondedAfter;
 
   const allMessages = [];
   if (conversation?.customer) {
@@ -139,100 +167,97 @@ export default function ProductBriefThread({ orderId, productId, productName, or
       </div>
 
       <div className="space-y-3 sm:space-y-4">
-        {sortedMessages.map((message, index) => (
-          <div
-            key={`${message.role}-${message._id || index}`}
-            className={`flex ${message.role === 'customer' ? 'justify-end' : 'justify-start'}`}
-          >
+        {sortedMessages.map((message, index) => {
+          const isAdminMsg = message.role === 'admin' || message.role === 'superAdmin';
+          const isThisMessageViewed = isAdminMsg ? message.viewed === true : true;
+          
+          return (
             <div
-              className={`max-w-[90%] sm:max-w-[85%] md:max-w-[80%] rounded-lg p-3 sm:p-4 ${
-                message.role === 'customer'
-                  ? 'bg-blue-900/20 border border-blue-800'
-                  : 'bg-green-900/20 border border-green-800'
-              }`}
+              key={`${message.role}-${message._id || index}`}
+              className={`flex ${message.role === 'customer' ? 'justify-end' : 'justify-start'}`}
             >
-              <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-2">
-                <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full ${getRoleColor(message.role)} flex items-center justify-center text-xs border`}>
-                  {getRoleIcon(message.role)}
+              <div
+                className={`max-w-[90%] sm:max-w-[85%] md:max-w-[80%] rounded-lg p-3 sm:p-4 ${
+                  message.role === 'customer'
+                    ? 'bg-blue-900/20 border border-blue-800'
+                    : 'bg-green-900/20 border border-green-800'
+                }`}
+              >
+                <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-2">
+                  <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full ${getRoleColor(message.role)} flex items-center justify-center text-xs border`}>
+                    {getRoleIcon(message.role)}
+                  </div>
+                  <span className="text-xs font-medium text-white">
+                    {getRoleName(message.role)}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })}
+                  </span>
+                  {isAdminMsg && isThisMessageViewed && (
+                    <span className="text-xs text-green-400">✓ Viewed</span>
+                  )}
                 </div>
-                <span className="text-xs font-medium text-white">
-                  {getRoleName(message.role)}
-                </span>
-                <span className="text-xs text-gray-500">
-                  {formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })}
-                </span>
-                {message.role !== 'customer' && !conversation?.customer?.viewed && (
-                  <button
-                    onClick={() => handleMarkAsViewed(message._id)}
-                    className="text-xs bg-yellow-600/20 text-yellow-400 px-2 py-0.5 rounded-full hover:bg-yellow-600/30 transition"
-                  >
-                    Mark as viewed
-                  </button>
-                )}
-                {message.role !== 'customer' && conversation?.customer?.viewed && (
-                  <span className="text-xs text-green-400">✓ Viewed</span>
-                )}
-              </div>
 
-              {message.description && (
-                <p className="text-gray-300 text-xs sm:text-sm whitespace-pre-wrap mb-3">
-                  {message.description}
-                </p>
-              )}
+                {message.description && (
+                  <p className="text-gray-300 text-xs sm:text-sm whitespace-pre-wrap mb-3">
+                    {message.description}
+                  </p>
+                )}
 
-              {message.designId && (
-                <div className="mt-2">
-                  <Link href={`/designs/${message.designId}`}>
-                    <span className="text-xs bg-purple-900/30 text-purple-400 px-2 sm:px-3 py-1 rounded-full inline-flex items-center gap-1 hover:bg-purple-900/50 transition">
-                      <span>🎨</span> View Design
-                    </span>
-                  </Link>
+                {message.designId && (
+                  <div className="mt-2">
+                    <Link href={`/designs/${message.designId}`}>
+                      <span className="text-xs bg-purple-900/30 text-purple-400 px-2 sm:px-3 py-1 rounded-full inline-flex items-center gap-1 hover:bg-purple-900/50 transition">
+                        <span>🎨</span> View Design
+                      </span>
+                    </Link>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-1 sm:gap-2 mt-3">
+                  {message.image && (
+                    <a
+                      href={message.image}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs bg-slate-800 hover:bg-slate-700 text-blue-400 px-2 sm:px-3 py-1 rounded-full flex items-center gap-1"
+                    >
+                      <span>📷</span> Image
+                    </a>
+                  )}
+                  {message.voiceNote && (
+                    <button
+                      onClick={() => new Audio(message.voiceNote).play()}
+                      className="text-xs bg-slate-800 hover:bg-slate-700 text-green-400 px-2 sm:px-3 py-1 rounded-full flex items-center gap-1"
+                    >
+                      <span>🎤</span> Voice Note
+                    </button>
+                  )}
+                  {message.video && (
+                    <a
+                      href={message.video}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs bg-slate-800 hover:bg-slate-700 text-red-400 px-2 sm:px-3 py-1 rounded-full flex items-center gap-1"
+                    >
+                      <span>🎥</span> Video
+                    </a>
+                  )}
+                  {message.logo && (
+                    <a
+                      href={message.logo}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs bg-slate-800 hover:bg-slate-700 text-purple-400 px-2 sm:px-3 py-1 rounded-full flex items-center gap-1"
+                    >
+                      <span>🎨</span> Logo
+                    </a>
+                  )}
                 </div>
-              )}
-
-              <div className="flex flex-wrap gap-1 sm:gap-2 mt-3">
-                {message.image && (
-                  <a
-                    href={message.image}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs bg-slate-800 hover:bg-slate-700 text-blue-400 px-2 sm:px-3 py-1 rounded-full flex items-center gap-1"
-                  >
-                    <span>📷</span> Image
-                  </a>
-                )}
-                {message.voiceNote && (
-                  <button
-                    onClick={() => new Audio(message.voiceNote).play()}
-                    className="text-xs bg-slate-800 hover:bg-slate-700 text-green-400 px-2 sm:px-3 py-1 rounded-full flex items-center gap-1"
-                  >
-                    <span>🎤</span> Voice Note
-                  </button>
-                )}
-                {message.video && (
-                  <a
-                    href={message.video}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs bg-slate-800 hover:bg-slate-700 text-red-400 px-2 sm:px-3 py-1 rounded-full flex items-center gap-1"
-                  >
-                    <span>🎥</span> Video
-                  </a>
-                )}
-                {message.logo && (
-                  <a
-                    href={message.logo}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs bg-slate-800 hover:bg-slate-700 text-purple-400 px-2 sm:px-3 py-1 rounded-full flex items-center gap-1"
-                  >
-                    <span>🎨</span> Logo
-                  </a>
-                )}
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {!hasCustomerBrief && !hasAdminResponse && (
           <div className="text-center py-8 sm:py-12 bg-slate-900/30 rounded-xl border border-gray-800">
@@ -246,7 +271,8 @@ export default function ProductBriefThread({ orderId, productId, productName, or
         )}
       </div>
 
-      {hasAdminResponse && (
+      {/* Show reply form ONLY if customer can respond */}
+      {canRespond && (
         <div className="mt-6 sm:mt-8 border-t border-gray-800 pt-6">
           {showResponseForm ? (
             <div className="bg-slate-900/50 rounded-xl border border-gray-800 p-4 sm:p-6">
@@ -274,16 +300,15 @@ export default function ProductBriefThread({ orderId, productId, productName, or
                   variant="primary"
                   size="md"
                   onClick={handleRespond}
-                  loading={responding}
-                  disabled={!responseText.trim()}
+                  disabled={!responseText.trim() || responding}
                   className="w-full sm:w-auto"
                 >
-                  Send Response
+                  {responding ? 'Sending...' : 'Send Response'}
                 </Button>
               </div>
             </div>
           ) : (
-            <div className="text-center">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
                 variant="secondary"
                 size="md"
@@ -292,8 +317,46 @@ export default function ProductBriefThread({ orderId, productId, productName, or
               >
                 Reply to Admin
               </Button>
+              <Button
+                variant="ghost"
+                size="md"
+                onClick={() => router.back()}
+                className="w-full sm:w-auto"
+              >
+                Close Conversation
+              </Button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Show locked message if admin response was viewed and customer already responded */}
+      {hasAdminResponse && isAdminResponseViewed && hasCustomerRespondedAfter && (
+        <div className="mt-6 sm:mt-8 border-t border-gray-800 pt-6 text-center">
+          <div className="bg-gray-800/30 rounded-lg p-4">
+            <p className="text-gray-400 text-sm">
+              ✓ You've already responded to this admin message. Please wait for their reply.
+            </p>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.back()}
+              className="mt-3"
+            >
+              Back to Order
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Show waiting message if admin response exists but not viewed yet */}
+      {hasAdminResponse && !isAdminResponseViewed && (
+        <div className="mt-6 sm:mt-8 border-t border-gray-800 pt-6 text-center">
+          <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-4">
+            <p className="text-yellow-400 text-sm">
+              ⏳ Admin response will be marked as viewed automatically. You can reply once viewed.
+            </p>
+          </div>
         </div>
       )}
     </div>

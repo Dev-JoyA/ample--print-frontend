@@ -27,6 +27,8 @@ export default function AdminShippingPage() {
   const [trackingData, setTrackingData] = useState({
     trackingNumber: '',
     carrier: '',
+    driverName: '',
+    driverPhone: '', 
     estimatedDelivery: ''
   });
 
@@ -160,11 +162,13 @@ export default function AdminShippingPage() {
       await shippingService.updateTracking(selectedShipping._id, {
         trackingNumber: trackingData.trackingNumber,
         carrier: trackingData.carrier,
+         driverName: trackingData.driverName,
+         driverPhone: trackingData.driverPhone,
         estimatedDelivery: trackingData.estimatedDelivery ? new Date(trackingData.estimatedDelivery) : undefined
       });
       setShowTrackingModal(false);
       setSelectedShipping(null);
-      setTrackingData({ trackingNumber: '', carrier: '', estimatedDelivery: '' });
+      setTrackingData({ trackingNumber: '', carrier: '',  driverName: '', driverPhone: '', estimatedDelivery: '' });
       await fetchShippingRecords();
     } catch (err) {
       console.error('Failed to update tracking:', err);
@@ -620,6 +624,12 @@ export default function AdminShippingPage() {
                               {shipping.carrier && (
                                 <p className="text-xs text-gray-400">{shipping.carrier}</p>
                               )}
+                               {shipping.driverName && (
+                                 <p className="text-xs text-gray-400">Driver: {shipping.driverName}</p>
+                             )}
+                             {shipping.driverPhone && (
+                               <p className="text-xs text-gray-400">Contact: {shipping.driverPhone}</p>
+                             )}
                             </div>
                           ) : (
                             <p className="text-sm text-gray-400">Not added</p>
@@ -701,6 +711,31 @@ export default function AdminShippingPage() {
 
                   <div>
                     <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                      Driver Name
+                    </label>
+                    <input
+                      type="text"
+                      value={trackingData.driverName}
+                      onChange={(e) => setTrackingData({ ...trackingData, driverName: e.target.value })}
+                      placeholder="Enter driver's name"
+                      className="w-full bg-slate-800 border border-gray-700 rounded-lg px-4 py-2 sm:py-3 text-white text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                      Driver Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={trackingData.driverPhone}
+                      onChange={(e) => setTrackingData({ ...trackingData, driverPhone: e.target.value })}
+                      placeholder="Enter driver's phone number"
+                      className="w-full bg-slate-800 border border-gray-700 rounded-lg px-4 py-2 sm:py-3 text-white text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
                       Estimated Delivery Date
                     </label>
                     <input
@@ -717,7 +752,7 @@ export default function AdminShippingPage() {
                       onClick={() => {
                         setShowTrackingModal(false);
                         setSelectedShipping(null);
-                        setTrackingData({ trackingNumber: '', carrier: '', estimatedDelivery: '' });
+                        setTrackingData({ trackingNumber: '', carrier: '', driverName: '', driverPhone: '', estimatedDelivery: '' });
                       }}
                       className="flex-1 text-sm"
                     >
@@ -741,3 +776,4 @@ export default function AdminShippingPage() {
     </>
   );
 }
+

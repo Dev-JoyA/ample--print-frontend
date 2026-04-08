@@ -14,7 +14,7 @@ import { useToast } from '@/components/providers/ToastProvider';
 
 const EDITABLE_ORDER_STATUSES = ['Pending', 'OrderReceived', 'FilesUploaded'];
 
-export default function BriefResponsePage({ params }) {
+export default function BriefResponseDetailPage({ params }) {
   const router = useRouter();
   const { id } = React.use(params);
   const { isLoading: authLoading, user } = useProtectedRoute({
@@ -29,18 +29,12 @@ export default function BriefResponsePage({ params }) {
   const [markingViewed, setMarkingViewed] = useState(false);
   const [responding, setResponding] = useState(false);
   const [responseText, setResponseText] = useState('');
-  const [autoViewTimer, setAutoViewTimer] = useState(null);
   const [isEditable, setIsEditable] = useState(false);
 
   useEffect(() => {
     if (!authLoading && user) {
       fetchBrief();
     }
-    return () => {
-      if (autoViewTimer) {
-        clearTimeout(autoViewTimer);
-      }
-    };
   }, [authLoading, user, id]);
 
   const fetchBrief = async () => {
@@ -50,27 +44,16 @@ export default function BriefResponsePage({ params }) {
       setNotFound(false);
       
       const response = await customerBriefService.getById(id);
-      console.log('Brief response:', response);
+      console.log('Brief detail response:', response);
       
       const briefData = response?.data || response;
       
       if (briefData) {
         setBrief(briefData);
+        
         const orderStatus = briefData.orderId?.status;
         const canEdit = EDITABLE_ORDER_STATUSES.includes(orderStatus);
         setIsEditable(canEdit);
-        
-        const isAdminResponse = briefData.role === 'Admin' || 
-                               briefData.role === 'SuperAdmin' || 
-                               briefData.uploadedBy?.role === 'Admin' || 
-                               briefData.uploadedBy?.role === 'SuperAdmin';
-        
-        if (isAdminResponse && canEdit && !briefData.viewed) {
-          const timer = setTimeout(() => {
-            markAsViewed();
-          }, 20000);
-          setAutoViewTimer(timer);
-        }
       } else {
         setNotFound(true);
         setError('Brief not found');
@@ -91,31 +74,22 @@ export default function BriefResponsePage({ params }) {
   const markAsViewed = async () => {
     if (brief?.viewed || markingViewed) return;
     
-    if (autoViewTimer) {
-      clearTimeout(autoViewTimer);
-      setAutoViewTimer(null);
-    }
-    
     try {
       setMarkingViewed(true);
+      
       await customerBriefService.markAsViewed(id);
       
       setBrief(prev => ({ ...prev, viewed: true }));
       showToast('Response marked as reviewed', 'success');
       
+      // Navigate back to order page after marking as viewed
       if (brief?.orderId?._id) {
-        try {
-          const statusResponse = await customerBriefService.getOrderBriefStatus(brief.orderId._id);
-          if (statusResponse?.data?.allProductsReady) {
-            showToast('✨ All responses reviewed! Order is moving to next stage.', 'success');
-          }
-        } catch (err) {
-          console.error('Failed to check order status:', err);
-        }
+        router.push(`/orders/${brief.orderId._id}`);
       }
+      
     } catch (error) {
       console.error('Failed to mark as viewed:', error);
-      showToast('Failed to mark as viewed', 'error');
+      showToast(error.message || 'Failed to mark as viewed', 'error');
     } finally {
       setMarkingViewed(false);
     }
@@ -130,11 +104,7 @@ export default function BriefResponsePage({ params }) {
     try {
       setResponding(true);
       
-      if (autoViewTimer) {
-        clearTimeout(autoViewTimer);
-        setAutoViewTimer(null);
-      }
-      
+      // Submit customer response (creates new customer brief)
       await customerBriefService.submit(
         brief.orderId._id,
         brief.productId._id,
@@ -142,8 +112,9 @@ export default function BriefResponsePage({ params }) {
       );
       
       showToast('Response sent successfully', 'success');
-      await fetchBrief();
-      setResponseText('');
+      
+      // Navigate to the conversation thread to see the full history
+      router.push(`/orders/${brief.orderId._id}/products/${brief.productId._id}/briefs`);
       
     } catch (error) {
       console.error('Failed to send response:', error);
@@ -154,21 +125,18 @@ export default function BriefResponsePage({ params }) {
   };
 
   const isAdminResponse = () => {
-    return brief?.role === 'Admin' || 
-           brief?.role === 'SuperAdmin' || 
-           brief?.uploadedBy?.role === 'Admin' || 
-           brief?.uploadedBy?.role === 'SuperAdmin';
+    return brief?.role === 'admin' || brief?.role === 'superAdmin';
   };
 
   if (authLoading || loading) {
     return (
       <DashboardLayout userRole="customer">
         <SEOHead {...METADATA.briefs} />
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-          <div className="flex justify-center items-center min-h-[50vh] md:min-h-[60vh]">
+        <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 md:py-12">
+          <div className="flex min-h-[50vh] items-center justify-center md:min-h-[60vh]">
             <div className="text-center">
-              <div className="w-12 h-12 md:w-16 md:h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-gray-400 text-sm md:text-base">Loading response...</p>
+              <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent md:h-16 md:w-16"></div>
+              <p className="text-sm text-gray-400 md:text-base">Loading response...</p>
             </div>
           </div>
         </div>
@@ -180,11 +148,11 @@ export default function BriefResponsePage({ params }) {
     return (
       <DashboardLayout userRole="customer">
         <SEOHead {...METADATA.briefs} noIndex={true} />
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-          <div className="bg-red-900/30 border border-red-700 rounded-lg p-6 md:p-8 text-center">
-            <div className="text-5xl md:text-6xl mb-4">😕</div>
-            <p className="text-red-200 text-lg md:text-xl mb-2">Brief Not Found</p>
-            <p className="text-red-300 text-sm md:text-base mb-6">
+        <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 md:py-12">
+          <div className="rounded-lg border border-red-700 bg-red-900/30 p-6 text-center md:p-8">
+            <div className="mb-4 text-5xl md:text-6xl">😕</div>
+            <p className="mb-2 text-lg text-red-200 md:text-xl">Brief Not Found</p>
+            <p className="mb-6 text-sm text-red-300 md:text-base">
               {error || 'The brief you\'re looking for doesn\'t exist or has been deleted.'}
             </p>
             <Link href="/dashboards">
@@ -208,74 +176,71 @@ export default function BriefResponsePage({ params }) {
   return (
     <DashboardLayout userRole="customer">
       <SEOHead {...METADATA.briefs} title={`Brief Response | ${productName}`} />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 lg:py-12">
+      <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-12">
         <div className="mb-4 md:mb-6">
           <Link href={`/orders/${brief.orderId?._id || brief.orderId}`}>
-            <Button variant="ghost" size="sm" className="gap-2 mb-3 md:mb-4">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <Button variant="ghost" size="sm" className="mb-3 gap-2 md:mb-4">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               Back to Order
             </Button>
           </Link>
           
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
+              <h1 className="text-2xl font-bold text-white sm:text-3xl md:text-4xl">
                 {isFromAdmin ? 'Admin Response' : 'Your Message'}
               </h1>
-              <div className="flex flex-wrap items-center gap-2 mt-1">
-                <p className="text-gray-400 text-sm md:text-base">
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                <p className="text-sm text-gray-400 md:text-base">
                   Order #{orderNumber} • {productName}
                 </p>
                 <StatusBadge status={orderStatus} />
               </div>
             </div>
+            {/* Add this above the response form */}
+    <div className="mb-4 rounded-lg border border-gray-700 bg-slate-900/50 p-4">
+    <p className="text-sm text-gray-400 mb-2">Want to see the full conversation?</p>
+    <Link href={`/orders/${brief.orderId?._id}/products/${brief.productId?._id}/briefs`}>
+        <Button variant="secondary" size="sm">View Full Thread</Button>
+    </Link>
+    </div>
             {isFromAdmin && !brief.viewed && isEditable && (
               <Button
                 variant="primary"
                 size="sm"
                 onClick={markAsViewed}
-                loading={markingViewed}
+                disabled={markingViewed}
                 className="w-full sm:w-auto"
               >
-                Mark as Reviewed
+                {markingViewed ? 'Marking...' : 'Mark as Reviewed'}
               </Button>
             )}
             {isFromAdmin && brief.viewed && (
-              <span className="px-3 py-1 bg-green-900/30 text-green-400 rounded-full text-xs sm:text-sm border border-green-700 text-center">
+              <span className="rounded-full border border-green-700 bg-green-900/30 px-3 py-1 text-center text-xs text-green-400 sm:text-sm">
                 ✓ Reviewed
               </span>
             )}
           </div>
 
           {!isEditable && isFromAdmin && (
-            <div className="mt-3 p-3 bg-red-900/30 border border-red-700 rounded-lg">
+            <div className="mt-3 rounded-lg border border-red-700 bg-red-900/30 p-3">
               <p className="text-sm text-red-200">
                 ⚠️ This order is no longer editable (Status: {orderStatus}). 
                 You can view the response but cannot make changes.
               </p>
             </div>
           )}
-
-          {isFromAdmin && !brief.viewed && autoViewTimer && isEditable && (
-            <div className="mt-3 p-2 bg-blue-900/30 border border-blue-700 rounded-lg">
-              <p className="text-xs text-blue-200 flex flex-wrap items-center gap-2">
-                <span className="animate-pulse">⏳</span>
-                This will be automatically marked as reviewed in 20 seconds. 
-                Responding will keep the conversation open.
-              </p>
-            </div>
-          )}
         </div>
 
-        <div className="space-y-4 mb-6">
-          <div className={`p-4 sm:p-6 rounded-xl ${
+        <div className="mb-6 space-y-4">
+          <div className={`rounded-xl p-4 sm:p-6 ${
             isFromAdmin 
-              ? 'bg-blue-900/20 border border-blue-800 ml-0 mr-4 sm:mr-8 md:mr-12' 
-              : 'bg-green-900/20 border border-green-800 ml-4 sm:ml-8 md:ml-12 mr-0'
+              ? 'mr-0 ml-0 border border-blue-800 bg-blue-900/20 sm:mr-8 md:mr-12' 
+              : 'mr-0 ml-0 border border-green-800 bg-green-900/20 sm:ml-8 md:ml-12'
           }`}>
-            <div className="flex flex-wrap items-center gap-2 mb-3">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
               <span className="text-sm font-medium text-white">
                 {isFromAdmin ? 'Admin' : 'You'}
               </span>
@@ -283,14 +248,14 @@ export default function BriefResponsePage({ params }) {
                 {new Date(brief.createdAt).toLocaleString()}
               </span>
               {isFromAdmin && brief.viewed && (
-                <span className="text-xs text-green-400 ml-auto">✓ Reviewed</span>
+                <span className="ml-auto text-xs text-green-400">✓ Reviewed</span>
               )}
             </div>
 
             {hasDesign && (
-              <div className="mb-4 p-3 sm:p-4 bg-slate-800/50 rounded-lg">
-                <p className="text-sm text-purple-400 mb-3">🎨 Design Uploaded</p>
-                <Link href={`/design/${brief.designId}`}>
+              <div className="mb-4 rounded-lg bg-slate-800/50 p-3 sm:p-4">
+                <p className="mb-3 text-sm text-purple-400">🎨 Design Uploaded</p>
+                <Link href={`/designs/${brief.designId}`}>
                   <Button variant="secondary" size="sm">
                     View Design
                   </Button>
@@ -300,7 +265,7 @@ export default function BriefResponsePage({ params }) {
 
             {brief.description && (
               <div className="mb-4">
-                <p className="text-gray-300 whitespace-pre-line text-sm sm:text-base">
+                <p className="whitespace-pre-line text-sm text-gray-300 sm:text-base">
                   {brief.description}
                 </p>
               </div>
@@ -310,17 +275,17 @@ export default function BriefResponsePage({ params }) {
               <div className="space-y-4">
                 {brief.image && (
                   <div>
-                    <p className="text-sm text-gray-400 mb-2">Reference Image:</p>
+                    <p className="mb-2 text-sm text-gray-400">Reference Image:</p>
                     <img 
                       src={brief.image} 
                       alt="Reference" 
-                      className="max-w-full rounded-lg border border-gray-700 max-h-64 md:max-h-96 object-contain"
+                      className="max-h-64 w-full max-w-full rounded-lg border border-gray-700 object-contain md:max-h-96"
                     />
                   </div>
                 )}
                 {brief.voiceNote && (
                   <div>
-                    <p className="text-sm text-gray-400 mb-2">Voice Note:</p>
+                    <p className="mb-2 text-sm text-gray-400">Voice Note:</p>
                     <audio controls className="w-full max-w-full">
                       <source src={brief.voiceNote} type="audio/mpeg" />
                       Your browser does not support the audio element.
@@ -329,8 +294,8 @@ export default function BriefResponsePage({ params }) {
                 )}
                 {brief.video && (
                   <div>
-                    <p className="text-sm text-gray-400 mb-2">Video:</p>
-                    <video controls className="max-w-full rounded-lg border border-gray-700 max-h-64 md:max-h-96">
+                    <p className="mb-2 text-sm text-gray-400">Video:</p>
+                    <video controls className="max-h-64 w-full max-w-full rounded-lg border border-gray-700 md:max-h-96">
                       <source src={brief.video} type="video/mp4" />
                       Your browser does not support the video element.
                     </video>
@@ -342,23 +307,17 @@ export default function BriefResponsePage({ params }) {
         </div>
 
         {isFromAdmin && isEditable && (
-          <div className="bg-slate-900/50 rounded-xl border border-gray-800 p-4 sm:p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Your Response</h2>
+          <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-4 sm:p-6">
+            <h2 className="mb-4 text-lg font-semibold text-white">Your Response</h2>
             <textarea
               value={responseText}
-              onChange={(e) => {
-                setResponseText(e.target.value);
-                if (autoViewTimer && e.target.value.length > 0) {
-                  clearTimeout(autoViewTimer);
-                  setAutoViewTimer(null);
-                }
-              }}
+              onChange={(e) => setResponseText(e.target.value)}
               placeholder="Type your response here..."
-              className="w-full bg-slate-800 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-primary text-sm sm:text-base"
+              className="w-full rounded-lg border border-gray-700 bg-slate-800 p-3 text-sm text-white focus:border-primary focus:outline-none sm:text-base"
               rows={4}
             />
             
-            <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-4">
+            <div className="mt-4 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <Button
                 variant="outline"
                 size="md"
@@ -371,48 +330,46 @@ export default function BriefResponsePage({ params }) {
                 variant="primary"
                 size="md"
                 onClick={handleRespond}
-                loading={responding}
-                disabled={!responseText.trim()}
+                disabled={responding || !responseText.trim()}
                 className="w-full sm:w-auto"
               >
-                Send Response
+                {responding ? 'Sending...' : 'Send Response'}
               </Button>
             </div>
 
-            <p className="text-xs text-gray-500 mt-3">
+            <p className="mt-3 text-xs text-gray-500">
               Note: Responding will create a new message and keep this conversation open.
             </p>
           </div>
         )}
 
         <div className={`mt-6 rounded-lg border p-3 sm:p-4 ${
-          !isEditable ? 'bg-red-900/30 border-red-700' :
-          brief.viewed ? 'bg-green-900/30 border-green-700' : 
-          'bg-yellow-900/30 border-yellow-700'
+          !isEditable ? 'border-red-700 bg-red-900/30' :
+          brief.viewed ? 'border-green-700 bg-green-900/30' : 
+          'border-yellow-700 bg-yellow-900/30'
         }`}>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
             <span className="text-2xl">{!isEditable ? '🔒' : brief.viewed ? '✅' : '⏳'}</span>
             <div>
               {!isEditable ? (
                 <>
-                  <p className="text-red-400 font-medium text-sm sm:text-base">Order Locked</p>
-                  <p className="text-xs sm:text-sm text-gray-400">
+                  <p className="text-sm font-medium text-red-400 sm:text-base">Order Locked</p>
+                  <p className="text-xs text-gray-400 sm:text-sm">
                     This order is in {orderStatus} status and cannot be modified.
                   </p>
                 </>
               ) : brief.viewed ? (
                 <>
-                  <p className="text-green-400 font-medium text-sm sm:text-base">Response Reviewed</p>
-                  <p className="text-xs sm:text-sm text-gray-400">
+                  <p className="text-sm font-medium text-green-400 sm:text-base">Response Reviewed</p>
+                  <p className="text-xs text-gray-400 sm:text-sm">
                     You've reviewed this response. The order will proceed when all items are ready.
                   </p>
                 </>
               ) : (
                 <>
-                  <p className="text-yellow-400 font-medium text-sm sm:text-base">Awaiting Your Review</p>
-                  <p className="text-xs sm:text-sm text-gray-400">
+                  <p className="text-sm font-medium text-yellow-400 sm:text-base">Awaiting Your Review</p>
+                  <p className="text-xs text-gray-400 sm:text-sm">
                     Please review this response. You can either mark it as reviewed or respond back.
-                    {autoViewTimer && " It will auto-review in 20 seconds if you don't respond."}
                   </p>
                 </>
               )}
@@ -420,7 +377,7 @@ export default function BriefResponsePage({ params }) {
           </div>
         </div>
 
-        <div className="mt-6 flex flex-col sm:flex-row justify-end gap-3">
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
           {brief.viewed ? (
             <Link href={`/orders/${brief.orderId?._id || brief.orderId}`} className="w-full sm:w-auto">
               <Button variant="primary" size="md" className="w-full sm:w-auto">
@@ -437,15 +394,15 @@ export default function BriefResponsePage({ params }) {
               >
                 Back
               </Button>
-              {isFromAdmin && isEditable && (
+              {isFromAdmin && isEditable && !brief.viewed && (
                 <Button 
                   variant="primary" 
                   size="md"
                   onClick={markAsViewed}
-                  loading={markingViewed}
+                  disabled={markingViewed}
                   className="w-full sm:w-auto"
                 >
-                  I've Reviewed This
+                  {markingViewed ? 'Marking...' : 'I\'ve Reviewed This'}
                 </Button>
               )}
             </>

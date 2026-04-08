@@ -2,16 +2,10 @@ import { api } from "@/lib/api";
 import { API_PATHS, API_DEFAULTS } from "@/lib/constants";
 
 export const customerBriefService = {
-  submit: (orderId, productId, data) => {
-    console.log(`📋 Submitting brief for order ${orderId}, product ${productId}:`, data);
-    const formData = new FormData();
-    if (data.description) formData.append('description', data.description);
-    if (data.image) formData.append('image', data.image);
-    if (data.voiceNote) formData.append('voiceNote', data.voiceNote);
-    if (data.video) formData.append('video', data.video);
-    if (data.logo) formData.append('logo', data.logo);
-    return api.upload(API_PATHS.CUSTOMER_BRIEFS.SUBMIT(orderId, productId), formData);
-  },
+ submit: (orderId, productId, formData) => {
+  console.log(`📋 Submitting brief for order ${orderId}, product ${productId}`);
+  return api.upload(API_PATHS.CUSTOMER_BRIEFS.SUBMIT(orderId, productId), formData);
+},
 
   update: (orderId, productId, formData) =>
     api.put(API_PATHS.CUSTOMER_BRIEFS.UPDATE(orderId, productId), formData),
