@@ -24,6 +24,45 @@ export const getImageUrl = (imagePath) => {
   return `${baseUrl}/api/images/${encodeURIComponent(filename)}`;
 };
 
+export const getDownloadUrl = (filePath) => {
+  if (!filePath) return null;
+  
+  if (filePath.startsWith('http')) {
+    if (filePath.includes('localhost:4001') && typeof window !== 'undefined') {
+      return filePath.replace('http://localhost:4001', getBaseUrl());
+    }
+    return filePath;
+  }
+  
+  let filename = filePath;
+  if (filePath.includes('/')) {
+    filename = filePath.split('/').pop();
+  }
+  
+  const baseUrl = getBaseUrl();
+  const cleanBaseUrl = baseUrl.replace(/\/api\/v1$/, '');
+  return `${cleanBaseUrl}/api/download/${encodeURIComponent(filename)}`;
+};
+
+export const getAudioUrl = (audioPath) => {
+  if (!audioPath) return null;
+  
+  if (audioPath.startsWith('http')) {
+    if (audioPath.includes('localhost:4001') && typeof window !== 'undefined') {
+      return audioPath.replace('http://localhost:4001', getBaseUrl());
+    }
+    return audioPath;
+  }
+  
+  let filename = audioPath;
+  if (audioPath.includes('/')) {
+    filename = audioPath.split('/').pop();
+  }
+  
+  const baseUrl = getBaseUrl();
+  return `${baseUrl}/api/images/${encodeURIComponent(filename)}`;
+};
+
 export const getReceiptUrl = (receiptPath) => {
   if (!receiptPath) return null;
   

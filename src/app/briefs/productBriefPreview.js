@@ -8,7 +8,7 @@ import { customerBriefService } from '@/services/customerBriefService';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function ProductBriefPreview({ orderId, productId, productName }) {
-  const [conversation, setConversation] = useState(null);
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -21,14 +21,15 @@ export default function ProductBriefPreview({ orderId, productId, productName })
       setLoading(true);
       const response = await customerBriefService.getByOrderAndProduct(orderId, productId);
       
-      let data = null;
-      if (response?.data) {
-        data = response.data;
-      } else if (response) {
-        data = response;
+      let msgs = [];
+      if (response?.data && Array.isArray(response.data)) {
+        msgs = response.data;
+      } else if (Array.isArray(response)) {
+        msgs = response;
       }
       
-      setConversation(data);
+      msgs.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      setMessages(msgs);
     } catch (err) {
       console.error('Failed to fetch brief conversation:', err);
       setError('Could not load briefs');
@@ -38,39 +39,39 @@ export default function ProductBriefPreview({ orderId, productId, productName })
   };
 
   const getLatestMessage = () => {
-    if (!conversation) return null;
-    
-    const messages = [];
-    if (conversation.customer) messages.push({ ...conversation.customer, role: 'customer' });
-    if (conversation.admin) messages.push({ ...conversation.admin, role: 'admin' });
-    if (conversation.superAdmin) messages.push({ ...conversation.superAdmin, role: 'superAdmin' });
-    
     if (messages.length === 0) return null;
-    
-    return messages.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+    return messages[messages.length - 1];
   };
 
   const getRoleIcon = (role) => {
-    switch(role) {
+    switch(role?.toLowerCase()) {
       case 'customer': return '👤';
       case 'admin': return '👨‍💼';
-      case 'superAdmin': return '👑';
+      case 'super-admin': return '👑';
       default: return '📝';
     }
   };
 
   const getRoleColor = (role) => {
-    switch(role) {
+    switch(role?.toLowerCase()) {
       case 'customer': return 'bg-blue-900/30 text-blue-400 border-blue-700';
       case 'admin': return 'bg-green-900/30 text-green-400 border-green-700';
-      case 'superAdmin': return 'bg-purple-900/30 text-purple-400 border-purple-700';
+      case 'super-admin': return 'bg-purple-900/30 text-purple-400 border-purple-700';
       default: return 'bg-gray-900/30 text-gray-400 border-gray-700';
     }
   };
 
-  const hasAttachments = (brief) => {
-    return brief?.image || brief?.voiceNote || brief?.video || brief?.logo;
+  const hasAttachments = (msg) => {
+    return msg?.image || msg?.voiceNote || msg?.video || msg?.logo;
   };
+
+  const hasCustomerBrief = messages.some(m => m.role === 'customer');
+  const hasAdminResponse = messages.some(m => m.role === 'admin' || m.role === 'super-admin');
+  const latestMessage = getLatestMessage();
+  const isPendingResponse = latestMessage && 
+    (latestMessage.role === 'admin' || latestMessage.role === 'super-admin') && 
+    latestMessage.status === 'responded' &&
+    !latestMessage.viewed;
 
   if (loading) {
     return (
@@ -87,10 +88,6 @@ export default function ProductBriefPreview({ orderId, productId, productName })
       </div>
     );
   }
-
-  const hasCustomerBrief = !!conversation?.customer;
-  const hasAdminResponse = !!(conversation?.admin || conversation?.superAdmin);
-  const latestMessage = getLatestMessage();
 
   if (!hasCustomerBrief && !hasAdminResponse) {
     return (
@@ -121,9 +118,14 @@ export default function ProductBriefPreview({ orderId, productId, productName })
               <span className="text-xs text-gray-500">
                 {formatDistanceToNow(new Date(latestMessage.createdAt), { addSuffix: true })}
               </span>
-              {latestMessage.role !== 'customer' && !conversation.customer?.viewed && (
-                <span className="text-xs bg-yellow-600/20 text-yellow-400 px-1.5 py-0.5 rounded-full">
-                  New
+              {isPendingResponse && (
+                <span className="text-xs bg-yellow-600/20 text-yellow-400 px-1.5 py-0.5 rounded-full animate-pulse">
+                  Needs Review
+                </span>
+              )}
+              {latestMessage.status === 'complete' && (
+                <span className="text-xs bg-green-600/20 text-green-400 px-1.5 py-0.5 rounded-full">
+                  Complete
                 </span>
               )}
             </div>
@@ -149,11 +151,11 @@ export default function ProductBriefPreview({ orderId, productId, productName })
           {hasCustomerBrief && (
             <span className="text-green-400 text-xs">✓ Your brief submitted</span>
           )}
-          {hasAdminResponse && !conversation.customer?.viewed && (
-            <span className="text-yellow-400 animate-pulse text-xs">● Admin response</span>
+          {isPendingResponse && (
+            <span className="text-yellow-400 animate-pulse text-xs">● Admin response waiting</span>
           )}
         </div>
-        <Link href={`/orders/${orderId}/products/${productId}/briefs`}>
+        <Link href={`/briefs/${latestMessage?._id}`}>
           <span className="text-primary hover:text-primary-dark text-xs font-medium cursor-pointer">
             View Full Conversation →
           </span>

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import Button from "@/components/ui/Button";
-import StatusBadge from "@/components/ui/StatusBadge";
 import SEOHead from "@/components/common/SEOHead";
 import { invoiceService } from "@/services/invoiceService";
 import { profileService } from "@/services/profileService";
@@ -20,6 +19,7 @@ export default function InvoicesPage() {
   const [filter, setFilter] = useState("all");
   const [deleting, setDeleting] = useState(null);
   const [sending, setSending] = useState(null);
+  const [downloading, setDownloading] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [customerData, setCustomerData] = useState({});
 
@@ -204,6 +204,31 @@ export default function InvoicesPage() {
       alert("Failed to send invoice");
     } finally {
       setSending(null);
+    }
+  };
+
+  const handleDownloadInvoice = async (invoiceId) => {
+    try {
+      setDownloading(invoiceId);
+      const blob = await invoiceService.downloadInvoice(invoiceId);
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `invoice-${invoiceId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      // Clean up the object URL
+      window.URL.revokeObjectURL(url);
+      
+    } catch (err) {
+      console.error("Failed to download invoice:", err);
+      alert("Failed to download invoice. Please try again.");
+    } finally {
+      setDownloading(null);
     }
   };
 
@@ -518,6 +543,14 @@ export default function InvoicesPage() {
                                 className="text-sm text-yellow-400 hover:text-yellow-300"
                               >
                                 Edit
+                              </button>
+                              
+                              <button
+                                onClick={() => handleDownloadInvoice(invoice._id)}
+                                disabled={downloading === invoice._id}
+                                className="text-sm text-purple-400 hover:text-purple-300 disabled:opacity-50"
+                              >
+                                {downloading === invoice._id ? "..." : "Download"}
                               </button>
                               
                               {invoice.status === "Draft" && (

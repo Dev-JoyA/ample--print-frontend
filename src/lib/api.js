@@ -132,6 +132,33 @@ export const api = {
     });
     return handleResponse(response);
   },
+
+  getBlob: async (endpoint, options = {}) => {
+  const token = getToken();
+  
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    method: "GET",
+    headers: {
+      "Authorization": token ? `Bearer ${token}` : "",
+    },
+    credentials: "include",
+    ...options.fetchOpts,
+  });
+
+  if (!response.ok) {
+    const contentType = response.headers.get("content-type");
+    const isJson = contentType?.includes("application/json");
+    const data = isJson ? await response.json() : await response.text();
+    
+    const err = new Error(
+      (typeof data === "object" ? data?.message : data) || `HTTP ${response.status}`
+    );
+    err.status = response.status;
+    throw err;
+  }
+
+  return response.blob();
+},
 };
 
 export { API_BASE_URL, getToken };

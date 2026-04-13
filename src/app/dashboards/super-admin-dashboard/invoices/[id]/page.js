@@ -332,7 +332,7 @@ export default function InvoiceDetailPage() {
         <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="mb-8">
             <button
-              onClick={() => router.back()}
+              onClick={() => router.push('/dashboards/super-admin-dashboard/orders?filter=needs-invoice')}
               className="mb-4 flex items-center gap-2 text-gray-400 transition-colors hover:text-white"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

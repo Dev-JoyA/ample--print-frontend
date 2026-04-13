@@ -37,18 +37,32 @@ export const orderService = {
     return api.get(q ? `${API_PATHS.ORDERS.READY_FOR_INVOICE}?${q}` : API_PATHS.ORDERS.READY_FOR_INVOICE);
   },
 
-  getOrdersReadyForInvoice: async (params = {}) => {
-    console.log("📋 Fetching orders ready for invoice");
-    try {
-      const q = new URLSearchParams(params || {}).toString();
-      const response = await api.get(q ? `${API_PATHS.ORDERS.READY_FOR_INVOICE}?${q}` : API_PATHS.ORDERS.READY_FOR_INVOICE);
-      console.log("✅ Orders ready for invoice:", response);
-      return response;
-    } catch (error) {
-      console.error("❌ Failed to fetch orders ready for invoice:", error);
-      return { orders: [], total: 0 };
-    }
-  },
+//   getOrdersReadyForInvoice: async (params = {}) => {
+//     console.log("📋 Fetching orders ready for invoice");
+//     try {
+//       const q = new URLSearchParams(params || {}).toString();
+//       const response = await api.get(q ? `${API_PATHS.ORDERS.READY_FOR_INVOICE}?${q}` : API_PATHS.ORDERS.READY_FOR_INVOICE);
+//       console.log("✅ Orders ready for invoice:", response);
+//       return response;
+//     } catch (error) {
+//       console.error("❌ Failed to fetch orders ready for invoice:", error);
+//       return { orders: [], total: 0 };
+//     }
+//   },
+
+getOrdersReadyForInvoice: async (params = {}) => {
+  console.log("📋 Fetching orders ready for invoice");
+  try {
+    const { page = 1, limit = 10, ...rest } = params;
+    const q = new URLSearchParams({ page, limit, ...rest }).toString();
+    const response = await api.get(q ? `${API_PATHS.ORDERS.READY_FOR_INVOICE}?${q}` : API_PATHS.ORDERS.READY_FOR_INVOICE);
+    console.log("✅ Orders ready for invoice:", response);
+    return response;
+  } catch (error) {
+    console.error("❌ Failed to fetch orders ready for invoice:", error);
+    return { orders: [], total: 0, page: 1, pages: 0 };
+  }
+},
 
   searchByOrderNumber: async (orderNumber) => {
     console.log(`🔍 Searching for order: ${orderNumber}`);

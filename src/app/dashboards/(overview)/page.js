@@ -8,7 +8,6 @@ import SummaryCard from '@/components/cards/SummaryCard';
 import OrderCard from '@/components/cards/OrderCard';
 import InvoiceCard from '@/components/cards/InvoiceCard';
 import Button from '@/components/ui/Button';
-import Textarea from '@/components/ui/Textarea';
 import SEOHead from '@/components/common/SEOHead';
 import { METADATA } from '@/lib/metadata';
 import { useProtectedRoute } from '@/app/lib/auth';
@@ -17,7 +16,6 @@ import { feedbackService } from '@/services/feedbackService';
 import { orderService } from '@/services/orderService';
 import { invoiceService } from '@/services/invoiceService';
 import { customerBriefService } from '@/services/customerBriefService';
-import { useNotifications } from '@/components/providers/NotificationProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 
 const EDITABLE_ORDER_STATUSES = ['Pending', 'OrderReceived', 'FilesUploaded'];
@@ -28,7 +26,6 @@ export default function CustomerDashboard() {
     redirectTo: '/auth/sign-in'
   });
   const { showToast } = useToast();
-  const { unreadCount, isConnected } = useNotifications();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -186,63 +183,20 @@ export default function CustomerDashboard() {
     try {
       if (!user?.userId) return;
       
-      const response = await orderService.getMyOrders({ limit: 100 });
+      const response = await customerBriefService.getPendingResponses();
       
-      let orders = [];
-      if (response?.order && Array.isArray(response.order)) {
-        orders = response.order;
-      } else if (response?.orders && Array.isArray(response.orders)) {
-        orders = response.orders;
+      let pendingResponses = [];
+      if (response?.success && Array.isArray(response?.data)) {
+        pendingResponses = response.data;
       } else if (Array.isArray(response)) {
-        orders = response;
+        pendingResponses = response;
       }
-      
-      const briefResponsePromises = orders.map(async (order) => {
-        if (!order.items || order.items.length === 0) return [];
-        
-        const productResponses = [];
-        
-        for (const item of order.items) {
-          const productId = item.productId?._id || item.productId;
-          try {
-            const briefResponse = await customerBriefService.getByOrderAndProduct(order._id, productId);
-            const briefData = briefResponse?.data || briefResponse;
-            
-            if (briefData?.admin && !briefData.admin.viewed) {
-              const hasNewerCustomerResponse = briefData.customer && 
-                new Date(briefData.customer.createdAt) > new Date(briefData.admin.createdAt);
-              
-              if (!hasNewerCustomerResponse) {
-                productResponses.push({
-                  orderId: order._id,
-                  orderNumber: order.orderNumber,
-                  productName: item.productName,
-                  briefId: briefData.admin._id,
-                  respondedAt: briefData.admin.createdAt,
-                  hasDesign: !!briefData.admin.designId,
-                  description: briefData.admin.description
-                });
-              }
-            }
-          } catch (err) {
-            // No brief found for this product
-          }
-        }
-        
-        return productResponses;
-      });
-      
-      const results = await Promise.all(briefResponsePromises);
-      const pendingResponses = results.flat().filter(r => r !== null);
-      
-      pendingResponses.sort((a, b) => new Date(b.respondedAt) - new Date(a.respondedAt));
       
       setPendingBriefResponses(pendingResponses);
       setStats(prev => ({
         ...prev,
         pendingBriefResponses: pendingResponses.length
       }));
-      
     } catch (error) {
       console.error('Failed to fetch pending brief responses:', error);
     }
@@ -326,6 +280,20 @@ export default function CustomerDashboard() {
     } catch {
       return 'Invalid date';
     }
+  };
+
+  const getTimeAgo = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${diffDays}d ago`;
   };
 
   if (authLoading || loading) {
@@ -480,9 +448,9 @@ export default function CustomerDashboard() {
             </div>
             
             <div className="space-y-3">
-              {pendingBriefResponses.slice(0, 3).map((response, idx) => (
+              {pendingBriefResponses.slice(0, 2).map((response, idx) => (
                 <div 
-                  key={idx}
+                  key={response.briefId || idx}
                   onClick={() => handleViewBriefResponse(response.briefId)}
                   className="cursor-pointer rounded-lg border border-purple-800 bg-gradient-to-br from-purple-900/20 to-purple-950/20 p-4 transition hover:border-purple-600"
                 >
@@ -503,13 +471,7 @@ export default function CustomerDashboard() {
                         <p className="mt-1 text-xs text-gray-400 line-clamp-1">{response.description}</p>
                       )}
                       <p className="mt-2 text-xs text-gray-500">
-                        {new Date(response.respondedAt).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                        {getTimeAgo(response.respondedAt)}
                       </p>
                     </div>
                     <Button variant="primary" size="sm" className="w-full sm:w-auto">
