@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import Button from '@/components/ui/Button';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -13,7 +12,7 @@ import { productService } from '@/services/productService';
 import { orderService } from '@/services/orderService';
 import { customerBriefService } from '@/services/customerBriefService';
 import { METADATA, getProductMetadata } from '@/lib/metadata';
-import { getImageUrl, getProductImageUrl } from '@/lib/imageUtils';
+import { getImageUrl } from '@/lib/imageUtils';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -107,6 +106,10 @@ export default function ProductDetailPage() {
     if (product?.image) images.push(product.image);
     if (product?.images?.length) images.push(...product.images);
     return images;
+  };
+
+  const handleImageError = (imagePath, index) => {
+    console.error('Image failed to load:', imagePath);
   };
 
   const handleFileUpload = (e, type) => {
@@ -484,11 +487,11 @@ ${new Date().toLocaleString()}
                 </svg>
               </button>
               <div className="relative h-[80vh] w-full max-w-4xl">
-                <Image
-                  src={getImageUrl(images[selectedImageIndex])}
+                <img 
+                  src={`${getImageUrl(images[selectedImageIndex])}?t=${Date.now()}`}
                   alt={product.name}
-                  fill
-                  className="object-contain"
+                  className="h-full w-full object-contain"
+                  crossOrigin="anonymous"
                 />
               </div>
               {images.length > 1 && (
@@ -527,11 +530,12 @@ ${new Date().toLocaleString()}
                 onClick={() => setShowFullscreenImage(true)}
               >
                 {images.length > 0 ? (
-                  <Image
-                    src={getImageUrl(images[selectedImageIndex])}
+                  <img 
+                    src={`${getImageUrl(images[selectedImageIndex])}?t=${Date.now()}`}
                     alt={product.name}
-                    fill
-                    className="object-cover"
+                    className="h-full w-full object-cover"
+                    crossOrigin="anonymous"
+                    onError={() => handleImageError(images[selectedImageIndex], 'main')}
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center">
@@ -572,11 +576,13 @@ ${new Date().toLocaleString()}
                   {images.map((img, index) => (
                     <img 
                       key={index}
-                      src={getImageUrl(img)} 
+                      src={`${getImageUrl(img)}?t=${Date.now()}`}
                       alt={`${product.name} - Image ${index + 1}`}
+                      crossOrigin="anonymous"
                       className={`aspect-square w-full cursor-pointer rounded-md object-cover transition hover:opacity-80 ${
                         selectedImageIndex === index ? 'ring-2 ring-primary' : ''
                       }`}
+                      onError={() => handleImageError(img, index)}
                       onClick={() => setSelectedImageIndex(index)}
                     />
                   ))}

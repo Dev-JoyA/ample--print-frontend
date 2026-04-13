@@ -10,6 +10,7 @@ import { useAuthCheck } from '@/app/lib/auth';
 import { customerBriefService } from '@/services/customerBriefService';
 import { orderService } from '@/services/orderService';
 import { METADATA } from '@/lib/metadata';
+import { getImageUrl, getAudioUrl, getDownloadUrl, getProductImageUrl } from '@/lib/imageUtils';
 
 export default function CustomerBriefsPage() {
   useAuthCheck();
@@ -99,7 +100,14 @@ export default function CustomerBriefsPage() {
       } else if (Array.isArray(response)) {
         briefsData = response;
       }
-      
+       console.log('Briefs data count:', briefsData.length);
+        console.log('Briefs data details:', briefsData.map(b => ({ 
+        id: b._id, 
+        product: b.productName, 
+        order: b.orderNumber,
+        status: b.status 
+        })));
+
       setBriefs(briefsData);
     } catch (err) {
       console.error('Failed to fetch briefs:', err);
@@ -109,6 +117,7 @@ export default function CustomerBriefsPage() {
     }
   };
 
+  // FIXED: fetchConversation - properly handles array response from backend
   const fetchConversation = async (orderId, productId) => {
     try {
       setLoadingConversation(true);
@@ -116,19 +125,29 @@ export default function CustomerBriefsPage() {
       const response = await customerBriefService.getByOrderAndProduct(orderId, productId);
       console.log('Conversation response:', response);
       
-      const briefs = [];
-      if (response?.data) {
+      let allMessages = [];
+      
+      // Check if response.data is an array (new format)
+      if (response?.data && Array.isArray(response.data)) {
+        allMessages = response.data;
+      } 
+      // Check if response itself is an array
+      else if (Array.isArray(response)) {
+        allMessages = response;
+      }
+      // Old format fallback
+      else if (response?.data) {
         const data = response.data;
-        if (data.customer) briefs.push({ ...data.customer, role: 'customer' });
-        if (data.admin) briefs.push({ ...data.admin, role: 'admin' });
-        if (data.superAdmin) briefs.push({ ...data.superAdmin, role: 'super-admin' });
-      } else if (Array.isArray(response)) {
-        briefs.push(...response);
+        if (data.customer) allMessages.push({ ...data.customer, role: 'customer' });
+        if (data.admin) allMessages.push({ ...data.admin, role: 'admin' });
+        if (data.superAdmin) allMessages.push({ ...data.superAdmin, role: 'super-admin' });
       }
       
-      briefs.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      // Sort chronologically (oldest first)
+      allMessages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
       
-      setConversation(briefs);
+      console.log('Processed messages:', allMessages);
+      setConversation(allMessages);
     } catch (err) {
       console.error('Failed to fetch conversation:', err);
     } finally {
@@ -137,7 +156,7 @@ export default function CustomerBriefsPage() {
   };
 
   const determineBriefStatus = (brief) => {
-    if (brief.viewed) return 'viewed';
+    if (brief.viewedByAdmin) return 'viewed';
     if (brief.hasAdminResponse) return 'responded';
     return 'pending';
   };
@@ -152,7 +171,7 @@ export default function CustomerBriefsPage() {
   const handleMarkAsViewed = async (briefId) => {
     try {
       setMarkingViewed(true);
-      await customerBriefService.markAsViewed(briefId);
+      await customerBriefService.markAsViewedByAdmin(briefId);
       await fetchBriefs();
     } catch (err) {
       console.error('Failed to mark as viewed:', err);
@@ -318,16 +337,6 @@ export default function CustomerBriefsPage() {
     }
   };
 
-  const getImageUrl = (path) => {
-    if (!path) return '';
-    if (path.startsWith('http')) return path;
-    let filename = path;
-    if (path.includes('/')) {
-      filename = path.split('/').pop();
-    }
-    return `http://localhost:4001/api/v1/attachments/download/${filename}`;
-  };
-
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleString('en-US', {
@@ -353,13 +362,16 @@ export default function CustomerBriefsPage() {
     return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
   };
 
+  // FIXED: getRoleBadge - case insensitive
   const getRoleBadge = (role) => {
-    switch(role) {
+    const roleLower = role?.toLowerCase();
+    switch(roleLower) {
       case 'customer':
         return <span className="bg-blue-600/20 text-blue-400 px-2 py-1 rounded-full text-xs font-medium">Customer</span>;
       case 'admin':
         return <span className="bg-green-600/20 text-green-400 px-2 py-1 rounded-full text-xs font-medium">Admin</span>;
       case 'super-admin':
+      case 'superadmin':
         return <span className="bg-purple-600/20 text-purple-400 px-2 py-1 rounded-full text-xs font-medium">Super Admin</span>;
       default:
         return null;
@@ -383,10 +395,10 @@ export default function CustomerBriefsPage() {
 
   const stats = {
     total: briefs.length,
-    pending: briefs.filter(b => !b.hasAdminResponse && !b.viewed).length,
-    responded: briefs.filter(b => b.hasAdminResponse && !b.viewed).length,
-    viewed: briefs.filter(b => b.viewed).length,
-    hasFiles: briefs.filter(b => b.image || b.voiceNote || b.video || b.logo).length
+    pending: briefs.filter(b => b.status === 'pending').length,
+    responded: briefs.filter(b => b.status === 'responded').length,
+    viewed: briefs.filter(b => b.status === 'viewed').length,
+    hasFiles: briefs.filter(b => b.hasFiles).length
   };
 
   return (
@@ -548,11 +560,11 @@ export default function CustomerBriefsPage() {
             {!loading && briefs.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {briefs.map((brief) => {
-                  const status = determineBriefStatus(brief);
-                  const orderNumber = brief.orderId?.orderNumber || 'N/A';
-                  const productName = brief.productId?.name || brief.productName || 'Unknown Product';
-                  const customerName = brief.orderId?.userId?.email?.split('@')[0] || 'Customer';
-                  const hasFiles = brief.image || brief.voiceNote || brief.video || brief.logo;
+                  const status = brief.status || determineBriefStatus(brief);
+                  const orderNumber = brief.orderNumber || brief.orderId?.orderNumber || 'N/A';
+                  const productName = brief.productName || brief.productId?.name || 'Unknown Product';
+                  const customerName = brief.customerName || brief.orderId?.userId?.email?.split('@')[0] || 'Customer';
+                  const hasFiles = brief.hasFiles || brief.image || brief.voiceNote || brief.video || brief.logo;
                   
                   return (
                     <div
@@ -683,24 +695,17 @@ export default function CustomerBriefsPage() {
           </div>
         </div>
 
+        {/* Modal for viewing/responding to brief */}
         {selectedBrief && (
           <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
             <div className="bg-slate-900 rounded-2xl border border-gray-800 w-full max-w-4xl max-h-[90vh] flex flex-col">
               <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-800">
                 <div>
                   <div className="flex flex-wrap items-center gap-3 mb-1">
-                    <h2 className="text-xl sm:text-2xl font-bold text-white">Customer Brief</h2>
-                    {(() => {
-                      const status = determineBriefStatus(selectedBrief);
-                      return (
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium bg-${statusColors[status]}-600/20 text-${statusColors[status]}-400`}>
-                          {status.charAt(0).toUpperCase() + status.slice(1)}
-                        </span>
-                      );
-                    })()}
+                    <h2 className="text-xl sm:text-2xl font-bold text-white">Conversation Thread</h2>
                   </div>
                   <p className="text-sm text-gray-400">
-                    Order #{selectedBrief.orderId?.orderNumber || 'N/A'} • {selectedBrief.productId?.name || selectedBrief.productName}
+                    Order #{selectedBrief.orderNumber || selectedBrief.orderId?.orderNumber || 'N/A'} • {selectedBrief.productName || selectedBrief.productId?.name || 'Product'}
                   </p>
                 </div>
                 <button
@@ -719,109 +724,113 @@ export default function CustomerBriefsPage() {
                     <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin"></div>
                   </div>
                 ) : conversation.length > 0 ? (
-                  conversation.map((msg, index) => (
-                    <div
-                      key={index}
-                      className={`flex ${msg.role === 'admin' || msg.role === 'super-admin' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div className={`max-w-[90%] sm:max-w-[80%] ${
-                        msg.role === 'admin' || msg.role === 'super-admin'
-                          ? 'bg-primary/10 border border-primary/20' 
-                          : 'bg-slate-800/50 border border-gray-700'
-                      } rounded-xl p-3 sm:p-4`}>
-                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                          {getRoleBadge(msg.role)}
-                          <span className="text-xs text-gray-500">{formatDate(msg.createdAt)}</span>
-                        </div>
+                  conversation.map((msg, index) => {
+                    const isAdminMsg = msg.role === 'admin' || msg.role === 'super-admin' || msg.role === 'superadmin';
+                    
+                    return (
+                      <div
+                        key={index}
+                        className={`flex ${isAdminMsg ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div className={`max-w-[90%] sm:max-w-[80%] ${
+                          isAdminMsg
+                            ? 'bg-primary/10 border border-primary/20' 
+                            : 'bg-slate-800/50 border border-gray-700'
+                        } rounded-xl p-3 sm:p-4`}>
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            {getRoleBadge(msg.role)}
+                            <span className="text-xs text-gray-500">{formatDate(msg.createdAt)}</span>
+                          </div>
 
-                        {msg.description && (
-                          <p className="text-gray-300 whitespace-pre-wrap mb-3 text-sm">
-                            {msg.description}
-                          </p>
-                        )}
+                          {msg.description && (
+                            <p className="text-gray-300 whitespace-pre-wrap mb-3 text-sm">
+                              {msg.description}
+                            </p>
+                          )}
 
-                        <div className="flex flex-wrap gap-2">
-                          {msg.image && (
-                            <div className="flex flex-wrap gap-2">
-                              <button
-                                onClick={() => setPreviewImage(getImageUrl(msg.image))}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-blue-400 transition"
-                              >
-                                <span>🖼️</span>
-                                View Image
-                              </button>
-                              <a
-                                href={getImageUrl(msg.image)}
-                                download
-                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-gray-300 transition"
-                              >
-                                <span>⬇️</span>
-                                Download
-                              </a>
-                            </div>
-                          )}
-                          
-                          {msg.voiceNote && (
-                            <div className="flex flex-wrap items-center gap-2 px-3 py-1.5 bg-slate-700/50 rounded-lg">
-                              <span className="text-green-400">🎤</span>
-                              <audio controls className="h-8 max-w-[150px] sm:max-w-[200px]">
-                                <source src={getImageUrl(msg.voiceNote)} type="audio/webm" />
-                              </audio>
-                              <a
-                                href={getImageUrl(msg.voiceNote)}
-                                download
-                                className="text-gray-400 hover:text-white"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                              </a>
-                            </div>
-                          )}
-                          
-                          {msg.video && (
-                            <div className="flex flex-wrap gap-2">
-                              <button
-                                onClick={() => setPreviewVideo(getImageUrl(msg.video))}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-red-400 transition"
-                              >
-                                <span>🎥</span>
-                                View Video
-                              </button>
-                              <a
-                                href={getImageUrl(msg.video)}
-                                download
-                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-gray-300 transition"
-                              >
-                                <span>⬇️</span>
-                                Download
-                              </a>
-                            </div>
-                          )}
-                          
-                          {msg.logo && (
-                            <div className="flex flex-wrap gap-2">
-                              <button
-                                onClick={() => setPreviewImage(getImageUrl(msg.logo))}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-purple-400 transition"
-                              >
-                                <span>🎨</span>
-                                View Logo
-                              </button>
-                              <a
-                                href={getImageUrl(msg.logo)}
-                                download
-                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-gray-300 transition"
-                              >
-                                <span>⬇️</span>
-                                Download
-                              </a>
-                            </div>
-                          )}
+                          <div className="flex flex-wrap gap-2">
+                            {msg.image && (
+                              <div className="flex flex-wrap gap-2">
+                                <button
+                                  onClick={() => setPreviewImage(getImageUrl(msg.image))}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-blue-400 transition"
+                                >
+                                  <span>🖼️</span>
+                                  View Image
+                                </button>
+                                <a
+                                  href={getDownloadUrl(msg.image)}
+                                  download
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-gray-300 transition"
+                                >
+                                  <span>⬇️</span>
+                                  Download
+                                </a>
+                              </div>
+                            )}
+                            
+                            {msg.voiceNote && (
+                              <div className="flex flex-wrap items-center gap-2 px-3 py-1.5 bg-slate-700/50 rounded-lg">
+                                <span className="text-green-400">🎤</span>
+                                <audio controls className="h-8 max-w-[150px] sm:max-w-[200px]">
+                                  <source src={getAudioUrl(msg.voiceNote)} />
+                                </audio>
+                                <a
+                                  href={getDownloadUrl(msg.voiceNote)}
+                                  download
+                                  className="text-gray-400 hover:text-white"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                  </svg>
+                                </a>
+                              </div>
+                            )}
+                            
+                            {msg.video && (
+                              <div className="flex flex-wrap gap-2">
+                                <button
+                                  onClick={() => setPreviewVideo(getImageUrl(msg.video))}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-red-400 transition"
+                                >
+                                  <span>🎥</span>
+                                  View Video
+                                </button>
+                                <a
+                                  href={getDownloadUrl(msg.video)}
+                                  download
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-gray-300 transition"
+                                >
+                                  <span>⬇️</span>
+                                  Download
+                                </a>
+                              </div>
+                            )}
+                            
+                            {msg.logo && (
+                              <div className="flex flex-wrap gap-2">
+                                <button
+                                  onClick={() => setPreviewImage(getImageUrl(msg.logo))}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-purple-400 transition"
+                                >
+                                  <span>🎨</span>
+                                  View Logo
+                                </button>
+                                <a
+                                  href={getDownloadUrl(msg.logo)}
+                                  download
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-gray-300 transition"
+                                >
+                                  <span>⬇️</span>
+                                  Download
+                                </a>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="text-center py-8 text-gray-500">
                     No conversation history
@@ -974,7 +983,7 @@ export default function CustomerBriefsPage() {
         {previewImage && (
           <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[60] p-4">
             <div className="relative max-w-4xl max-h-[90vh]">
-              <LazyImage
+              <img
                 src={previewImage}
                 alt="Preview"
                 className="max-w-full max-h-[90vh] object-contain"

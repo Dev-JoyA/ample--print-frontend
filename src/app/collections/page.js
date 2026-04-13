@@ -59,10 +59,12 @@ export default function CollectionsPage() {
             }
 
             let thumbnail = null;
-            if (products[0]?.image) {
-              thumbnail = getImageUrl(products[0].image);
-            } else if (products[0]?.images?.[0]) {
-              thumbnail = getImageUrl(products[0].images[0]);
+            if (products.length > 0) {
+              const firstProduct = products[0];
+              const imagePath = firstProduct.image || firstProduct.images?.[0];
+              if (imagePath) {
+                thumbnail = getImageUrl(imagePath);
+              }
             }
 
             return {
@@ -223,15 +225,28 @@ export default function CollectionsPage() {
                   <div className="h-full overflow-hidden rounded-lg border border-dark-lighter bg-slate-900 transition-all hover:border-primary/50">
                     <div className="relative h-40 overflow-hidden bg-slate-950 sm:h-56">
                       {collection.image ? (
+                        // <img 
+                        //   src={collection.image} 
+                        //   alt={collection.name} 
+                        //   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        //   onError={(e) => {
+                        //     console.error('Image failed to load:', collection.image);
+                        //     e.target.onerror = null;
+                        //     e.target.src = '/images/placeholder.png';
+                        //   }}
+                        // />
                         <img 
-                          src={collection.image} 
-                          alt={collection.name} 
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = '/images/placeholder.png';
-                          }}
-                        />
+                            src={`${collection.image}?t=${Date.now()}`} 
+                            alt={collection.name} 
+                            crossOrigin="anonymous"
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            onLoad={() => console.log('Image loaded successfully:', collection.name)}
+                            onError={(e) => {
+                                console.error('Image failed to load:', collection.image);
+                                e.target.onerror = null;
+                                e.target.src = '/images/placeholder.png';
+                            }}
+                            />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-gray-600">
                           <svg className="h-12 w-12 sm:h-20 sm:w-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">

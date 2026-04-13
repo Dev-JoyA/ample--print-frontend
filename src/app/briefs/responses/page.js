@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import StatusBadge from '@/components/ui/StatusBadge';
 import SEOHead from '@/components/common/SEOHead';
 import { METADATA } from '@/lib/metadata';
 import { useProtectedRoute } from '@/app/lib/auth';
@@ -15,88 +13,63 @@ import { useToast } from '@/components/providers/ToastProvider';
 
 export default function BriefResponsesPage() {
   const router = useRouter();
-  const { isLoading: authLoading, user } = useProtectedRoute({
-    redirectTo: '/auth/sign-in'
-  });
+  const { isLoading: authLoading, user } = useProtectedRoute({ redirectTo: '/auth/sign-in' });
   const { showToast } = useToast();
 
   const [responses, setResponses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filter, setFilter] = useState('all');
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [viewingId, setViewingId] = useState(null);
+  const [filter, setFilter] = useState('pending');
+  const [markingComplete, setMarkingComplete] = useState(null);
 
   useEffect(() => {
     if (!authLoading && user) {
       fetchResponses();
     }
-  }, [authLoading, user, page, filter]);
+  }, [authLoading, user]);
 
   const fetchResponses = async () => {
     try {
       setLoading(true);
       setError('');
-      
-      const params = {
-        page,
-        limit: 10,
-        hasAdminResponse: true
-      };
-      
-      if (filter === 'pending') {
-        params.viewed = false;
-      } else if (filter === 'reviewed') {
-        params.viewed = true;
+      const response = await customerBriefService.getPendingResponses();
+
+      let data = [];
+      if (response?.success && Array.isArray(response?.data)) {
+        data = response.data;
+      } else if (Array.isArray(response?.data)) {
+        data = response.data;
+      } else if (Array.isArray(response)) {
+        data = response;
       }
-      
-      if (searchTerm) {
-        params.search = searchTerm;
-      }
-      
-      const response = await customerBriefService.getMyBriefs(params);
-      
-      let briefs = [];
-      let total = 0;
-      
-      if (response?.briefs) {
-        briefs = response.briefs;
-        total = response.total || briefs.length;
-      } else if (response?.data?.briefs) {
-        briefs = response.data.briefs;
-        total = response.data.total || briefs.length;
-      }
-      
-      setResponses(briefs);
-      setTotalPages(Math.ceil(total / 10));
-    } catch (error) {
-      console.error('Failed to fetch responses:', error);
+
+      setResponses(data);
+    } catch (err) {
+      console.error('Failed to fetch responses:', err);
       setError('Failed to load responses');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setPage(1);
-    fetchResponses();
+  const handleMarkAsComplete = async (response, e) => {
+    e.stopPropagation();
+    if (markingComplete === response.briefId) return;
+    
+    try {
+      setMarkingComplete(response.briefId);
+      await customerBriefService.markAsComplete(response.briefId);
+      showToast('Response marked as complete', 'success');
+      await fetchResponses();
+    } catch (err) {
+      showToast(err.message || 'Failed to mark as complete', 'error');
+    } finally {
+      setMarkingComplete(null);
+    }
   };
 
-  const handleViewResponse = async (response) => {
-    try {
-      setViewingId(response._id);
-      
-      // Navigate to the detail page where customer can take action
-      router.push(`/briefs/${response._id}`);
-    } catch (error) {
-      console.error('Failed to view response:', error);
-      showToast('Failed to load response', 'error');
-    } finally {
-      setViewingId(null);
-    }
+  const handleViewResponse = (response) => {
+    router.push(`/briefs/${response.briefId}`);
   };
 
   const formatDate = (dateString) => {
@@ -105,21 +78,37 @@ export default function BriefResponsesPage() {
       return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
-        day: 'numeric'
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
       });
     } catch {
       return 'Invalid date';
     }
   };
 
+  const getTimeAgo = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${diffDays}d ago`;
+  };
+
+  const pendingResponses = responses.filter(r => !r.viewed);
+  const completedResponses = responses.filter(r => r.viewed);
+  const filteredResponses = filter === 'pending' ? pendingResponses : completedResponses;
+
   if (authLoading) {
     return (
       <DashboardLayout userRole="customer">
-        <SEOHead {...METADATA.briefs} title="Admin Responses" />
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 md:py-12">
-          <div className="flex min-h-[50vh] items-center justify-center md:min-h-[60vh]">
-            <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-primary md:h-12 md:w-12"></div>
-          </div>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
       </DashboardLayout>
     );
@@ -128,221 +117,188 @@ export default function BriefResponsesPage() {
   return (
     <DashboardLayout userRole="customer">
       <SEOHead {...METADATA.briefs} title="Admin Responses" />
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-12">
+      <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+
         <div className="mb-6 md:mb-8">
-          <div className="mb-3 flex items-center gap-3 md:mb-4">
-            <Link href="/dashboards">
-              <Button variant="ghost" size="sm" className="gap-1 md:gap-2">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Back
-              </Button>
-            </Link>
+          <Link href="/dashboards">
+            <Button variant="ghost" size="sm" className="mb-4 gap-1">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Dashboard
+            </Button>
+          </Link>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-white sm:text-3xl">Admin Responses</h1>
+              <p className="mt-1 text-sm text-gray-400">
+                Messages from our team awaiting your attention
+              </p>
+            </div>
+            <button
+              onClick={fetchResponses}
+              className="rounded-lg bg-slate-800 p-2 text-gray-400 transition hover:bg-slate-700 hover:text-white"
+              title="Refresh"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
           </div>
-          <h1 className="mb-2 text-2xl font-bold text-white sm:text-3xl md:text-4xl">Admin Responses</h1>
-          <p className="text-sm text-gray-400 sm:text-base">Review and respond to messages from our team</p>
         </div>
 
         {error && (
-          <div className="mb-6 rounded-lg border border-red-700 bg-red-900/30 p-3 sm:p-4">
-            <p className="text-sm text-red-200 sm:text-base">{error}</p>
+          <div className="mb-6 rounded-lg border border-red-700 bg-red-900/30 p-4">
+            <p className="text-sm text-red-200">{error}</p>
+            <button onClick={fetchResponses} className="mt-2 text-sm text-red-400 underline">
+              Retry
+            </button>
           </div>
         )}
 
-        <div className="mb-6 space-y-4">
-          <form onSubmit={handleSearch} className="flex flex-col gap-3 sm:flex-row">
-            <Input
-              type="text"
-              placeholder="Search by order number or product..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1"
-            />
-            <Button type="submit" variant="primary" className="w-full sm:w-auto">
-              Search
-            </Button>
-          </form>
-
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setFilter('all')}
-              className={`rounded-lg px-3 py-1.5 text-xs transition sm:px-4 sm:py-2 sm:text-sm ${
-                filter === 'all' 
-                  ? 'bg-primary text-white' 
-                  : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
-              }`}
-            >
-              All Responses
-            </button>
-            <button
-              onClick={() => setFilter('pending')}
-              className={`rounded-lg px-3 py-1.5 text-xs transition sm:px-4 sm:py-2 sm:text-sm ${
-                filter === 'pending' 
-                  ? 'bg-yellow-600 text-white' 
-                  : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
-              }`}
-            >
-              Pending Review
-            </button>
-            <button
-              onClick={() => setFilter('reviewed')}
-              className={`rounded-lg px-3 py-1.5 text-xs transition sm:px-4 sm:py-2 sm:text-sm ${
-                filter === 'reviewed' 
-                  ? 'bg-green-600 text-white' 
-                  : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
-              }`}
-            >
-              Reviewed
-            </button>
-          </div>
+        <div className="mb-6 flex flex-wrap gap-2">
+          <button
+            onClick={() => setFilter('pending')}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+              filter === 'pending' 
+                ? 'bg-yellow-600 text-white' 
+                : 'bg-slate-800 text-gray-400 hover:bg-slate-700 hover:text-white'
+            }`}
+          >
+            Pending ({pendingResponses.length})
+            {pendingResponses.length > 0 && filter !== 'pending' && (
+              <span className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                {pendingResponses.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setFilter('completed')}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+              filter === 'completed' 
+                ? 'bg-green-600 text-white' 
+                : 'bg-slate-800 text-gray-400 hover:bg-slate-700 hover:text-white'
+            }`}
+          >
+            Completed ({completedResponses.length})
+          </button>
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+          <div className="flex justify-center py-16">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
           </div>
-        ) : responses.length === 0 ? (
-          <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-8 text-center md:p-12">
-            <div className="mb-4 text-5xl md:text-6xl">📬</div>
-            <h3 className="mb-2 text-lg font-semibold text-white md:text-xl">No Responses Found</h3>
-            <p className="mb-6 text-sm text-gray-400 md:text-base">
-              {searchTerm 
-                ? 'No responses match your search' 
-                : filter === 'pending'
-                ? 'You have no pending responses to review'
-                : filter === 'reviewed'
-                ? 'You have not reviewed any responses yet'
-                : 'No admin responses yet'}
+        ) : filteredResponses.length === 0 ? (
+          <div className="rounded-xl border border-gray-800 bg-slate-900/50 py-16 text-center">
+            <div className="mb-4 text-5xl">📬</div>
+            <h3 className="mb-2 text-lg font-semibold text-white">No responses found</h3>
+            <p className="text-sm text-gray-400">
+              {filter === 'pending'
+                ? 'No pending responses to review'
+                : 'No completed responses yet'}
             </p>
-            {(searchTerm || filter !== 'all') && (
+            {filter !== 'pending' && pendingResponses.length > 0 && (
               <button
-                onClick={() => {
-                  setSearchTerm('');
-                  setFilter('all');
-                  setPage(1);
-                }}
-                className="text-sm text-primary transition hover:text-primary-dark"
+                onClick={() => setFilter('pending')}
+                className="mt-4 text-sm text-primary underline"
               >
-                Clear filters
+                View pending ({pendingResponses.length})
               </button>
             )}
           </div>
         ) : (
           <div className="space-y-4">
-            {responses.map((response) => (
+            {filteredResponses.map((response) => (
               <div
-                key={response._id}
-                className={`cursor-pointer overflow-hidden rounded-xl border transition hover:bg-slate-900/50 ${
-                  response.viewed 
-                    ? 'border-gray-800 bg-slate-900/30' 
-                    : 'border-yellow-600/30 bg-gradient-to-r from-yellow-900/10 to-transparent'
-                }`}
+                key={response.briefId}
                 onClick={() => handleViewResponse(response)}
+                className={`cursor-pointer overflow-hidden rounded-xl border transition hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 ${
+                  !response.viewed
+                    ? 'border-yellow-600/40 bg-gradient-to-r from-yellow-900/10 via-slate-900/50 to-slate-900/50'
+                    : 'border-gray-800 bg-slate-900/30'
+                }`}
               >
-                <div className="p-4 sm:p-5 md:p-6">
-                  <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between md:mb-4">
+                <div className={`h-0.5 ${!response.viewed ? 'bg-yellow-500' : 'bg-green-600'}`} />
+
+                <div className="p-4 sm:p-5">
+                  <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl sm:text-3xl">📬</span>
+                      <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-xl ${
+                        !response.viewed ? 'bg-yellow-600/20' : 'bg-green-600/20'
+                      }`}>
+                        {!response.viewed ? '📬' : '✓'}
+                      </div>
                       <div>
-                        <h3 className="text-sm font-medium text-white sm:text-base">
-                          Order #{response.orderId?.orderNumber || response.orderId}
-                        </h3>
-                        <p className="text-xs text-gray-400 sm:text-sm">
-                          {response.productId?.name || 'Unknown Product'}
-                        </p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-sm font-semibold text-white">
+                            Order #{response.orderNumber}
+                          </span>
+                          {!response.viewed && (
+                            <span className="animate-pulse rounded-full bg-yellow-600/20 px-2 py-0.5 text-xs text-yellow-400">
+                              New
+                            </span>
+                          )}
+                          {response.viewed && (
+                            <span className="rounded-full bg-green-600/20 px-2 py-0.5 text-xs text-green-400">
+                              Completed
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-0.5 text-xs text-gray-400">{response.productName}</p>
                       </div>
                     </div>
-                    {!response.viewed && (
-                      <span className="w-fit animate-pulse rounded-full bg-yellow-600/20 px-2 py-1 text-xs text-yellow-400">
-                        New
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="space-y-3">
-                    {response.designId && (
-                      <div className="flex items-center gap-2 text-xs sm:text-sm">
-                        <span className="text-purple-400">🎨</span>
-                        <span className="text-gray-300">Design ready for review</span>
-                      </div>
-                    )}
-                    {response.description && (
-                      <p className="line-clamp-2 text-xs text-gray-400 sm:text-sm">
-                        {response.description}
-                      </p>
-                    )}
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {response.image && (
-                        <span className="rounded-full bg-blue-600/20 px-2 py-1 text-xs text-blue-400">
-                          📷 Image
-                        </span>
-                      )}
-                      {response.voiceNote && (
-                        <span className="rounded-full bg-green-600/20 px-2 py-1 text-xs text-green-400">
-                          🎤 Voice
-                        </span>
-                      )}
-                      {response.video && (
-                        <span className="rounded-full bg-red-600/20 px-2 py-1 text-xs text-red-400">
-                          🎥 Video
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <span className="text-xs text-gray-500">
-                      {formatDate(response.updatedAt)}
+                    <span className="flex-shrink-0 text-xs text-gray-500">
+                      {getTimeAgo(response.respondedAt)}
                     </span>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      className="w-full gap-1 sm:w-auto"
-                      disabled={viewingId === response._id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleViewResponse(response);
-                      }}
-                    >
-                      {viewingId === response._id ? (
-                        <>
-                          <span className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent"></span>
-                          Loading...
-                        </>
-                      ) : response.viewed ? (
-                        'View Again'
-                      ) : (
-                        'Review Now'
+                  </div>
+
+                  {response.description && (
+                    <p className="mt-3 line-clamp-2 text-sm text-gray-300">
+                      {response.description}
+                    </p>
+                  )}
+
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap gap-2">
+                      {response.hasDesign && (
+                        <span className="rounded-full bg-purple-600/20 px-2 py-1 text-xs text-purple-400">
+                          🎨 Design included
+                        </span>
                       )}
-                    </Button>
+                    </div>
+                    <div className="flex gap-2">
+                      {!response.viewed && (
+                        <Button
+                          variant="success"
+                          size="sm"
+                          onClick={(e) => handleMarkAsComplete(response, e)}
+                          disabled={markingComplete === response.briefId}
+                        >
+                          {markingComplete === response.briefId ? (
+                            <span className="flex items-center gap-2">
+                              <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                              Marking...
+                            </span>
+                          ) : (
+                            '✓ Mark as Complete'
+                          )}
+                        </Button>
+                      )}
+                      <Button
+                        variant={!response.viewed ? 'primary' : 'secondary'}
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewResponse(response);
+                        }}
+                      >
+                        {!response.viewed ? 'Review Now' : 'View Details'}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
             ))}
-
-            {totalPages > 1 && (
-              <div className="mt-6 flex flex-wrap justify-center gap-2">
-                <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="rounded-lg bg-slate-800 px-3 py-2 text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed sm:px-4"
-                >
-                  Previous
-                </button>
-                <span className="px-3 py-2 text-sm text-gray-400 sm:px-4">
-                  Page {page} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="rounded-lg bg-slate-800 px-3 py-2 text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed sm:px-4"
-                >
-                  Next
-                </button>
-              </div>
-            )}
           </div>
         )}
       </div>

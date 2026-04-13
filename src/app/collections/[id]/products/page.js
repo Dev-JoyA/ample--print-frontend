@@ -10,6 +10,7 @@ import SEOHead from '@/components/common/SEOHead';
 import { METADATA, getCollectionMetadata } from '@/lib/metadata';
 import { collectionService } from '@/services/collectionService';
 import { productService } from '@/services/productService';
+import { getImageUrl, getProductImageUrl } from '@/lib/imageUtils';
 
 export default function ProductListPage() {
   const params = useParams();
@@ -115,15 +116,15 @@ export default function ProductListPage() {
     }
   };
 
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return null;
-    if (imagePath.startsWith('http')) return imagePath;
-    let filename = imagePath;
-    if (imagePath.includes('/')) {
-      filename = imagePath.split('/').pop();
-    }
-    return `http://localhost:4001/api/v1/attachments/download/${filename}`;
-  };
+//   const getImageUrl = (imagePath) => {
+//     if (!imagePath) return null;
+//     if (imagePath.startsWith('http')) return imagePath;
+//     let filename = imagePath;
+//     if (imagePath.includes('/')) {
+//       filename = imagePath.split('/').pop();
+//     }
+//     return `http://localhost:4001/api/v1/attachments/download/${filename}`;
+//   };
 
   const filteredProducts = products.filter(product => 
     product.price >= priceRange[0] && product.price <= priceRange[1]

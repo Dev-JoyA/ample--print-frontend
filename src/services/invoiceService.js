@@ -180,21 +180,40 @@ export const invoiceService = {
     }
   },
 
-  downloadInvoice: async (invoiceId) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}${API_PATHS.INVOICES.PDF(invoiceId)}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${getToken()}`,
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to download invoice');
+downloadInvoice: async (invoiceId) => {
+  try {
+    const response = await api.getBlob(`/invoices/${invoiceId}/pdf`);
+    const blob = response;
+    
+    // Get filename from Content-Disposition header if available
+    const contentDisposition = response.headers?.get('Content-Disposition');
+    let filename = `invoice-${invoiceId}.pdf`;
+    
+    if (contentDisposition) {
+      const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      if (match && match[1]) {
+        filename = match[1].replace(/['"]/g, '');
       }
-      return await response.blob();
-    } catch (error) {
-      console.error('Failed to download invoice:', error);
-      throw error;
     }
-  },
+    
+    // Create download link with proper blob URL
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Clean up
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+    }, 100);
+    
+    return true;
+  } catch (error) {
+    console.error('Failed to download invoice:', error);
+    throw error;
+  }
+},
 };
