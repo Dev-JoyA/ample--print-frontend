@@ -195,7 +195,7 @@ export default function OrderDetailPage() {
           <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
             <div className="mb-6">
               <button
-                onClick={() => router.back()}
+                onClick={() => router.push("/orders")}
                 className="group mb-4 flex items-center gap-2 text-gray-400 transition-colors hover:text-white"
               >
                 <svg className="h-4 w-4 transition-transform group-hover:-translate-x-1 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

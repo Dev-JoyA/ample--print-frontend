@@ -247,7 +247,7 @@ const handleQuickFilter = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <div 
-              onClick={() => router.push('/dashboards/admin-dashboard/orders/approved')}
+              onClick={() => router.push('/dashboards/admin-dashboard/orders/management')}
               className="bg-gradient-to-br from-purple-900/30 to-purple-950/30 p-5 sm:p-6 rounded-lg border border-purple-800 hover:border-purple-600 transition cursor-pointer"
             >
               <div className="text-3xl sm:text-4xl mb-3">🎨</div>
