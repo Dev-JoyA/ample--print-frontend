@@ -12,12 +12,13 @@ import { orderService } from "@/services/orderService";
 import { profileService } from "@/services/profileService";
 import { useAuthCheck } from "@/app/lib/auth";
 import { METADATA } from "@/lib/metadata";
+import { getReceiptUrl } from "@/lib/imageUtils";
 
 export default function PaymentVerificationPage() {
   const router = useRouter();
   useAuthCheck();
 
-  const [payments, setPayments] = useState([]);
+  const [allTransactions, setAllTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [processingId, setProcessingId] = useState(null);
@@ -30,43 +31,31 @@ export default function PaymentVerificationPage() {
   const [customerData, setCustomerData] = useState({});
 
   useEffect(() => {
-    fetchPayments();
-  }, [activeTab]);
+    fetchAllTransactions();
+  }, []);
 
-  const fetchPayments = async () => {
+  const fetchAllTransactions = async () => {
     try {
       setLoading(true);
       setError("");
       
-      let response;
-      if (activeTab === "pending") {
-        response = await paymentService.getPendingBankTransfers({ limit: 50 });
-      } else {
-        response = await paymentService.getPendingBankTransfers({ limit: 100 });
-      }
+      // Fetch ALL transactions (no filtering on backend)
+      const response = await paymentService.getPendingBankTransfers({ limit: 100 });
       
       console.log("Raw payments response:", response);
       
-      let paymentsData = [];
+      let transactions = [];
       if (response?.transactions && Array.isArray(response.transactions)) {
-        paymentsData = response.transactions;
+        transactions = response.transactions;
       } else if (response?.data?.transactions && Array.isArray(response.data.transactions)) {
-        paymentsData = response.data.transactions;
+        transactions = response.data.transactions;
       } else if (Array.isArray(response)) {
-        paymentsData = response;
+        transactions = response;
       }
       
-      if (activeTab !== "pending") {
-        paymentsData = paymentsData.filter(p => {
-          const status = p.transactionStatus?.toLowerCase();
-          return activeTab === "verified" ? status === "completed" : status === "failed";
-        });
-      }
-      
-      console.log("Processed payments data:", paymentsData);
-      
-      const paymentsWithDetails = await Promise.all(
-        paymentsData.map(async (payment) => {
+      // Process all transactions to get customer details
+      const transactionsWithDetails = await Promise.all(
+        transactions.map(async (payment) => {
           try {
             let invoiceId = null;
             if (payment.invoiceId) {
@@ -179,10 +168,10 @@ export default function PaymentVerificationPage() {
         })
       );
       
-      setPayments(paymentsWithDetails);
+      setAllTransactions(transactionsWithDetails);
       
       const customerMap = {};
-      paymentsWithDetails.forEach(payment => {
+      transactionsWithDetails.forEach(payment => {
         if (payment.customerInfo) {
           customerMap[payment._id] = payment.customerInfo;
         }
@@ -196,6 +185,20 @@ export default function PaymentVerificationPage() {
       setLoading(false);
     }
   };
+
+  // Get filtered transactions based on active tab
+  const getFilteredTransactions = () => {
+    if (activeTab === "pending") {
+      return allTransactions.filter(t => t.transactionStatus === "pending");
+    } else if (activeTab === "verified") {
+      return allTransactions.filter(t => t.transactionStatus === "completed");
+    } else if (activeTab === "rejected") {
+      return allTransactions.filter(t => t.transactionStatus === "failed");
+    }
+    return [];
+  };
+
+  const filteredPayments = getFilteredTransactions();
 
   const handleVerifyClick = (payment, action) => {
     setSelectedPayment(payment);
@@ -215,7 +218,7 @@ export default function PaymentVerificationPage() {
         status: "approve"
       });
       
-      await fetchPayments();
+      await fetchAllTransactions();
       setShowModal(false);
       setSelectedPayment(null);
       
@@ -239,7 +242,7 @@ export default function PaymentVerificationPage() {
         notes: rejectionReason || "Payment rejected by admin"
       });
       
-      await fetchPayments();
+      await fetchAllTransactions();
       setShowModal(false);
       setSelectedPayment(null);
       setRejectionReason("");
@@ -253,14 +256,8 @@ export default function PaymentVerificationPage() {
     }
   };
 
-  const getImageUrl = (receiptUrl) => {
-    if (!receiptUrl) return null;
-    if (receiptUrl.startsWith("http")) return receiptUrl;
-    let filename = receiptUrl;
-    if (receiptUrl.includes("/")) {
-      filename = receiptUrl.split("/").pop();
-    }
-    return `http://localhost:4001/uploads/receipts/${filename}`;
+  const getReceiptImageUrl = (receiptUrl) => {
+    return getReceiptUrl(receiptUrl);
   };
 
   const handleImageError = (paymentId) => {
@@ -283,6 +280,20 @@ export default function PaymentVerificationPage() {
       });
     } catch (e) {
       return "Invalid date";
+    }
+  };
+
+  // Get status display text and color
+  const getStatusDisplay = (status) => {
+    switch(status) {
+      case "pending":
+        return { text: "Pending", color: "yellow" };
+      case "completed":
+        return { text: "Verified", color: "green" };
+      case "failed":
+        return { text: "Rejected", color: "red" };
+      default:
+        return { text: "Unknown", color: "gray" };
     }
   };
 
@@ -321,7 +332,7 @@ export default function PaymentVerificationPage() {
                   : "text-gray-400 hover:text-white"
               }`}
             >
-              Pending Verification ({payments.filter(p => p.transactionStatus === "pending").length})
+              Pending Verification ({allTransactions.filter(t => t.transactionStatus === "pending").length})
             </button>
             <button
               onClick={() => setActiveTab("verified")}
@@ -331,7 +342,7 @@ export default function PaymentVerificationPage() {
                   : "text-gray-400 hover:text-white"
               }`}
             >
-              Verified ({payments.filter(p => p.transactionStatus === "completed").length})
+              Verified ({allTransactions.filter(t => t.transactionStatus === "completed").length})
             </button>
             <button
               onClick={() => setActiveTab("rejected")}
@@ -341,11 +352,11 @@ export default function PaymentVerificationPage() {
                   : "text-gray-400 hover:text-white"
               }`}
             >
-              Rejected ({payments.filter(p => p.transactionStatus === "failed").length})
+              Rejected ({allTransactions.filter(t => t.transactionStatus === "failed").length})
             </button>
           </div>
 
-          {payments.length === 0 ? (
+          {filteredPayments.length === 0 ? (
             <div className="rounded-xl border border-gray-800 bg-slate-900/30 py-16 text-center">
               <div className="mb-4 text-6xl">📄</div>
               <h3 className="mb-2 text-xl font-semibold text-white">No payments found</h3>
@@ -357,8 +368,9 @@ export default function PaymentVerificationPage() {
             </div>
           ) : (
             <div className="space-y-6">
-              {payments.map((payment) => {
+              {filteredPayments.map((payment) => {
                 const customer = payment.customerInfo || { firstName: "", lastName: "", email: "", fullName: "Customer" };
+                const statusDisplay = getStatusDisplay(payment.transactionStatus);
                 
                 return (
                   <div key={payment._id} className="rounded-xl border border-gray-800 bg-slate-900/50 p-6 backdrop-blur-sm transition-all hover:border-gray-700">
@@ -368,11 +380,9 @@ export default function PaymentVerificationPage() {
                           <h3 className="text-xl font-semibold text-white">
                             Order {payment.orderNumber || payment.order?.orderNumber || "N/A"}
                           </h3>
-                          <StatusBadge 
-                            status={payment.transactionStatus === "pending" ? "Pending" : 
-                                   payment.transactionStatus === "completed" ? "Paid" : "Failed"} 
-                            type="payment" 
-                          />
+                          <span className={`rounded-full px-2 py-1 text-xs font-medium bg-${statusDisplay.color}-600/20 text-${statusDisplay.color}-400`}>
+                            {statusDisplay.text}
+                          </span>
                         </div>
                         <p className="text-sm text-gray-400">
                           Customer: <span className="font-medium text-white">{customer.fullName}</span>
@@ -426,7 +436,7 @@ export default function PaymentVerificationPage() {
                         <div className="flex w-full items-center justify-center overflow-hidden rounded-lg bg-slate-800 p-4">
                           {!imageErrors[payment._id] ? (
                             <img
-                              src={getImageUrl(payment.receiptUrl)}
+                              src={getReceiptImageUrl(payment.receiptUrl)}
                               alt="Payment Receipt"
                               className="max-h-[500px] w-full object-contain"
                               onError={() => handleImageError(payment._id)}
@@ -435,7 +445,7 @@ export default function PaymentVerificationPage() {
                             <div className="py-8 text-center">
                               <div className="mb-2 text-4xl">🖼️</div>
                               <p className="text-gray-400">Image failed to load</p>
-                              <p className="mt-1 text-xs text-gray-500">{getImageUrl(payment.receiptUrl)}</p>
+                              <p className="mt-1 text-xs text-gray-500">{getReceiptImageUrl(payment.receiptUrl)}</p>
                             </div>
                           )}
                         </div>
