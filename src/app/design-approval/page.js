@@ -11,6 +11,7 @@ import { useAuth, useAuthCheck } from "@/app/lib/auth";
 import { designService } from "@/services/designService";
 import { feedbackService } from "@/services/feedbackService";
 import { METADATA } from "@/lib/metadata";
+import { getImageUrl } from '@/lib/imageUtils';
 
 export default function DesignApprovalPage() {
   const router = useRouter();
@@ -97,8 +98,6 @@ export default function DesignApprovalPage() {
       if (user?.userId) {
         await fetchDesignsForApproval(user.userId);
       }
-      
-      alert("Design approved successfully!");
     } catch (err) {
       console.error("❌ Failed to approve design:", err);
       alert("Failed to approve design. Please try again.");
@@ -160,16 +159,6 @@ export default function DesignApprovalPage() {
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return "/images/dummy-images/image 3.png";
-    if (imagePath.startsWith("http")) return imagePath;
-    let filename = imagePath;
-    if (imagePath.includes("/")) {
-      filename = imagePath.split("/").pop();
-    }
-    return `http://localhost:4001/api/v1/attachments/download/${filename}`;
   };
 
   if (loading) {

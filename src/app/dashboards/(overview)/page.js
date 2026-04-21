@@ -15,6 +15,7 @@ import { customerService } from '@/services/customerService';
 import { feedbackService } from '@/services/feedbackService';
 import { orderService } from '@/services/orderService';
 import { invoiceService } from '@/services/invoiceService';
+import { designService } from '@/services/designService';
 import { customerBriefService } from '@/services/customerBriefService';
 import { useToast } from '@/components/providers/ToastProvider';
 
@@ -63,8 +64,39 @@ export default function CustomerDashboard() {
       fetchUserOrders();
       fetchUnreadFeedbackCount();
       fetchPendingBriefResponses();
+      fetchPendingDesignsCount();
     }
   }, [authLoading, user]);
+
+  const fetchPendingDesignsCount = async () => {
+    try {
+      if (!user?.userId) return;
+      
+      // Fetch designs that are not approved (isApproved = false)
+      const response = await designService.filter({
+        userId: user.userId,
+        isApproved: false,
+        limit: 100
+      });
+      
+      let designs = [];
+      if (response?.success && Array.isArray(response?.data)) {
+        designs = response.data;
+      } else if (Array.isArray(response?.data)) {
+        designs = response.data;
+      } else if (Array.isArray(response)) {
+        designs = response;
+      }
+      
+      setStats(prev => ({
+        ...prev,
+        designsForApproval: designs.length
+      }));
+      
+    } catch (error) {
+      console.error('Failed to fetch pending designs count:', error);
+    }
+  };
 
   const fetchDashboardData = async () => {
     try {

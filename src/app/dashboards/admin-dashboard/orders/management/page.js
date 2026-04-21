@@ -66,7 +66,9 @@ export default function OrderManagementPage() {
       'Completed': 'purple',
       'AwaitingFinalPayment': 'yellow',
       'FinalPaid': 'green',
-      'Cancelled': 'red'
+      'Cancelled': 'red',
+      'PartPaymentMade': 'blue',
+      'AwaitingPartPayment': 'orange'
     };
     return colors[status] || 'gray';
   };
@@ -79,6 +81,18 @@ export default function OrderManagementPage() {
 
   const formatCurrency = (amount) => {
     return `₦${amount?.toLocaleString() || '0'}`;
+  };
+
+  const isDepositOrder = (order) => {
+    return order.requiredPaymentType === 'part';
+  };
+
+  const hasRemainingBalance = (order) => {
+    return order.remainingBalance > 0;
+  };
+
+  const isFullyPaid = (order) => {
+    return order.remainingBalance === 0 || order.paymentStatus === 'Completed';
   };
 
   const getActionButton = (order) => {
@@ -96,6 +110,7 @@ export default function OrderManagementPage() {
       );
     }
 
+    // Approved -> Start Production
     if (order.status === 'Approved') {
       return (
         <Button
@@ -109,39 +124,50 @@ export default function OrderManagementPage() {
       );
     }
     
+    // InProduction -> Complete Production
     if (order.status === 'InProduction') {
+      // For deposit orders with remaining balance, go to AwaitingFinalPayment
+      // For full payment orders or deposit orders fully paid, go to Completed
+      const isDepositWithBalance = isDepositOrder(order) && hasRemainingBalance(order);
+      const nextStatus = isDepositWithBalance ? 'AwaitingFinalPayment' : 'Completed';
+      
+      const buttonText = isDepositWithBalance 
+        ? 'Complete Production (Awaiting Final Payment)'
+        : 'Complete Production';
+      
       return (
         <Button
           variant="success"
           size="sm"
-          onClick={() => handleUpdateStatus(order._id, 'Completed')}
+          onClick={() => handleUpdateStatus(order._id, nextStatus)}
           className="min-w-[100px] sm:min-w-[120px] text-xs sm:text-sm"
         >
-          Complete Production
+          {buttonText}
         </Button>
       );
     }
     
+    // Completed - Show status message based on payment type
     if (order.status === 'Completed') {
-      if (order.requiredPaymentType === 'part') {
-        if (order.paymentStatus === 'PartPayment' && order.amountPaid >= (order.requiredDeposit || 0)) {
+      if (isDepositOrder(order)) {
+        if (hasRemainingBalance(order)) {
           return (
             <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium bg-yellow-900/30 text-yellow-400 border border-yellow-800 whitespace-nowrap">
-              ⏳ Awaiting Final Payment
+              ⚠️ Balance: {formatCurrency(order.remainingBalance)} - Should be AwaitingFinalPayment
             </span>
           );
         } else {
           return (
-            <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium bg-yellow-900/30 text-yellow-400 border border-yellow-800 whitespace-nowrap">
-              ⏳ Awaiting Deposit
+            <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium bg-green-900/30 text-green-400 border border-green-800 whitespace-nowrap">
+              ✓ Fully Paid - Ready for Shipping
             </span>
           );
         }
       } else {
-        if (order.paymentStatus === 'Completed' || order.remainingBalance === 0) {
+        if (isFullyPaid(order)) {
           return (
             <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium bg-green-900/30 text-green-400 border border-green-800 whitespace-nowrap">
-              ✓ Paid - Customer Can Select Shipping
+              ✓ Fully Paid - Ready for Shipping
             </span>
           );
         } else {
@@ -154,16 +180,17 @@ export default function OrderManagementPage() {
       }
     }
     
+    // AwaitingFinalPayment - Show final payment status
     if (order.status === 'AwaitingFinalPayment') {
-      if (order.remainingBalance === 0 || order.paymentStatus === 'Completed') {
+      if (isFullyPaid(order)) {
         return (
           <Button
             variant="success"
             size="sm"
-            onClick={() => handleUpdateStatus(order._id, 'FinalPaid')}
+            onClick={() => handleUpdateStatus(order._id, 'Completed')}
             className="min-w-[100px] sm:min-w-[120px] text-xs sm:text-sm"
           >
-            Confirm Final Payment
+            Mark as Complete
           </Button>
         );
       } else {
@@ -175,8 +202,9 @@ export default function OrderManagementPage() {
       }
     }
     
+    // FinalPaid - Allow marking as complete
     if (order.status === 'FinalPaid') {
-      if (order.remainingBalance === 0 || order.paymentStatus === 'Completed') {
+      if (isFullyPaid(order)) {
         return (
           <Button
             variant="success"
@@ -184,7 +212,7 @@ export default function OrderManagementPage() {
             onClick={() => handleUpdateStatus(order._id, 'Completed')}
             className="min-w-[100px] sm:min-w-[120px] text-xs sm:text-sm"
           >
-            ✓ Mark as Complete
+            Mark as Complete
           </Button>
         );
       } else {
@@ -196,16 +224,18 @@ export default function OrderManagementPage() {
       }
     }
     
+    // ReadyForShipping or Shipped
     if (order.status === 'ReadyForShipping' || order.status === 'Shipped') {
       return (
         <Link href={`/dashboards/admin-dashboard/shipping?orderId=${order._id}`}>
-          <Button variant="secondary" size="xs" className="min-w-[100px] sm:min-w-[120px] text-xs sm:text-sm">
+          <Button variant="secondary" size="sm" className="min-w-[100px] sm:min-w-[120px] text-xs sm:text-sm">
             View Shipping
           </Button>
         </Link>
       );
     }
     
+    // Delivered
     if (order.status === 'Delivered') {
       return (
         <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium bg-green-900/30 text-green-400 border border-green-800 whitespace-nowrap">
@@ -214,6 +244,7 @@ export default function OrderManagementPage() {
       );
     }
     
+    // Cancelled
     if (order.status === 'Cancelled') {
       return (
         <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium bg-red-900/30 text-red-400 border border-red-800 whitespace-nowrap">
@@ -226,30 +257,38 @@ export default function OrderManagementPage() {
   };
 
   const getStatusMessage = (order) => {
+    if (order.status === 'AwaitingFinalPayment') {
+      return `Paid: ${formatCurrency(order.amountPaid)} | Balance: ${formatCurrency(order.remainingBalance)} - Awaiting final payment to complete order`;
+    }
+    
     if (order.status === 'Completed') {
-      if (order.requiredPaymentType === 'part') {
-        if (order.paymentStatus === 'PartPayment' && order.amountPaid >= (order.requiredDeposit || 0)) {
-          return `Deposit paid: ${formatCurrency(order.amountPaid)}. Awaiting final payment of ${formatCurrency(order.remainingBalance)}`;
-        } else if (order.paymentStatus === 'Completed') {
-          return `Fully paid: ${formatCurrency(order.totalAmount)}`;
+      if (isDepositOrder(order)) {
+        if (hasRemainingBalance(order)) {
+          return `⚠️ ERROR: Deposit order with balance ${formatCurrency(order.remainingBalance)} should be in AwaitingFinalPayment status`;
         } else {
-          return `Deposit required: ${formatCurrency(order.requiredDeposit || 0)}`;
+          return `Fully paid: ${formatCurrency(order.totalAmount)} - Customer can select shipping`;
         }
       } else {
-        if (order.paymentStatus === 'Completed' || order.remainingBalance === 0) {
+        if (isFullyPaid(order)) {
           return `Fully paid: ${formatCurrency(order.totalAmount)} - Customer can select shipping`;
         } else {
-          return `Payment pending: ${formatCurrency(order.totalAmount)}`;
+          return `Payment pending: ${formatCurrency(order.totalAmount)} - Customer needs to pay`;
         }
       }
     }
     
-    if (order.status === 'AwaitingFinalPayment') {
-      return `Paid: ${formatCurrency(order.amountPaid)} | Balance: ${formatCurrency(order.remainingBalance)}`;
+    if (order.status === 'InProduction') {
+      if (isDepositOrder(order) && hasRemainingBalance(order)) {
+        return `Deposit paid: ${formatCurrency(order.amountPaid)}. After production, will require final payment of ${formatCurrency(order.remainingBalance)}`;
+      }
+      return `Order is in production`;
     }
     
-    if (order.status === 'FinalPaid') {
-      return `Total paid: ${formatCurrency(order.totalAmount)} - Click "Mark as Complete" to allow shipping selection`;
+    if (order.status === 'Approved') {
+      if (isDepositOrder(order) && hasRemainingBalance(order)) {
+        return `Deposit paid: ${formatCurrency(order.amountPaid)}. Ready to start production`;
+      }
+      return `Design approved. Ready to start production`;
     }
     
     return null;
@@ -259,8 +298,8 @@ export default function OrderManagementPage() {
     { id: 'all', label: 'All Orders', color: 'gray' },
     { id: 'Approved', label: 'Approved', color: 'green' },
     { id: 'InProduction', label: 'In Production', color: 'blue' },
-    { id: 'Completed', label: 'Completed', color: 'purple' },
     { id: 'AwaitingFinalPayment', label: 'Awaiting Payment', color: 'yellow' },
+    { id: 'Completed', label: 'Completed', color: 'purple' },
     { id: 'FinalPaid', label: 'Final Paid', color: 'green' },
     { id: 'Cancelled', label: 'Cancelled', color: 'red' },
   ];
@@ -382,6 +421,11 @@ export default function OrderManagementPage() {
                         <div className="flex flex-wrap items-center gap-2">
                           <h3 className="text-sm sm:text-base font-semibold text-white">{order.orderNumber}</h3>
                           <StatusBadge status={order.status} size="sm" />
+                          {isDepositOrder(order) && (
+                            <span className="text-xs px-1.5 py-0.5 rounded-full bg-blue-900/50 text-blue-400">
+                              Deposit: {formatCurrency(order.requiredDeposit)}
+                            </span>
+                          )}
                         </div>
                         <p className="text-xs text-gray-400">
                           {getCustomerName(order)} • {order.items?.length} item(s)
