@@ -1,5 +1,5 @@
-import { api } from "@/lib/api";
-import { API_PATHS } from "@/lib/constants";
+import { api } from '@/lib/api';
+import { API_PATHS } from '@/lib/constants';
 
 export const authService = {
   signUp: (data) =>
@@ -13,8 +13,7 @@ export const authService = {
       address: data.address,
     }),
 
-  signIn: (email, password) =>
-    api.post(API_PATHS.AUTH.SIGN_IN, { email, password }),
+  signIn: (email, password) => api.post(API_PATHS.AUTH.SIGN_IN, { email, password }),
 
   adminSignUp: (data) =>
     api.post(API_PATHS.AUTH.ADMIN_SIGN_UP, {
@@ -36,14 +35,11 @@ export const authService = {
       phoneNumber: data.phoneNumber,
     }),
 
-  deactivateAdmin: (data) =>
-    api.post(API_PATHS.AUTH.DEACTIVATE_ADMIN, data),
+  deactivateAdmin: (data) => api.post(API_PATHS.AUTH.DEACTIVATE_ADMIN, data),
 
-  reactivateAdmin: (data) =>
-    api.post(API_PATHS.AUTH.REACTIVATE_ADMIN, data),
+  reactivateAdmin: (data) => api.post(API_PATHS.AUTH.REACTIVATE_ADMIN, data),
 
-  forgotPassword: (email) =>
-    api.post(API_PATHS.AUTH.FORGOT_PASSWORD, { email }),
+  forgotPassword: (email) => api.post(API_PATHS.AUTH.FORGOT_PASSWORD, { email }),
 
   effectForgotPassword: (token, newPassword, confirmPassword) =>
     api.post(API_PATHS.AUTH.EFFECT_FORGOT_PASSWORD, {
@@ -52,21 +48,16 @@ export const authService = {
       confirmPassword,
     }),
 
-  resetPassword: (userId, data) =>
-    api.post(API_PATHS.AUTH.RESET_PASSWORD(userId), data),
+  resetPassword: (userId, data) => api.post(API_PATHS.AUTH.RESET_PASSWORD(userId), data),
 
-  logout: (refreshToken) =>
-    api.post(API_PATHS.AUTH.LOGOUT, { refreshToken }),
+  logout: (refreshToken) => api.post(API_PATHS.AUTH.LOGOUT, { refreshToken }),
 
-  refreshToken: (refreshToken) =>
-    api.post(API_PATHS.AUTH.REFRESH_TOKEN, { refreshToken }),
+  refreshToken: (refreshToken) => api.post(API_PATHS.AUTH.REFRESH_TOKEN, { refreshToken }),
 
-  verifyToken: (token) =>
-    api.get(API_PATHS.AUTH.VERIFY_TOKEN, token ? { token } : {}),
+  verifyToken: (token) => api.get(API_PATHS.AUTH.VERIFY_TOKEN, token ? { token } : {}),
 
   verifyRefreshToken: (token) =>
     api.get(API_PATHS.AUTH.VERIFY_REFRESH_TOKEN, token ? { token } : {}),
 
-  generateRefreshToken: () =>
-    api.post(API_PATHS.AUTH.GENERATE_REFRESH_TOKEN),
+  generateRefreshToken: () => api.post(API_PATHS.AUTH.GENERATE_REFRESH_TOKEN),
 };

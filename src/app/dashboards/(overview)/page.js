@@ -24,7 +24,7 @@ const EDITABLE_ORDER_STATUSES = ['Pending', 'OrderReceived', 'FilesUploaded'];
 export default function CustomerDashboard() {
   const router = useRouter();
   const { isLoading: authLoading, user } = useProtectedRoute({
-    redirectTo: '/auth/sign-in'
+    redirectTo: '/auth/sign-in',
   });
   const { showToast } = useToast();
 
@@ -40,7 +40,7 @@ export default function CustomerDashboard() {
     pendingResponses: 0,
     unreadFeedbackResponses: 0,
     totalFeedback: 0,
-    pendingBriefResponses: 0
+    pendingBriefResponses: 0,
   });
 
   const [recentOrders, setRecentOrders] = useState([]);
@@ -49,7 +49,7 @@ export default function CustomerDashboard() {
   const [ordersReadyForShipping, setOrdersReadyForShipping] = useState([]);
   const [pendingBriefResponses, setPendingBriefResponses] = useState([]);
   const [userName, setUserName] = useState('');
-  
+
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [feedbackType, setFeedbackType] = useState('general');
   const [feedbackMessage, setFeedbackMessage] = useState('');
@@ -71,14 +71,14 @@ export default function CustomerDashboard() {
   const fetchPendingDesignsCount = async () => {
     try {
       if (!user?.userId) return;
-      
+
       // Fetch designs that are not approved (isApproved = false)
       const response = await designService.filter({
         userId: user.userId,
         isApproved: false,
-        limit: 100
+        limit: 100,
       });
-      
+
       let designs = [];
       if (response?.success && Array.isArray(response?.data)) {
         designs = response.data;
@@ -87,12 +87,11 @@ export default function CustomerDashboard() {
       } else if (Array.isArray(response)) {
         designs = response;
       }
-      
-      setStats(prev => ({
+
+      setStats((prev) => ({
         ...prev,
-        designsForApproval: designs.length
+        designsForApproval: designs.length,
       }));
-      
     } catch (error) {
       console.error('Failed to fetch pending designs count:', error);
     }
@@ -107,17 +106,16 @@ export default function CustomerDashboard() {
       setUserName(profile.name);
 
       const data = await customerService.getDashboardStats();
-      
-      setStats(prev => ({
+
+      setStats((prev) => ({
         ...prev,
         activeOrders: data.activeOrders || 0,
         pendingInvoices: data.pendingInvoices || 0,
-        completedOrders: data.completedOrders || 0
+        completedOrders: data.completedOrders || 0,
       }));
 
       setRecentOrders(data.recentOrders || []);
       setUnpaidInvoices(data.unpaidInvoices || []);
-
     } catch (err) {
       console.error('Failed to load dashboard:', err);
       setError('Unable to load some dashboard data. Showing available information.');
@@ -129,9 +127,9 @@ export default function CustomerDashboard() {
   const fetchUserOrders = async () => {
     try {
       if (!user?.userId) return;
-      
+
       const response = await orderService.getMyOrders({ limit: 50 });
-      
+
       let orders = [];
       if (response?.order && Array.isArray(response.order)) {
         orders = response.order;
@@ -140,21 +138,21 @@ export default function CustomerDashboard() {
       } else if (Array.isArray(response)) {
         orders = response;
       }
-      
+
       setUserOrders(orders);
-      
-      const readyForShipping = orders.filter(order => 
-        order.status === 'Completed' && !order.shippingId
+
+      const readyForShipping = orders.filter(
+        (order) => order.status === 'Completed' && !order.shippingId
       );
-      
+
       setOrdersReadyForShipping(readyForShipping);
-      setStats(prev => ({
+      setStats((prev) => ({
         ...prev,
-        readyForShipping: readyForShipping.length
+        readyForShipping: readyForShipping.length,
       }));
-      
+
       const invoicesResponse = await invoiceService.getMyInvoices({ limit: 50 });
-      
+
       let invoices = [];
       if (invoicesResponse?.invoices && Array.isArray(invoicesResponse.invoices)) {
         invoices = invoicesResponse.invoices;
@@ -163,19 +161,17 @@ export default function CustomerDashboard() {
       } else if (Array.isArray(invoicesResponse)) {
         invoices = invoicesResponse;
       }
-      
-      const shippingInvoices = invoices.filter(inv => 
-        inv.invoiceType === 'shipping' && 
-        inv.status !== 'Paid' && 
-        inv.status !== 'Cancelled'
+
+      const shippingInvoices = invoices.filter(
+        (inv) =>
+          inv.invoiceType === 'shipping' && inv.status !== 'Paid' && inv.status !== 'Cancelled'
       );
-      
+
       setUnpaidShippingInvoices(shippingInvoices);
-      setStats(prev => ({
+      setStats((prev) => ({
         ...prev,
-        shippingInvoices: shippingInvoices.length
+        shippingInvoices: shippingInvoices.length,
       }));
-      
     } catch (error) {
       console.error('Failed to fetch shipping data:', error);
     }
@@ -184,9 +180,9 @@ export default function CustomerDashboard() {
   const fetchUnreadFeedbackCount = async () => {
     try {
       if (!user?.userId) return;
-      
+
       const response = await feedbackService.getMyFeedback({ limit: 50 });
-      
+
       let feedbackData = [];
       if (response?.feedback && Array.isArray(response.feedback)) {
         feedbackData = response.feedback;
@@ -195,17 +191,16 @@ export default function CustomerDashboard() {
       } else if (Array.isArray(response)) {
         feedbackData = response;
       }
-      
-      const unreadResponses = feedbackData.filter(f => 
-        f.adminResponse && !f.viewedByCustomer
+
+      const unreadResponses = feedbackData.filter(
+        (f) => f.adminResponse && !f.viewedByCustomer
       ).length;
-      
-      setStats(prev => ({
+
+      setStats((prev) => ({
         ...prev,
         unreadFeedbackResponses: unreadResponses,
-        totalFeedback: feedbackData.length
+        totalFeedback: feedbackData.length,
       }));
-      
     } catch (error) {
       console.error('Failed to fetch unread feedback:', error);
     }
@@ -214,20 +209,20 @@ export default function CustomerDashboard() {
   const fetchPendingBriefResponses = async () => {
     try {
       if (!user?.userId) return;
-      
+
       const response = await customerBriefService.getPendingResponses();
-      
+
       let pendingResponses = [];
       if (response?.success && Array.isArray(response?.data)) {
         pendingResponses = response.data;
       } else if (Array.isArray(response)) {
         pendingResponses = response;
       }
-      
+
       setPendingBriefResponses(pendingResponses);
-      setStats(prev => ({
+      setStats((prev) => ({
         ...prev,
-        pendingBriefResponses: pendingResponses.length
+        pendingBriefResponses: pendingResponses.length,
       }));
     } catch (error) {
       console.error('Failed to fetch pending brief responses:', error);
@@ -236,11 +231,11 @@ export default function CustomerDashboard() {
 
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
-    setFeedbackFiles(prev => [...prev, ...files]);
+    setFeedbackFiles((prev) => [...prev, ...files]);
   };
 
   const removeFile = (index) => {
-    setFeedbackFiles(prev => prev.filter((_, i) => i !== index));
+    setFeedbackFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmitFeedback = async () => {
@@ -251,30 +246,29 @@ export default function CustomerDashboard() {
 
     try {
       setSubmittingFeedback(true);
-      
+
       const formData = new FormData();
       formData.append('message', feedbackMessage);
-      
+
       if (feedbackType === 'order' && selectedOrder) {
         formData.append('orderId', selectedOrder);
       }
-      
-      feedbackFiles.forEach(file => {
+
+      feedbackFiles.forEach((file) => {
         formData.append('attachments', file);
       });
-      
+
       await feedbackService.create(formData);
-      
+
       showToast('Thank you for your feedback!', 'success');
-      
+
       setShowFeedbackModal(false);
       setFeedbackMessage('');
       setFeedbackType('general');
       setSelectedOrder('');
       setFeedbackFiles([]);
-      
+
       await fetchUnreadFeedbackCount();
-      
     } catch (err) {
       console.error('Failed to submit feedback:', err);
       showToast('Failed to submit feedback. Please try again.', 'error');
@@ -293,22 +287,24 @@ export default function CustomerDashboard() {
 
   const getWelcomeName = () => {
     if (userName) {
-        return userName.split(' ')[0];
+      return userName.split(' ')[0];
     } else if (user?.email) {
-        return user.email.split('@')[0];
-    } else { 
-        return 'there';
+      return user.email.split('@')[0];
+    } else {
+      return 'there';
     }
   };
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      }).replace(/\//g, '-');
+      return new Date(dateString)
+        .toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        })
+        .replace(/\//g, '-');
     } catch {
       return 'Invalid date';
     }
@@ -354,18 +350,17 @@ export default function CustomerDashboard() {
               Welcome back, {getWelcomeName()}
             </h1>
             <p className="text-sm text-gray-400 sm:text-base">
-              {stats.designsForApproval > 0 
+              {stats.designsForApproval > 0
                 ? `You have ${stats.designsForApproval} design${stats.designsForApproval > 1 ? 's' : ''} awaiting your approval`
                 : stats.pendingBriefResponses > 0
-                ? `You have ${stats.pendingBriefResponses} new brief response${stats.pendingBriefResponses > 1 ? 's' : ''} from our team`
-                : 'Track your orders and manage your account'
-              }
+                  ? `You have ${stats.pendingBriefResponses} new brief response${stats.pendingBriefResponses > 1 ? 's' : ''} from our team`
+                  : 'Track your orders and manage your account'}
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Button 
-              variant="secondary" 
-              size="md" 
+            <Button
+              variant="secondary"
+              size="md"
               className="w-full gap-2 sm:w-auto"
               onClick={() => setShowFeedbackModal(true)}
             >
@@ -375,7 +370,12 @@ export default function CustomerDashboard() {
             <Link href="/collections" className="w-full sm:w-auto">
               <Button variant="primary" size="md" className="w-full gap-2 sm:w-auto">
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
                 </svg>
                 New Order
               </Button>
@@ -385,11 +385,21 @@ export default function CustomerDashboard() {
 
         {error && (
           <div className="mb-6 flex flex-col gap-3 rounded-lg border border-yellow-700 bg-yellow-900/30 p-4 sm:flex-row sm:items-center">
-            <svg className="h-5 w-5 flex-shrink-0 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <svg
+              className="h-5 w-5 flex-shrink-0 text-yellow-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
             </svg>
             <p className="flex-1 text-sm text-yellow-200">{error}</p>
-            <button 
+            <button
               onClick={fetchDashboardData}
               className="text-sm text-yellow-400 underline hover:text-yellow-300"
             >
@@ -408,7 +418,7 @@ export default function CustomerDashboard() {
               subtitle="In progress"
             />
           </Link>
-          
+
           <Link href="/invoices?filter=pending" className="block cursor-pointer">
             <SummaryCard
               title="Pending Invoices"
@@ -418,7 +428,7 @@ export default function CustomerDashboard() {
               subtitle="Awaiting payment"
             />
           </Link>
-          
+
           <Link href="/shipping/orders" className="block cursor-pointer">
             <SummaryCard
               title="Ready for Shipping"
@@ -428,7 +438,7 @@ export default function CustomerDashboard() {
               subtitle={`${stats.readyForShipping} order${stats.readyForShipping !== 1 ? 's' : ''} ready`}
             />
           </Link>
-          
+
           <Link href="/design-approval" className="block cursor-pointer">
             <SummaryCard
               title="Designs to Review"
@@ -439,7 +449,7 @@ export default function CustomerDashboard() {
             />
           </Link>
 
-          <Link href="/briefs/responses" className="block cursor-pointer relative">
+          <Link href="/briefs/responses" className="relative block cursor-pointer">
             <SummaryCard
               title="Brief Responses"
               value={stats.pendingBriefResponses.toString()}
@@ -448,13 +458,13 @@ export default function CustomerDashboard() {
               subtitle="Need your attention"
             />
             {stats.pendingBriefResponses > 0 && (
-              <span className="absolute -right-1 -top-1 h-5 w-5 animate-pulse rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
+              <span className="absolute -right-1 -top-1 flex h-5 w-5 animate-pulse items-center justify-center rounded-full bg-red-500 text-xs text-white">
                 {stats.pendingBriefResponses}
               </span>
             )}
           </Link>
-          
-          <Link href="/feedback" className="block cursor-pointer relative">
+
+          <Link href="/feedback" className="relative block cursor-pointer">
             <SummaryCard
               title="My Feedback"
               value={stats.totalFeedback.toString()}
@@ -463,7 +473,7 @@ export default function CustomerDashboard() {
               subtitle="View all your feedback"
             />
             {stats.unreadFeedbackResponses > 0 && (
-              <span className="absolute -right-1 -top-1 min-w-[22px] h-5 rounded-full bg-red-500 text-xs flex items-center justify-center text-white font-bold px-1.5">
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-[22px] items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white">
                 {stats.unreadFeedbackResponses}
               </span>
             )}
@@ -473,15 +483,20 @@ export default function CustomerDashboard() {
         {pendingBriefResponses.length > 0 && (
           <div className="mb-6">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-white sm:text-xl">Recent Brief Responses</h2>
-              <Link href="/briefs/responses" className="text-sm text-primary transition hover:text-primary-dark">
+              <h2 className="text-lg font-semibold text-white sm:text-xl">
+                Recent Brief Responses
+              </h2>
+              <Link
+                href="/briefs/responses"
+                className="text-sm text-primary transition hover:text-primary-dark"
+              >
                 View All →
               </Link>
             </div>
-            
+
             <div className="space-y-3">
               {pendingBriefResponses.slice(0, 2).map((response, idx) => (
-                <div 
+                <div
                   key={response.briefId || idx}
                   onClick={() => handleViewBriefResponse(response.briefId)}
                   className="cursor-pointer rounded-lg border border-purple-800 bg-gradient-to-br from-purple-900/20 to-purple-950/20 p-4 transition hover:border-purple-600"
@@ -489,18 +504,23 @@ export default function CustomerDashboard() {
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm font-medium text-white">Order #{response.orderNumber}</span>
+                        <span className="text-sm font-medium text-white">
+                          Order #{response.orderNumber}
+                        </span>
                         <span className="h-1.5 w-1.5 rounded-full bg-purple-400"></span>
                         <span className="text-xs text-purple-400">New Response</span>
                       </div>
                       <p className="mt-1 text-sm text-gray-300">
-                        Admin responded to your brief for <span className="font-medium">{response.productName}</span>
+                        Admin responded to your brief for{' '}
+                        <span className="font-medium">{response.productName}</span>
                       </p>
                       {response.hasDesign && (
                         <p className="mt-1 text-xs text-green-400">✓ Includes design preview</p>
                       )}
                       {response.description && (
-                        <p className="mt-1 text-xs text-gray-400 line-clamp-1">{response.description}</p>
+                        <p className="mt-1 line-clamp-1 text-xs text-gray-400">
+                          {response.description}
+                        </p>
                       )}
                       <p className="mt-2 text-xs text-gray-500">
                         {getTimeAgo(response.respondedAt)}
@@ -521,11 +541,14 @@ export default function CustomerDashboard() {
             <div>
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-white sm:text-xl">Recent Orders</h2>
-                <Link href="/order-history" className="text-sm text-primary transition hover:text-primary-dark">
+                <Link
+                  href="/order-history"
+                  className="text-sm text-primary transition hover:text-primary-dark"
+                >
                   View All →
                 </Link>
               </div>
-              
+
               {recentOrders.length === 0 ? (
                 <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-6 text-center sm:p-8">
                   <p className="mb-3 text-gray-400">No active orders</p>
@@ -539,10 +562,10 @@ export default function CustomerDashboard() {
                 <div className="space-y-3 sm:space-y-4">
                   {recentOrders.slice(0, 3).map((order) => {
                     const isEditable = EDITABLE_ORDER_STATUSES.includes(order.status);
-                    
+
                     return (
                       <div key={order._id} className="relative">
-                        <OrderCard 
+                        <OrderCard
                           order={{
                             id: order._id,
                             orderNumber: order.orderNumber,
@@ -550,7 +573,7 @@ export default function CustomerDashboard() {
                             orderedDate: formatDate(order.createdAt),
                             totalAmount: order.totalAmount,
                             status: order.status,
-                            itemsCount: order.items?.length || 1
+                            itemsCount: order.items?.length || 1,
                           }}
                           onClick={() => router.push(`/order-history/${order._id}`)}
                         />
@@ -571,18 +594,28 @@ export default function CustomerDashboard() {
             {ordersReadyForShipping.length > 0 && (
               <div>
                 <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-white sm:text-xl">Ready for Shipping</h2>
-                  <Link href="/shipping/orders" className="text-sm text-primary transition hover:text-primary-dark">
+                  <h2 className="text-lg font-semibold text-white sm:text-xl">
+                    Ready for Shipping
+                  </h2>
+                  <Link
+                    href="/shipping/orders"
+                    className="text-sm text-primary transition hover:text-primary-dark"
+                  >
                     View All →
                   </Link>
                 </div>
-                
+
                 <div className="space-y-3 sm:space-y-4">
                   {ordersReadyForShipping.slice(0, 1).map((order) => (
-                    <div key={order._id} className="rounded-lg border border-orange-800 bg-gradient-to-br from-orange-900/20 to-orange-950/20 p-3 sm:p-4">
+                    <div
+                      key={order._id}
+                      className="rounded-lg border border-orange-800 bg-gradient-to-br from-orange-900/20 to-orange-950/20 p-3 sm:p-4"
+                    >
                       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
                         <div>
-                          <h3 className="text-sm font-medium text-white sm:text-base">{order.orderNumber}</h3>
+                          <h3 className="text-sm font-medium text-white sm:text-base">
+                            {order.orderNumber}
+                          </h3>
                           <p className="mt-1 text-xs text-gray-400 sm:text-sm">
                             {order.items?.length} item(s)
                           </p>
@@ -607,11 +640,14 @@ export default function CustomerDashboard() {
             <div>
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-white sm:text-xl">Pending Invoices</h2>
-                <Link href="/invoices?filter=pending" className="text-sm text-primary transition hover:text-primary-dark">
+                <Link
+                  href="/invoices?filter=pending"
+                  className="text-sm text-primary transition hover:text-primary-dark"
+                >
                   View All →
                 </Link>
               </div>
-              
+
               {unpaidInvoices.length === 0 ? (
                 <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-4 text-center sm:p-6">
                   <p className="text-sm text-gray-400">No pending invoices</p>
@@ -619,8 +655,8 @@ export default function CustomerDashboard() {
               ) : (
                 <div className="space-y-3">
                   {unpaidInvoices.slice(0, 1).map((invoice) => (
-                    <InvoiceCard 
-                      key={invoice._id} 
+                    <InvoiceCard
+                      key={invoice._id}
                       invoice={{
                         id: invoice._id,
                         invoiceNumber: invoice.invoiceNumber,
@@ -628,7 +664,7 @@ export default function CustomerDashboard() {
                         balance: invoice.remainingAmount || invoice.totalAmount,
                         status: invoice.status,
                         dueDate: invoice.dueDate,
-                        createdAt: invoice.createdAt
+                        createdAt: invoice.createdAt,
                       }}
                       onPay={() => router.push(`/payment?invoiceId=${invoice._id}`)}
                       onDownload={() => {}}
@@ -642,15 +678,18 @@ export default function CustomerDashboard() {
               <div>
                 <div className="mb-4 flex items-center justify-between">
                   <h2 className="text-lg font-semibold text-white sm:text-xl">Shipping Invoices</h2>
-                  <Link href="/invoices?filter=shipping" className="text-sm text-primary transition hover:text-primary-dark">
+                  <Link
+                    href="/invoices?filter=shipping"
+                    className="text-sm text-primary transition hover:text-primary-dark"
+                  >
                     View All →
                   </Link>
                 </div>
-                
+
                 <div className="space-y-3">
                   {unpaidShippingInvoices.slice(0, 2).map((invoice) => (
-                    <InvoiceCard 
-                      key={invoice._id} 
+                    <InvoiceCard
+                      key={invoice._id}
                       invoice={{
                         id: invoice._id,
                         invoiceNumber: invoice.invoiceNumber,
@@ -659,7 +698,7 @@ export default function CustomerDashboard() {
                         status: invoice.status,
                         dueDate: invoice.dueDate,
                         createdAt: invoice.createdAt,
-                        type: 'shipping'
+                        type: 'shipping',
                       }}
                       onPay={() => router.push(`/payment?invoiceId=${invoice._id}`)}
                       onDownload={() => {}}
@@ -671,7 +710,7 @@ export default function CustomerDashboard() {
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:grid-cols-2 md:grid-cols-4 sm:gap-4">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 md:grid-cols-4">
           <Link href="/collections">
             <div className="cursor-pointer rounded-lg border border-blue-800 bg-gradient-to-br from-blue-900/30 to-blue-950/30 p-3 transition hover:border-blue-600 sm:p-4">
               <div className="mb-2 text-2xl sm:text-3xl">🛍️</div>
@@ -679,7 +718,7 @@ export default function CustomerDashboard() {
               <p className="mt-1 hidden text-xs text-gray-400 sm:block">Explore our collection</p>
             </div>
           </Link>
-          
+
           <Link href="/order-history">
             <div className="cursor-pointer rounded-lg border border-purple-800 bg-gradient-to-br from-purple-900/30 to-purple-950/30 p-3 transition hover:border-purple-600 sm:p-4">
               <div className="mb-2 text-2xl sm:text-3xl">📋</div>
@@ -687,7 +726,7 @@ export default function CustomerDashboard() {
               <p className="mt-1 hidden text-xs text-gray-400 sm:block">View all your orders</p>
             </div>
           </Link>
-          
+
           <Link href="/invoices">
             <div className="cursor-pointer rounded-lg border border-green-800 bg-gradient-to-br from-green-900/30 to-green-950/30 p-3 transition hover:border-green-600 sm:p-4">
               <div className="mb-2 text-2xl sm:text-3xl">📄</div>
@@ -700,7 +739,9 @@ export default function CustomerDashboard() {
             <div className="cursor-pointer rounded-lg border border-teal-800 bg-gradient-to-br from-teal-900/30 to-teal-950/30 p-3 transition hover:border-teal-600 sm:p-4">
               <div className="mb-2 text-2xl sm:text-3xl">💬</div>
               <h4 className="text-sm font-medium text-white sm:text-base">My Feedback</h4>
-              <p className="mt-1 hidden text-xs text-gray-400 sm:block">View your feedback history</p>
+              <p className="mt-1 hidden text-xs text-gray-400 sm:block">
+                View your feedback history
+              </p>
             </div>
           </Link>
         </div>
@@ -758,7 +799,7 @@ export default function CustomerDashboard() {
                       className="w-full rounded-lg border border-gray-700 bg-slate-800 px-4 py-2 text-sm text-white"
                     >
                       <option value="">Choose an order...</option>
-                      {userOrders.map(order => (
+                      {userOrders.map((order) => (
                         <option key={order._id} value={order._id}>
                           {order.orderNumber} - {order.items?.length} item(s)
                         </option>
@@ -794,8 +835,18 @@ export default function CustomerDashboard() {
                       id="feedback-attachments"
                     />
                     <label htmlFor="feedback-attachments" className="block cursor-pointer">
-                      <svg className="mx-auto mb-2 h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      <svg
+                        className="mx-auto mb-2 h-8 w-8 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                        />
                       </svg>
                       <p className="text-sm text-gray-400">Click to upload or drag and drop</p>
                       <p className="mt-1 text-xs text-gray-500">PNG, JPG, PDF up to 10MB</p>
@@ -807,8 +858,13 @@ export default function CustomerDashboard() {
                   <div className="space-y-2">
                     <p className="text-sm font-medium text-gray-300">Selected Files:</p>
                     {feedbackFiles.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between rounded-lg bg-slate-800 p-2">
-                        <span className="max-w-[200px] truncate text-sm text-white sm:max-w-[250px]">{file.name}</span>
+                      <div
+                        key={index}
+                        className="flex items-center justify-between rounded-lg bg-slate-800 p-2"
+                      >
+                        <span className="max-w-[200px] truncate text-sm text-white sm:max-w-[250px]">
+                          {file.name}
+                        </span>
                         <button
                           onClick={() => removeFile(index)}
                           className="text-sm text-red-400 hover:text-red-300"

@@ -12,9 +12,9 @@ import ProfileDropdown from './ProfileDropdown';
 const Header = ({ onSearch, showSearch = true }) => {
   const pathname = usePathname();
   const { isAuthenticated, loading, user } = useAuth();
-  
+
   const isAuthPage = pathname?.startsWith('/auth/');
-  
+
   if (isAuthPage || !isAuthenticated || loading) {
     return null;
   }
@@ -35,7 +35,7 @@ const Header = ({ onSearch, showSearch = true }) => {
             <SearchBar userRole={userRole} />
           </div>
         )}
-        
+
         <div className="flex items-center gap-2 sm:gap-4">
           <NotificationBell />
           {userRole === 'customer' && <CartIcon />}

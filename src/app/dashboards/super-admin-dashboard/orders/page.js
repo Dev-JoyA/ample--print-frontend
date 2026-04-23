@@ -1,25 +1,25 @@
-"use client";
+'use client';
 
-import { Suspense, useState, useEffect } from "react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import DashboardLayout from "@/components/layouts/DashboardLayout";
-import Button from "@/components/ui/Button";
-import StatusBadge from "@/components/ui/StatusBadge";
-import SEOHead from "@/components/common/SEOHead";
-import { useAuthCheck } from "@/app/lib/auth";
-import { orderService } from "@/services/orderService";
-import { METADATA } from "@/lib/metadata";
+import { Suspense, useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import DashboardLayout from '@/components/layouts/DashboardLayout';
+import Button from '@/components/ui/Button';
+import StatusBadge from '@/components/ui/StatusBadge';
+import SEOHead from '@/components/common/SEOHead';
+import { useAuthCheck } from '@/app/lib/auth';
+import { orderService } from '@/services/orderService';
+import { METADATA } from '@/lib/metadata';
 
 function SuperAdminOrdersPageContent() {
   useAuthCheck();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const filterParam = searchParams.get("filter") || "all";
-  
+  const filterParam = searchParams.get('filter') || 'all';
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [filter, setFilter] = useState(filterParam);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -30,7 +30,7 @@ function SuperAdminOrdersPageContent() {
     paid: 0,
     partPaid: 0,
     inProduction: 0,
-    completed: 0
+    completed: 0,
   });
 
   const itemsPerPage = 10;
@@ -49,14 +49,14 @@ function SuperAdminOrdersPageContent() {
       let ordersData = [];
       let total = 0;
       let pages = 1;
-      
-      if (filter === "needs-invoice") {
-        const response = await orderService.getOrdersReadyForInvoice({ 
-          page: currentPage, 
-          limit: itemsPerPage 
+
+      if (filter === 'needs-invoice') {
+        const response = await orderService.getOrdersReadyForInvoice({
+          page: currentPage,
+          limit: itemsPerPage,
         });
-        console.log("Orders ready for invoice:", response);
-        
+        console.log('Orders ready for invoice:', response);
+
         if (response?.orders && Array.isArray(response.orders)) {
           ordersData = response.orders;
           total = response.total || 0;
@@ -69,11 +69,11 @@ function SuperAdminOrdersPageContent() {
           ordersData = response.data.orders;
         }
       } else {
-        const params = { 
-          limit: itemsPerPage, 
-          page: currentPage 
+        const params = {
+          limit: itemsPerPage,
+          page: currentPage,
         };
-        if (filter !== "all") {
+        if (filter !== 'all') {
           params.status = filter;
         }
         const response = await orderService.getAll(params);
@@ -81,15 +81,14 @@ function SuperAdminOrdersPageContent() {
         total = response?.total || 0;
         pages = response?.pages || 1;
       }
-      
+
       setOrders(ordersData);
       setTotalOrders(total);
       setTotalPages(pages);
       await fetchStats();
-      
     } catch (err) {
-      console.error("Failed to fetch orders:", err);
-      setError("Failed to load orders");
+      console.error('Failed to fetch orders:', err);
+      setError('Failed to load orders');
     } finally {
       setLoading(false);
     }
@@ -97,13 +96,20 @@ function SuperAdminOrdersPageContent() {
 
   const fetchStats = async () => {
     try {
-      const [allOrders, needsInvoiceOrders, paidOrders, partPaidOrders, productionOrders, completedOrders] = await Promise.all([
+      const [
+        allOrders,
+        needsInvoiceOrders,
+        paidOrders,
+        partPaidOrders,
+        productionOrders,
+        completedOrders,
+      ] = await Promise.all([
         orderService.getAll({ limit: 1 }).catch(() => ({ total: 0 })),
         orderService.getOrdersReadyForInvoice({ limit: 1 }).catch(() => ({ orders: [], total: 0 })),
-        orderService.filter({ paymentStatus: "Completed", limit: 1 }).catch(() => ({ total: 0 })),
-        orderService.filter({ paymentStatus: "PartPayment", limit: 1 }).catch(() => ({ total: 0 })),
-        orderService.filter({ status: "InProduction", limit: 1 }).catch(() => ({ total: 0 })),
-        orderService.filter({ status: "Completed", limit: 1 }).catch(() => ({ total: 0 }))
+        orderService.filter({ paymentStatus: 'Completed', limit: 1 }).catch(() => ({ total: 0 })),
+        orderService.filter({ paymentStatus: 'PartPayment', limit: 1 }).catch(() => ({ total: 0 })),
+        orderService.filter({ status: 'InProduction', limit: 1 }).catch(() => ({ total: 0 })),
+        orderService.filter({ status: 'Completed', limit: 1 }).catch(() => ({ total: 0 })),
       ]);
 
       let needsInvoiceCount = 0;
@@ -123,10 +129,10 @@ function SuperAdminOrdersPageContent() {
         paid: paidOrders?.total || 0,
         partPaid: partPaidOrders?.total || 0,
         inProduction: productionOrders?.total || 0,
-        completed: completedOrders?.total || 0
+        completed: completedOrders?.total || 0,
       });
     } catch (err) {
-      console.error("Failed to fetch stats:", err);
+      console.error('Failed to fetch stats:', err);
     }
   };
 
@@ -139,63 +145,63 @@ function SuperAdminOrdersPageContent() {
   };
 
   const formatCurrency = (amount) => {
-    return `₦${amount?.toLocaleString() || "0"}`;
+    return `₦${amount?.toLocaleString() || '0'}`;
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric"
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
     });
   };
 
   const getStatusColor = (status) => {
     const colors = {
-      "Pending": "yellow",
-      "OrderReceived": "blue",
-      "FilesUploaded": "purple",
-      "DesignUploaded": "indigo",
-      "UnderReview": "orange",
-      "Approved": "green",
-      "AwaitingPartPayment": "yellow",
-      "PartPaymentMade": "blue",
-      "InProduction": "purple",
-      "Completed": "green",
-      "ReadyForShipping": "teal",
-      "Shipped": "blue",
-      "Delivered": "green",
-      "Cancelled": "red"
+      Pending: 'yellow',
+      OrderReceived: 'blue',
+      FilesUploaded: 'purple',
+      DesignUploaded: 'indigo',
+      UnderReview: 'orange',
+      Approved: 'green',
+      AwaitingPartPayment: 'yellow',
+      PartPaymentMade: 'blue',
+      InProduction: 'purple',
+      Completed: 'green',
+      ReadyForShipping: 'teal',
+      Shipped: 'blue',
+      Delivered: 'green',
+      Cancelled: 'red',
     };
-    return colors[status] || "gray";
+    return colors[status] || 'gray';
   };
 
   const getPaymentStatusColor = (status) => {
     const colors = {
-      "Pending": "yellow",
-      "PartPayment": "blue",
-      "Completed": "green",
-      "Failed": "red",
-      "Refunded": "gray"
+      Pending: 'yellow',
+      PartPayment: 'blue',
+      Completed: 'green',
+      Failed: 'red',
+      Refunded: 'gray',
     };
-    return colors[status] || "gray";
+    return colors[status] || 'gray';
   };
 
   const PaginationControls = () => {
     if (totalPages <= 1) return null;
-    
+
     return (
       <div className="flex items-center justify-between border-t border-gray-800 px-4 py-3 sm:px-6">
         <div className="flex flex-1 justify-between sm:hidden">
           <button
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
             className="relative inline-flex items-center rounded-md border border-gray-700 bg-slate-800 px-4 py-2 text-sm font-medium text-gray-400 hover:bg-slate-700 disabled:opacity-50"
           >
             Previous
           </button>
           <button
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
             className="relative ml-3 inline-flex items-center rounded-md border border-gray-700 bg-slate-800 px-4 py-2 text-sm font-medium text-gray-400 hover:bg-slate-700 disabled:opacity-50"
           >
@@ -205,23 +211,30 @@ function SuperAdminOrdersPageContent() {
         <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
           <div>
             <p className="text-sm text-gray-400">
-              Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> to{" "}
+              Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
               <span className="font-medium">
                 {Math.min(currentPage * itemsPerPage, totalOrders)}
-              </span>{" "}
+              </span>{' '}
               of <span className="font-medium">{totalOrders}</span> results
             </p>
           </div>
           <div>
-            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+            <nav
+              className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+              aria-label="Pagination"
+            >
               <button
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
                 className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-700 hover:bg-slate-800 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
               >
                 <span className="sr-only">Previous</span>
                 <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </button>
               {[...Array(Math.min(5, totalPages))].map((_, i) => {
@@ -235,7 +248,7 @@ function SuperAdminOrdersPageContent() {
                 } else {
                   pageNum = currentPage - 2 + i;
                 }
-                
+
                 return (
                   <button
                     key={pageNum}
@@ -251,13 +264,17 @@ function SuperAdminOrdersPageContent() {
                 );
               })}
               <button
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
                 className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-700 hover:bg-slate-800 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
               >
                 <span className="sr-only">Next</span>
                 <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </button>
             </nav>
@@ -288,7 +305,9 @@ function SuperAdminOrdersPageContent() {
               <p className="text-sm text-gray-400">Manage and track all orders</p>
             </div>
             <Link href="/dashboards/super-admin-dashboard">
-              <Button variant="ghost" size="sm">← Back to Dashboard</Button>
+              <Button variant="ghost" size="sm">
+                ← Back to Dashboard
+              </Button>
             </Link>
           </div>
 
@@ -299,73 +318,81 @@ function SuperAdminOrdersPageContent() {
           )}
 
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-            <div 
+            <div
               onClick={() => {
-                setFilter("all");
+                setFilter('all');
                 setCurrentPage(1);
               }}
               className={`cursor-pointer rounded-lg border p-4 transition hover:bg-slate-800/50 ${
-                filter === "all" ? "border-red-500 bg-slate-900" : "border-gray-800 bg-slate-900"
+                filter === 'all' ? 'border-red-500 bg-slate-900' : 'border-gray-800 bg-slate-900'
               }`}
             >
               <p className="text-sm text-gray-400">Total Orders</p>
               <p className="text-2xl font-bold text-white">{stats.total}</p>
             </div>
-            <div 
+            <div
               onClick={() => {
-                setFilter("needs-invoice");
+                setFilter('needs-invoice');
                 setCurrentPage(1);
               }}
               className={`cursor-pointer rounded-lg border p-4 transition hover:bg-slate-800/50 ${
-                filter === "needs-invoice" ? "border-yellow-500 bg-slate-900" : "border-gray-800 bg-slate-900"
+                filter === 'needs-invoice'
+                  ? 'border-yellow-500 bg-slate-900'
+                  : 'border-gray-800 bg-slate-900'
               }`}
             >
               <p className="text-sm text-gray-400">Need Invoice</p>
               <p className="text-2xl font-bold text-yellow-400">{stats.needsInvoice}</p>
             </div>
-            <div 
+            <div
               onClick={() => {
-                setFilter("paid");
+                setFilter('paid');
                 setCurrentPage(1);
               }}
               className={`cursor-pointer rounded-lg border p-4 transition hover:bg-slate-800/50 ${
-                filter === "paid" ? "border-green-500 bg-slate-900" : "border-gray-800 bg-slate-900"
+                filter === 'paid' ? 'border-green-500 bg-slate-900' : 'border-gray-800 bg-slate-900'
               }`}
             >
               <p className="text-sm text-gray-400">Paid</p>
               <p className="text-2xl font-bold text-green-400">{stats.paid}</p>
             </div>
-            <div 
+            <div
               onClick={() => {
-                setFilter("part-paid");
+                setFilter('part-paid');
                 setCurrentPage(1);
               }}
               className={`cursor-pointer rounded-lg border p-4 transition hover:bg-slate-800/50 ${
-                filter === "part-paid" ? "border-blue-500 bg-slate-900" : "border-gray-800 bg-slate-900"
+                filter === 'part-paid'
+                  ? 'border-blue-500 bg-slate-900'
+                  : 'border-gray-800 bg-slate-900'
               }`}
             >
               <p className="text-sm text-gray-400">Part Paid</p>
               <p className="text-2xl font-bold text-blue-400">{stats.partPaid}</p>
             </div>
-            <div 
+            <div
               onClick={() => {
-                setFilter("in-production");
+                setFilter('in-production');
                 setCurrentPage(1);
               }}
               className={`cursor-pointer rounded-lg border p-4 transition hover:bg-slate-800/50 ${
-                filter === "in-production" ? "border-purple-500 bg-slate-900" : "border-gray-800 bg-slate-900"
+                filter === 'in-production'
+                  ? 'border-purple-500 bg-slate-900'
+                  : 'border-gray-800 bg-slate-900'
               }`}
             >
               <p className="text-sm text-gray-400">In Production</p>
               <p className="text-2xl font-bold text-purple-400">{stats.inProduction}</p>
             </div>
-            <div 
+            <div
               onClick={() => {
-                setFilter("completed");
+                setFilter('completed');
                 setCurrentPage(1);
               }}
               className={`cursor-pointer rounded-lg border p-4 transition hover:bg-slate-800/50 ${
-                filter === "completed" ? "border-green-500 bg-slate-900" : "border-gray-800 bg-slate-900"
+                filter === 'completed'
+                  ? 'border-green-500 bg-slate-900'
+                  : 'border-gray-800 bg-slate-900'
               }`}
             >
               <p className="text-sm text-gray-400">Completed</p>
@@ -385,7 +412,9 @@ function SuperAdminOrdersPageContent() {
                     <thead className="border-b border-gray-800 bg-slate-950">
                       <tr>
                         <th className="p-4 text-left text-sm font-medium text-gray-400">Order #</th>
-                        <th className="p-4 text-left text-sm font-medium text-gray-400">Customer</th>
+                        <th className="p-4 text-left text-sm font-medium text-gray-400">
+                          Customer
+                        </th>
                         <th className="p-4 text-left text-sm font-medium text-gray-400">Items</th>
                         <th className="p-4 text-left text-sm font-medium text-gray-400">Total</th>
                         <th className="p-4 text-left text-sm font-medium text-gray-400">Payment</th>
@@ -396,7 +425,10 @@ function SuperAdminOrdersPageContent() {
                     </thead>
                     <tbody>
                       {orders.map((order) => (
-                        <tr key={order._id} className="border-b border-gray-800 transition hover:bg-slate-800/50">
+                        <tr
+                          key={order._id}
+                          className="border-b border-gray-800 transition hover:bg-slate-800/50"
+                        >
                           <td className="p-4">
                             <span className="font-mono text-sm font-medium text-white">
                               {order.orderNumber}
@@ -404,7 +436,9 @@ function SuperAdminOrdersPageContent() {
                           </td>
                           <td className="p-4">
                             <span className="text-sm text-white">
-                              {order.userId?.email?.split("@")[0] || order.userId?.fullname || "N/A"}
+                              {order.userId?.email?.split('@')[0] ||
+                                order.userId?.fullname ||
+                                'N/A'}
                             </span>
                           </td>
                           <td className="p-4 text-sm text-gray-300">
@@ -414,12 +448,16 @@ function SuperAdminOrdersPageContent() {
                             {formatCurrency(order.totalAmount)}
                           </td>
                           <td className="p-4">
-                            <span className={`inline-block rounded-full px-2 py-1 text-xs bg-${getPaymentStatusColor(order.paymentStatus)}-900/50 text-${getPaymentStatusColor(order.paymentStatus)}-400`}>
-                              {order.paymentStatus || "Pending"}
+                            <span
+                              className={`inline-block rounded-full px-2 py-1 text-xs bg-${getPaymentStatusColor(order.paymentStatus)}-900/50 text-${getPaymentStatusColor(order.paymentStatus)}-400`}
+                            >
+                              {order.paymentStatus || 'Pending'}
                             </span>
                           </td>
                           <td className="p-4">
-                            <span className={`inline-block rounded-full px-2 py-1 text-xs bg-${getStatusColor(order.status)}-900/50 text-${getStatusColor(order.status)}-400`}>
+                            <span
+                              className={`inline-block rounded-full px-2 py-1 text-xs bg-${getStatusColor(order.status)}-900/50 text-${getStatusColor(order.status)}-400`}
+                            >
                               {order.status}
                             </span>
                           </td>
@@ -434,7 +472,7 @@ function SuperAdminOrdersPageContent() {
                               >
                                 View
                               </button>
-                              {filter === "needs-invoice" && !order.invoiceId && (
+                              {filter === 'needs-invoice' && !order.invoiceId && (
                                 <button
                                   onClick={() => handleCreateInvoice(order._id)}
                                   className="text-sm font-medium text-green-500 hover:text-green-400"

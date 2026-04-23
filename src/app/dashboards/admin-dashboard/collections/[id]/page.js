@@ -42,7 +42,7 @@ export default function CollectionDetailPage() {
     return (
       <DashboardLayout userRole="admin">
         <SEOHead {...METADATA.dashboard.admin} />
-        <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex min-h-[60vh] items-center justify-center">
           <div className="text-white">Loading...</div>
         </div>
       </DashboardLayout>
@@ -52,37 +52,42 @@ export default function CollectionDetailPage() {
   return (
     <DashboardLayout userRole="admin">
       <SEOHead {...METADATA.dashboard.admin} />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-400 mb-4 sm:mb-6 flex-wrap">
-          <Link href="/dashboards/admin-dashboard" className="hover:text-red-400 transition">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <nav className="mb-4 flex flex-wrap items-center gap-2 text-xs text-gray-400 sm:mb-6 sm:text-sm">
+          <Link href="/dashboards/admin-dashboard" className="transition hover:text-red-400">
             Dashboard
           </Link>
           <span>›</span>
-          <Link href="/dashboards/admin-dashboard/collections" className="hover:text-red-400 transition">
+          <Link
+            href="/dashboards/admin-dashboard/collections"
+            className="transition hover:text-red-400"
+          >
             Collections
           </Link>
           <span>›</span>
-          <span className="text-white truncate max-w-[200px]">{collection?.name}</span>
+          <span className="max-w-[200px] truncate text-white">{collection?.name}</span>
         </nav>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-200 text-sm">
+          <div className="mb-4 rounded-lg border border-red-700 bg-red-900/50 p-3 text-sm text-red-200">
             {error}
           </div>
         )}
 
-        <div className="bg-slate-900 rounded-xl border border-gray-800 p-6 sm:p-8">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-red-600/20 to-purple-600/20 rounded-2xl flex items-center justify-center text-4xl sm:text-5xl shrink-0">
+        <div className="rounded-xl border border-gray-800 bg-slate-900 p-6 sm:p-8">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-red-600/20 to-purple-600/20 text-4xl sm:h-20 sm:w-20 sm:text-5xl">
               📁
             </div>
             <div className="flex-1">
-              <h1 className="text-2xl sm:text-3xl font-bold text-white break-words">{collection?.name}</h1>
-              <p className="text-gray-400 text-sm sm:text-base mt-1">
+              <h1 className="break-words text-2xl font-bold text-white sm:text-3xl">
+                {collection?.name}
+              </h1>
+              <p className="mt-1 text-sm text-gray-400 sm:text-base">
                 Collection ID: {collectionId}
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
               <Link href={`/dashboards/admin-dashboard/collections/${collectionId}/products`}>
                 <Button variant="primary" size="lg" className="w-full sm:w-auto">
                   View Products →
@@ -92,28 +97,32 @@ export default function CollectionDetailPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mt-6 sm:mt-8">
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:mt-8 sm:gap-6 md:grid-cols-3">
           <Link href={`/dashboards/admin-dashboard/collections/${collectionId}/products`}>
-            <div className="bg-slate-900 rounded-lg border border-gray-800 p-4 sm:p-6 hover:border-red-600 transition cursor-pointer">
-              <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">📦</div>
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-2">Manage Products</h3>
-              <p className="text-xs sm:text-sm text-gray-400">View, edit, or add products to this collection</p>
+            <div className="cursor-pointer rounded-lg border border-gray-800 bg-slate-900 p-4 transition hover:border-red-600 sm:p-6">
+              <div className="mb-3 text-3xl sm:mb-4 sm:text-4xl">📦</div>
+              <h3 className="mb-2 text-lg font-bold text-white sm:text-xl">Manage Products</h3>
+              <p className="text-xs text-gray-400 sm:text-sm">
+                View, edit, or add products to this collection
+              </p>
             </div>
           </Link>
 
           <Link href={`/dashboards/admin-dashboard/products/create?collectionId=${collectionId}`}>
-            <div className="bg-slate-900 rounded-lg border border-gray-800 p-4 sm:p-6 hover:border-green-600 transition cursor-pointer">
-              <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">➕</div>
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-2">Add New Product</h3>
-              <p className="text-xs sm:text-sm text-gray-400">Create a new product in this collection</p>
+            <div className="cursor-pointer rounded-lg border border-gray-800 bg-slate-900 p-4 transition hover:border-green-600 sm:p-6">
+              <div className="mb-3 text-3xl sm:mb-4 sm:text-4xl">➕</div>
+              <h3 className="mb-2 text-lg font-bold text-white sm:text-xl">Add New Product</h3>
+              <p className="text-xs text-gray-400 sm:text-sm">
+                Create a new product in this collection
+              </p>
             </div>
           </Link>
 
           <Link href={`/dashboards/admin-dashboard/collections/${collectionId}/edit`}>
-            <div className="bg-slate-900 rounded-lg border border-gray-800 p-4 sm:p-6 hover:border-blue-600 transition cursor-pointer">
-              <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">✏️</div>
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-2">Edit Collection</h3>
-              <p className="text-xs sm:text-sm text-gray-400">Update collection name or settings</p>
+            <div className="cursor-pointer rounded-lg border border-gray-800 bg-slate-900 p-4 transition hover:border-blue-600 sm:p-6">
+              <div className="mb-3 text-3xl sm:mb-4 sm:text-4xl">✏️</div>
+              <h3 className="mb-2 text-lg font-bold text-white sm:text-xl">Edit Collection</h3>
+              <p className="text-xs text-gray-400 sm:text-sm">Update collection name or settings</p>
             </div>
           </Link>
         </div>

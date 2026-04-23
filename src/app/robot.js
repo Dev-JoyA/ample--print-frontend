@@ -12,7 +12,7 @@ export default function robots() {
           '/auth/',
           '/payment/verify',
           '/profile/',
-          '/notifications/'
+          '/notifications/',
         ],
       },
       {

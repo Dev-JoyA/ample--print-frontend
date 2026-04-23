@@ -5,11 +5,13 @@ This guide provides comprehensive instructions for testing all pages and feature
 ## Prerequisites
 
 1. Ensure all dependencies are installed:
+
 ```bash
 npm install
 ```
 
 2. Start the development server:
+
 ```bash
 npm run dev
 ```
@@ -19,6 +21,7 @@ npm run dev
 ## Customer Pages Testing
 
 ### 1. Landing Page (`/`)
+
 - [ ] Verify hero section displays correctly
 - [ ] Check navigation links work
 - [ ] Test "Start Your First Order" button
@@ -29,12 +32,14 @@ npm run dev
 - [ ] Check footer displays all links and information
 
 ### 2. Collections Page (`/collections`)
+
 - [ ] Verify all collections are displayed in grid
 - [ ] Check collection cards show name and image
 - [ ] Test clicking on a collection navigates to product list
 - [ ] Verify responsive layout on mobile/tablet
 
 ### 3. Product List Page (`/collections/[id]/products`)
+
 - [ ] Verify filters sidebar displays correctly
 - [ ] Test category filter selection
 - [ ] Check price range slider works
@@ -45,6 +50,7 @@ npm run dev
 - [ ] Verify "Custom Quote" button works
 
 ### 4. Product Detail Page (`/products/[id]`)
+
 - [ ] Verify product images display
 - [ ] Test view switching (FRONT, INNER, BACK)
 - [ ] Check product information displays correctly
@@ -55,6 +61,7 @@ npm run dev
 - [ ] Verify "Back to Studio" button works
 
 ### 5. Customer Brief Page (`/products/[id]/customize`)
+
 - [ ] Verify design instructions textarea works
 - [ ] Test voice recording button (UI only)
 - [ ] Check file upload for logos/imagery
@@ -64,6 +71,7 @@ npm run dev
 - [ ] Verify "Continue to Order" button navigates correctly
 
 ### 6. Order Summary Page (`/orders/summary`)
+
 - [ ] Verify product preview displays
 - [ ] Check customization details show correctly
 - [ ] Verify order totals calculate correctly
@@ -71,6 +79,7 @@ npm run dev
 - [ ] Check "Proceed to Payment" button navigates
 
 ### 7. Payment Page (`/payment`)
+
 - [ ] Verify order total displays
 - [ ] Test payment method selection (Paystack/Bank Transfer)
 - [ ] Check bank transfer details display when selected
@@ -81,6 +90,7 @@ npm run dev
 - [ ] Verify form validation works
 
 ### 8. Shipping Selection Page (`/shipping`)
+
 - [ ] Verify all shipping options display
 - [ ] Test pickup option selection
 - [ ] Check delivery to own address option
@@ -91,6 +101,7 @@ npm run dev
 - [ ] Verify "Continue" button works
 
 ### 9. Invoices Page (`/invoices`)
+
 - [ ] Verify all invoices display in grid
 - [ ] Check invoice cards show correct information
 - [ ] Test "Pay Invoice" button
@@ -98,6 +109,7 @@ npm run dev
 - [ ] Check "Due Soon" badges show when applicable
 
 ### 10. Order Tracking Page (`/order-tracking`)
+
 - [ ] Verify search input works
 - [ ] Test "Track Order" button
 - [ ] Check order details display after tracking
@@ -107,6 +119,7 @@ npm run dev
 - [ ] Verify all status steps show correct state
 
 ### 11. Customer Dashboard (`/dashboard`)
+
 - [ ] Verify welcome message displays
 - [ ] Check summary cards show correct values
 - [ ] Test "Start a New Print Order" button
@@ -116,12 +129,14 @@ npm run dev
 - [ ] Verify order cards are clickable
 
 ### 12. Order History Page (`/order-history`)
+
 - [ ] Verify all orders display
 - [ ] Test search functionality
 - [ ] Check order cards show correct information
 - [ ] Verify status badges display
 
 ### 13. Design Approval Page (`/design-approval`)
+
 - [ ] Verify pending designs display
 - [ ] Check design images display correctly
 - [ ] Test "Approve Design" button
@@ -129,6 +144,7 @@ npm run dev
 - [ ] Check order information displays
 
 ### 14. New Order/Studio Page (`/new-order`)
+
 - [ ] Verify hero section displays
 - [ ] Check "Explore Print Solutions" button
 - [ ] Test "Start Custom Brief" button
@@ -139,12 +155,14 @@ npm run dev
 ## Admin Pages Testing
 
 ### 15. Admin Dashboard (`/admin-dashboard`)
+
 - [ ] Verify summary cards display
 - [ ] Check recent orders list
 - [ ] Test "View All" link
 - [ ] Verify sidebar navigation works
 
 ### 16. Admin Orders Page (`/admin/orders`)
+
 - [ ] Verify orders list displays
 - [ ] Test search functionality
 - [ ] Check order detail modal opens
@@ -152,6 +170,7 @@ npm run dev
 - [ ] Verify status changes reflect
 
 ### 17. Customer Briefs Page (`/admin/customer-briefs`)
+
 - [ ] Verify briefs list displays
 - [ ] Check brief details show correctly
 - [ ] Test "Respond to Brief" button
@@ -160,6 +179,7 @@ npm run dev
 - [ ] Check "Cancel" button works
 
 ### 18. Design Upload Page (`/admin/design-upload`)
+
 - [ ] Verify order selection dropdown works
 - [ ] Test file upload functionality
 - [ ] Check uploaded files list displays
@@ -170,11 +190,13 @@ npm run dev
 ## Super Admin Pages Testing
 
 ### 19. Super Admin Dashboard (`/super-admin-dashboard`)
+
 - [ ] Verify summary cards display
 - [ ] Check financial metrics
 - [ ] Verify sidebar navigation
 
 ### 20. Invoice Creation Page (`/super-admin/invoices`)
+
 - [ ] Verify order selection works
 - [ ] Test adding invoice items
 - [ ] Check item removal
@@ -184,6 +206,7 @@ npm run dev
 - [ ] Verify "Generate Invoice" button
 
 ### 21. Shipping Invoice Page (`/super-admin/shipping-invoices`)
+
 - [ ] Verify order selection
 - [ ] Test shipping address input
 - [ ] Check shipping cost input
@@ -191,6 +214,7 @@ npm run dev
 - [ ] Test form validation
 
 ### 22. Discount Management Page (`/super-admin/discounts`)
+
 - [ ] Verify existing discounts display
 - [ ] Test creating new discount (percentage)
 - [ ] Test creating new discount (amount)
@@ -199,6 +223,7 @@ npm run dev
 - [ ] Verify discount list updates
 
 ### 23. Payment Verification Page (`/super-admin/payment-verification`)
+
 - [ ] Verify pending payments display
 - [ ] Check receipt images display
 - [ ] Test "Verify Payment" button
@@ -208,6 +233,7 @@ npm run dev
 ## Component Testing
 
 ### UI Components
+
 - [ ] Test Button component with all variants
 - [ ] Verify Input component validation
 - [ ] Check Textarea component
@@ -218,6 +244,7 @@ npm run dev
 - [ ] Verify Footer links
 
 ### Card Components
+
 - [ ] Test ProductCard displays correctly
 - [ ] Verify OrderCard shows all information
 - [ ] Check InvoiceCard displays
@@ -227,6 +254,7 @@ npm run dev
 ## Responsive Design Testing
 
 Test all pages on:
+
 - [ ] Mobile (320px - 768px)
 - [ ] Tablet (768px - 1024px)
 - [ ] Desktop (1024px+)
@@ -234,6 +262,7 @@ Test all pages on:
 ## Browser Compatibility
 
 Test in:
+
 - [ ] Chrome
 - [ ] Firefox
 - [ ] Safari

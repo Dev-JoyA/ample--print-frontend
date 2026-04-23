@@ -17,7 +17,7 @@ export const Toast = ({ message, type = 'info', duration = 5000, onClose }) => {
   if (!isVisible) return null;
 
   const getTypeStyles = () => {
-    switch(type) {
+    switch (type) {
       case 'success':
         return 'bg-green-600/20 border-green-600 text-green-400';
       case 'error':
@@ -30,7 +30,7 @@ export const Toast = ({ message, type = 'info', duration = 5000, onClose }) => {
   };
 
   const getIcon = () => {
-    switch(type) {
+    switch (type) {
       case 'success':
         return '✓';
       case 'error':
@@ -43,10 +43,12 @@ export const Toast = ({ message, type = 'info', duration = 5000, onClose }) => {
   };
 
   return (
-    <div className={`fixed bottom-4 right-4 z-50 max-w-xs animate-slide-up rounded-lg border p-3 backdrop-blur-sm sm:max-w-md sm:p-4 ${getTypeStyles()}`}>
+    <div
+      className={`animate-slide-up fixed bottom-4 right-4 z-50 max-w-xs rounded-lg border p-3 backdrop-blur-sm sm:max-w-md sm:p-4 ${getTypeStyles()}`}
+    >
       <div className="flex items-start gap-2 sm:gap-3">
         <span className="text-base sm:text-xl">{getIcon()}</span>
-        <p className="text-xs flex-1 sm:text-sm">{message}</p>
+        <p className="flex-1 text-xs sm:text-sm">{message}</p>
         <button
           onClick={() => {
             setIsVisible(false);
@@ -54,8 +56,18 @@ export const Toast = ({ message, type = 'info', duration = 5000, onClose }) => {
           }}
           className="text-gray-400 transition hover:text-white"
         >
-          <svg className="h-3 w-3 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <svg
+            className="h-3 w-3 sm:h-4 sm:w-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
@@ -66,7 +78,7 @@ export const Toast = ({ message, type = 'info', duration = 5000, onClose }) => {
 export const ToastContainer = ({ toasts, removeToast }) => {
   return (
     <div className="fixed bottom-4 right-4 z-50 space-y-2">
-      {toasts.map(toast => (
+      {toasts.map((toast) => (
         <Toast
           key={toast.id}
           message={toast.message}

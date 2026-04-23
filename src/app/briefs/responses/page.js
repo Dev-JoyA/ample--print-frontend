@@ -55,7 +55,7 @@ export default function BriefResponsesPage() {
   const handleMarkAsComplete = async (response, e) => {
     e.stopPropagation();
     if (markingComplete === response.briefId) return;
-    
+
     try {
       setMarkingComplete(response.briefId);
       await customerBriefService.markAsComplete(response.briefId);
@@ -100,8 +100,8 @@ export default function BriefResponsesPage() {
     return `${diffDays}d ago`;
   };
 
-  const pendingResponses = responses.filter(r => !r.viewed);
-  const completedResponses = responses.filter(r => r.viewed);
+  const pendingResponses = responses.filter((r) => !r.viewed);
+  const completedResponses = responses.filter((r) => r.viewed);
   const filteredResponses = filter === 'pending' ? pendingResponses : completedResponses;
 
   if (authLoading) {
@@ -118,12 +118,16 @@ export default function BriefResponsesPage() {
     <DashboardLayout userRole="customer">
       <SEOHead {...METADATA.briefs} title="Admin Responses" />
       <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-
         <div className="mb-6 md:mb-8">
           <Link href="/dashboards">
             <Button variant="ghost" size="sm" className="mb-4 gap-1">
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
               Dashboard
             </Button>
@@ -141,7 +145,12 @@ export default function BriefResponsesPage() {
               title="Refresh"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
               </svg>
             </button>
           </div>
@@ -160,8 +169,8 @@ export default function BriefResponsesPage() {
           <button
             onClick={() => setFilter('pending')}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-              filter === 'pending' 
-                ? 'bg-yellow-600 text-white' 
+              filter === 'pending'
+                ? 'bg-yellow-600 text-white'
                 : 'bg-slate-800 text-gray-400 hover:bg-slate-700 hover:text-white'
             }`}
           >
@@ -175,8 +184,8 @@ export default function BriefResponsesPage() {
           <button
             onClick={() => setFilter('completed')}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-              filter === 'completed' 
-                ? 'bg-green-600 text-white' 
+              filter === 'completed'
+                ? 'bg-green-600 text-white'
                 : 'bg-slate-800 text-gray-400 hover:bg-slate-700 hover:text-white'
             }`}
           >
@@ -223,9 +232,11 @@ export default function BriefResponsesPage() {
                 <div className="p-4 sm:p-5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-xl ${
-                        !response.viewed ? 'bg-yellow-600/20' : 'bg-green-600/20'
-                      }`}>
+                      <div
+                        className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-xl ${
+                          !response.viewed ? 'bg-yellow-600/20' : 'bg-green-600/20'
+                        }`}
+                      >
                         {!response.viewed ? '📬' : '✓'}
                       </div>
                       <div>

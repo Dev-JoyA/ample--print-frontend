@@ -1,29 +1,29 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import DashboardLayout from "@/components/layouts/DashboardLayout";
-import Button from "@/components/ui/Button";
-import Textarea from "@/components/ui/Textarea";
-import StatusBadge from "@/components/ui/StatusBadge";
-import SEOHead from "@/components/common/SEOHead";
-import { useAuth, useAuthCheck } from "@/app/lib/auth";
-import { designService } from "@/services/designService";
-import { feedbackService } from "@/services/feedbackService";
-import { METADATA } from "@/lib/metadata";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import DashboardLayout from '@/components/layouts/DashboardLayout';
+import Button from '@/components/ui/Button';
+import Textarea from '@/components/ui/Textarea';
+import StatusBadge from '@/components/ui/StatusBadge';
+import SEOHead from '@/components/common/SEOHead';
+import { useAuth, useAuthCheck } from '@/app/lib/auth';
+import { designService } from '@/services/designService';
+import { feedbackService } from '@/services/feedbackService';
+import { METADATA } from '@/lib/metadata';
 import { getImageUrl } from '@/lib/imageUtils';
 
 export default function DesignApprovalPage() {
   const router = useRouter();
   const { user } = useAuth();
   useAuthCheck();
-  
+
   const [designs, setDesigns] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [selectedDesign, setSelectedDesign] = useState(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
-  const [rejectReason, setRejectReason] = useState("");
+  const [rejectReason, setRejectReason] = useState('');
   const [feedbackFiles, setFeedbackFiles] = useState([]);
   const [submitting, setSubmitting] = useState(false);
 
@@ -36,53 +36,52 @@ export default function DesignApprovalPage() {
   const fetchDesignsForApproval = async (userId) => {
     try {
       setLoading(true);
-      console.log("🔍 Fetching designs for user:", userId);
-      
+      console.log('🔍 Fetching designs for user:', userId);
+
       const designsResponse = await designService.getByUser(userId);
-      console.log("✅ Designs response:", designsResponse);
-      
+      console.log('✅ Designs response:', designsResponse);
+
       const designsData = designsResponse?.data || designsResponse?.designs || [];
-      console.log("📦 Designs data:", designsData);
-      
+      console.log('📦 Designs data:', designsData);
+
       const designsWithFeedbackStatus = await Promise.all(
         designsData.map(async (design) => {
           try {
             if (design.isApproved) {
               return { ...design, showInApproval: false };
             }
-            
+
             const orderId = design.orderId?._id || design.orderId;
             const feedbackResponse = await feedbackService.getByOrder(orderId);
             const feedbacks = feedbackResponse?.data || [];
-            
-            const hasFeedback = feedbacks.some(f => 
-              (f.designId?._id === design._id || f.designId === design._id)
+
+            const hasFeedback = feedbacks.some(
+              (f) => f.designId?._id === design._id || f.designId === design._id
             );
-            
+
             console.log(`Design ${design._id} has feedback:`, hasFeedback);
-            
+
             return {
               ...design,
-              showInApproval: !design.isApproved && !hasFeedback
+              showInApproval: !design.isApproved && !hasFeedback,
             };
-            
           } catch (err) {
             console.error(`Error checking feedback for design ${design._id}:`, err);
             return {
               ...design,
-              showInApproval: !design.isApproved
+              showInApproval: !design.isApproved,
             };
           }
         })
       );
-      
-      const pendingDesigns = designsWithFeedbackStatus.filter(d => d.showInApproval);
-      console.log("⏳ Pending designs:", pendingDesigns);
-      
+
+      const pendingDesigns = designsWithFeedbackStatus.filter((d) => d.showInApproval);
+      console.log('⏳ Pending designs:', pendingDesigns);
+
       setDesigns(pendingDesigns);
     } catch (err) {
-      console.error("❌ Failed to fetch designs:", err);
-      setError("Failed to load designs");
+      console.error('❌ Failed to fetch designs:', err);
+      setError('Failed to load designs');
     } finally {
       setLoading(false);
     }
@@ -91,16 +90,16 @@ export default function DesignApprovalPage() {
   const handleApprove = async (designId) => {
     try {
       setSubmitting(true);
-      console.log("✅ Approving design:", designId);
-      
+      console.log('✅ Approving design:', designId);
+
       await designService.approve(designId);
-      
+
       if (user?.userId) {
         await fetchDesignsForApproval(user.userId);
       }
     } catch (err) {
-      console.error("❌ Failed to approve design:", err);
-      alert("Failed to approve design. Please try again.");
+      console.error('❌ Failed to approve design:', err);
+      alert('Failed to approve design. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -108,54 +107,53 @@ export default function DesignApprovalPage() {
 
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
-    setFeedbackFiles(prev => [...prev, ...files]);
+    setFeedbackFiles((prev) => [...prev, ...files]);
   };
 
   const removeFile = (index) => {
-    setFeedbackFiles(prev => prev.filter((_, i) => i !== index));
+    setFeedbackFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleReject = async () => {
     if (!rejectReason.trim()) {
-      alert("Please provide feedback on what needs to be changed");
+      alert('Please provide feedback on what needs to be changed');
       return;
     }
 
     try {
       setSubmitting(true);
-      
+
       const orderId = selectedDesign.orderId?._id || selectedDesign.orderId;
-      
-      console.log("📝 Creating feedback for design:", {
+
+      console.log('📝 Creating feedback for design:', {
         designId: selectedDesign._id,
         orderId,
         message: rejectReason,
-        files: feedbackFiles.length
+        files: feedbackFiles.length,
       });
-      
+
       const formData = new FormData();
-      formData.append("orderId", orderId);
-      formData.append("designId", selectedDesign._id);
-      formData.append("message", rejectReason);
-      
-      feedbackFiles.forEach(file => {
-        formData.append("attachments", file);
+      formData.append('orderId', orderId);
+      formData.append('designId', selectedDesign._id);
+      formData.append('message', rejectReason);
+
+      feedbackFiles.forEach((file) => {
+        formData.append('attachments', file);
       });
-      
+
       await feedbackService.create(formData);
-      
-      setDesigns(prev => prev.filter(d => d._id !== selectedDesign._id));
-      
+
+      setDesigns((prev) => prev.filter((d) => d._id !== selectedDesign._id));
+
       setShowRejectModal(false);
       setSelectedDesign(null);
-      setRejectReason("");
+      setRejectReason('');
       setFeedbackFiles([]);
-      
-      alert("Feedback sent to admin. They will update the design.");
-      
+
+      alert('Feedback sent to admin. They will update the design.');
     } catch (err) {
-      console.error("❌ Failed to reject design:", err);
-      alert("Failed to send feedback. Please try again.");
+      console.error('❌ Failed to reject design:', err);
+      alert('Failed to send feedback. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -198,21 +196,28 @@ export default function DesignApprovalPage() {
           ) : (
             <div className="grid gap-6 md:grid-cols-2">
               {designs.map((design) => (
-                <div key={design._id} className="overflow-hidden rounded-xl border border-gray-800 bg-slate-900/50 backdrop-blur-sm">
+                <div
+                  key={design._id}
+                  className="overflow-hidden rounded-xl border border-gray-800 bg-slate-900/50 backdrop-blur-sm"
+                >
                   <div className="p-6">
                     <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
                       <div>
                         <p className="text-sm text-gray-400">Design for</p>
-                        <h3 className="text-xl font-bold text-white">{design.productId?.name || "Product"}</h3>
-                        <p className="mt-1 text-xs text-gray-500">Order #{design.orderId?.orderNumber}</p>
+                        <h3 className="text-xl font-bold text-white">
+                          {design.productId?.name || 'Product'}
+                        </h3>
+                        <p className="mt-1 text-xs text-gray-500">
+                          Order #{design.orderId?.orderNumber}
+                        </p>
                       </div>
                       <StatusBadge status="Pending" />
                     </div>
 
                     <div className="mb-4 rounded-lg bg-slate-800 p-2">
                       {design.designUrl ? (
-                        <img 
-                          src={getImageUrl(design.designUrl)} 
+                        <img
+                          src={getImageUrl(design.designUrl)}
                           alt="Design preview"
                           className="h-48 w-full rounded object-contain"
                         />
@@ -224,7 +229,8 @@ export default function DesignApprovalPage() {
                     </div>
 
                     <p className="mb-4 text-sm text-gray-400">
-                      Version {design.version} • Uploaded {new Date(design.createdAt).toLocaleDateString()}
+                      Version {design.version} • Uploaded{' '}
+                      {new Date(design.createdAt).toLocaleDateString()}
                     </p>
 
                     <div className="flex gap-3">
@@ -262,10 +268,11 @@ export default function DesignApprovalPage() {
             <div className="border-b border-gray-800 p-6">
               <h3 className="text-xl font-bold text-white">Request Design Changes</h3>
             </div>
-            
+
             <div className="space-y-4 p-6">
               <p className="text-sm text-gray-400">
-                Please provide feedback on what changes are needed for the design. You can also upload reference images.
+                Please provide feedback on what changes are needed for the design. You can also
+                upload reference images.
               </p>
 
               <Textarea
@@ -290,11 +297,23 @@ export default function DesignApprovalPage() {
                     id="feedback-attachments"
                   />
                   <label htmlFor="feedback-attachments" className="cursor-pointer">
-                    <svg className="mx-auto mb-2 h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    <svg
+                      className="mx-auto mb-2 h-8 w-8 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                      />
                     </svg>
                     <p className="text-sm text-gray-400">Click to upload or drag and drop</p>
-                    <p className="mt-1 text-xs text-gray-500">PNG, JPG, GIF up to 10MB (max 5 files)</p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      PNG, JPG, GIF up to 10MB (max 5 files)
+                    </p>
                   </label>
                 </div>
               </div>
@@ -303,7 +322,10 @@ export default function DesignApprovalPage() {
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-gray-300">Selected Files:</p>
                   {feedbackFiles.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between rounded-lg bg-slate-800 p-2">
+                    <div
+                      key={index}
+                      className="flex items-center justify-between rounded-lg bg-slate-800 p-2"
+                    >
                       <span className="max-w-[250px] truncate text-sm text-white">{file.name}</span>
                       <button
                         onClick={() => removeFile(index)}
@@ -322,7 +344,7 @@ export default function DesignApprovalPage() {
                   onClick={() => {
                     setShowRejectModal(false);
                     setSelectedDesign(null);
-                    setRejectReason("");
+                    setRejectReason('');
                     setFeedbackFiles([]);
                   }}
                   className="flex-1"
@@ -335,7 +357,7 @@ export default function DesignApprovalPage() {
                   disabled={submitting || !rejectReason.trim()}
                   className="flex-1"
                 >
-                  {submitting ? "Sending..." : "Send Feedback"}
+                  {submitting ? 'Sending...' : 'Send Feedback'}
                 </Button>
               </div>
             </div>

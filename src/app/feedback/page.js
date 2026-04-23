@@ -1,37 +1,37 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import DashboardLayout from "@/components/layouts/DashboardLayout";
-import Button from "@/components/ui/Button";
-import Textarea from "@/components/ui/Textarea";
-import StatusBadge from "@/components/ui/StatusBadge";
-import SEOHead from "@/components/common/SEOHead";
-import { useProtectedRoute } from "@/app/lib/auth";
-import { feedbackService } from "@/services/feedbackService";
-import { useToast } from "@/components/providers/ToastProvider";
-import { METADATA } from "@/lib/metadata";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import DashboardLayout from '@/components/layouts/DashboardLayout';
+import Button from '@/components/ui/Button';
+import Textarea from '@/components/ui/Textarea';
+import StatusBadge from '@/components/ui/StatusBadge';
+import SEOHead from '@/components/common/SEOHead';
+import { useProtectedRoute } from '@/app/lib/auth';
+import { feedbackService } from '@/services/feedbackService';
+import { useToast } from '@/components/providers/ToastProvider';
+import { METADATA } from '@/lib/metadata';
 
 export default function CustomerFeedbackPage() {
   const router = useRouter();
   const { isLoading: authLoading, user } = useProtectedRoute({
-    redirectTo: "/auth/sign-in"
+    redirectTo: '/auth/sign-in',
   });
   const { showToast } = useToast();
 
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState('all');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [limit] = useState(10);
-  
+
   const [showResponseModal, setShowResponseModal] = useState(false);
-  const [responseMessage, setResponseMessage] = useState("");
+  const [responseMessage, setResponseMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [responseFiles, setResponseFiles] = useState([]);
 
@@ -44,24 +44,24 @@ export default function CustomerFeedbackPage() {
   const fetchMyFeedback = async () => {
     try {
       setLoading(true);
-      setError("");
-      
+      setError('');
+
       const params = {
         page,
-        limit
+        limit,
       };
-      
-      if (filter !== "all") {
+
+      if (filter !== 'all') {
         params.status = filter;
       }
-      
-      console.log("📋 Fetching my feedback with params:", params);
-      
+
+      console.log('📋 Fetching my feedback with params:', params);
+
       const response = await feedbackService.getMyFeedback(params);
-      
+
       let feedbackData = [];
       let total = 0;
-      
+
       if (response?.feedback && Array.isArray(response.feedback)) {
         feedbackData = response.feedback;
         total = response.total || feedbackData.length;
@@ -72,13 +72,12 @@ export default function CustomerFeedbackPage() {
         feedbackData = response;
         total = feedbackData.length;
       }
-      
+
       setFeedbacks(feedbackData);
       setTotalPages(Math.ceil(total / limit));
-      
     } catch (err) {
-      console.error("❌ Failed to fetch feedback:", err);
-      setError("Failed to load your feedback. Please try again.");
+      console.error('❌ Failed to fetch feedback:', err);
+      setError('Failed to load your feedback. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -86,24 +85,24 @@ export default function CustomerFeedbackPage() {
 
   const markFeedbackAsViewed = async (feedbackId) => {
     try {
-      console.log("📌 Marked feedback as viewed:", feedbackId);
-      
-      setFeedbacks(prev => prev.map(f => 
-        f._id === feedbackId ? { ...f, viewedByCustomer: true } : f
-      ));
-      
+      console.log('📌 Marked feedback as viewed:', feedbackId);
+
+      setFeedbacks((prev) =>
+        prev.map((f) => (f._id === feedbackId ? { ...f, viewedByCustomer: true } : f))
+      );
+
       if (selectedFeedback && selectedFeedback._id === feedbackId) {
-        setSelectedFeedback(prev => ({ ...prev, viewedByCustomer: true }));
+        setSelectedFeedback((prev) => ({ ...prev, viewedByCustomer: true }));
       }
     } catch (err) {
-      console.error("Failed to mark feedback as viewed:", err);
+      console.error('Failed to mark feedback as viewed:', err);
     }
   };
 
   const handleViewFeedback = (feedback) => {
     setSelectedFeedback(feedback);
     setShowFeedbackModal(true);
-    
+
     if (feedback.adminResponse && !feedback.viewedByCustomer) {
       markFeedbackAsViewed(feedback._id);
     }
@@ -113,53 +112,52 @@ export default function CustomerFeedbackPage() {
     setSelectedFeedback(feedback);
     setShowFeedbackModal(false);
     setShowResponseModal(true);
-    setResponseMessage("");
+    setResponseMessage('');
     setResponseFiles([]);
   };
 
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
-    setResponseFiles(prev => [...prev, ...files]);
+    setResponseFiles((prev) => [...prev, ...files]);
   };
 
   const removeFile = (index) => {
-    setResponseFiles(prev => prev.filter((_, i) => i !== index));
+    setResponseFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmitResponse = async () => {
     if (!responseMessage.trim()) {
-      showToast("Please enter your response", "error");
+      showToast('Please enter your response', 'error');
       return;
     }
 
     try {
       setSubmitting(true);
-      
+
       const formData = new FormData();
-      formData.append("orderId", selectedFeedback.orderId._id);
+      formData.append('orderId', selectedFeedback.orderId._id);
       if (selectedFeedback.designId) {
-        formData.append("designId", selectedFeedback.designId._id);
+        formData.append('designId', selectedFeedback.designId._id);
       }
-      formData.append("message", responseMessage);
-      formData.append("parentFeedbackId", selectedFeedback._id);
-      
-      responseFiles.forEach(file => {
-        formData.append("attachments", file);
+      formData.append('message', responseMessage);
+      formData.append('parentFeedbackId', selectedFeedback._id);
+
+      responseFiles.forEach((file) => {
+        formData.append('attachments', file);
       });
-      
+
       await feedbackService.create(formData);
-      
-      showToast("Your response has been sent to admin", "success");
-      
+
+      showToast('Your response has been sent to admin', 'success');
+
       setShowResponseModal(false);
-      setResponseMessage("");
+      setResponseMessage('');
       setResponseFiles([]);
-      
+
       await fetchMyFeedback();
-      
     } catch (err) {
-      console.error("Failed to send response:", err);
-      showToast("Failed to send response. Please try again.", "error");
+      console.error('Failed to send response:', err);
+      showToast('Failed to send response. Please try again.', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -167,41 +165,45 @@ export default function CustomerFeedbackPage() {
 
   const getStatusColor = (status) => {
     const colors = {
-      "Pending": "yellow",
-      "Reviewed": "blue",
-      "Resolved": "green"
+      Pending: 'yellow',
+      Reviewed: 'blue',
+      Resolved: 'green',
     };
-    return colors[status] || "gray";
+    return colors[status] || 'gray';
   };
 
   const getStatusIcon = (status) => {
-    switch(status) {
-      case "Pending": return "⏳";
-      case "Reviewed": return "👀";
-      case "Resolved": return "✅";
-      default: return "📝";
+    switch (status) {
+      case 'Pending':
+        return '⏳';
+      case 'Reviewed':
+        return '👀';
+      case 'Resolved':
+        return '✅';
+      default:
+        return '📝';
     }
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
+    if (!dateString) return 'N/A';
     try {
-      return new Date(dateString).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
       });
     } catch {
-      return "Invalid date";
+      return 'Invalid date';
     }
   };
 
   const getImageUrl = (path) => {
     if (!path) return null;
-    if (path.startsWith("http")) return path;
-    let filename = path.split("/").pop();
+    if (path.startsWith('http')) return path;
+    let filename = path.split('/').pop();
     return `http://localhost:4001/api/v1/attachments/download/${filename}`;
   };
 
@@ -245,7 +247,12 @@ export default function CustomerFeedbackPage() {
                 className="flex items-center gap-2"
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
                 </svg>
                 Refresh
               </Button>
@@ -266,52 +273,52 @@ export default function CustomerFeedbackPage() {
           <div className="mb-6 flex flex-wrap gap-2 border-b border-gray-800 pb-4">
             <button
               onClick={() => {
-                setFilter("all");
+                setFilter('all');
                 setPage(1);
               }}
               className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                filter === "all" 
-                  ? "bg-primary text-white" 
-                  : "bg-slate-800 text-gray-400 hover:bg-slate-700"
+                filter === 'all'
+                  ? 'bg-primary text-white'
+                  : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
               }`}
             >
               All Feedback
             </button>
             <button
               onClick={() => {
-                setFilter("Pending");
+                setFilter('Pending');
                 setPage(1);
               }}
               className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                filter === "Pending" 
-                  ? "bg-yellow-600 text-white" 
-                  : "bg-slate-800 text-gray-400 hover:bg-slate-700"
+                filter === 'Pending'
+                  ? 'bg-yellow-600 text-white'
+                  : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
               }`}
             >
               Pending
             </button>
             <button
               onClick={() => {
-                setFilter("Reviewed");
+                setFilter('Reviewed');
                 setPage(1);
               }}
               className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                filter === "Reviewed" 
-                  ? "bg-blue-600 text-white" 
-                  : "bg-slate-800 text-gray-400 hover:bg-slate-700"
+                filter === 'Reviewed'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
               }`}
             >
               Reviewed
             </button>
             <button
               onClick={() => {
-                setFilter("Resolved");
+                setFilter('Resolved');
                 setPage(1);
               }}
               className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                filter === "Resolved" 
-                  ? "bg-green-600 text-white" 
-                  : "bg-slate-800 text-gray-400 hover:bg-slate-700"
+                filter === 'Resolved'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
               }`}
             >
               Resolved
@@ -323,14 +330,12 @@ export default function CustomerFeedbackPage() {
               <div className="mb-4 text-7xl opacity-50">💬</div>
               <h3 className="mb-2 text-2xl font-semibold text-white">No feedback found</h3>
               <p className="mb-6 text-lg text-gray-400">
-                {filter === "all" 
-                  ? "You haven't submitted any feedback yet" 
+                {filter === 'all'
+                  ? "You haven't submitted any feedback yet"
                   : `No ${filter.toLowerCase()} feedback at the moment`}
               </p>
               <Link href="/">
-                <Button variant="primary">
-                  Return to Dashboard
-                </Button>
+                <Button variant="primary">Return to Dashboard</Button>
               </Link>
             </div>
           ) : (
@@ -340,28 +345,34 @@ export default function CustomerFeedbackPage() {
                   key={feedback._id}
                   onClick={() => handleViewFeedback(feedback)}
                   className={`group cursor-pointer rounded-lg border p-5 transition hover:border-gray-700 ${
-                    hasUnreadAdminResponse(feedback) 
-                      ? "border-primary/30 bg-primary/5" 
-                      : "border-gray-800 bg-slate-900/50"
+                    hasUnreadAdminResponse(feedback)
+                      ? 'border-primary/30 bg-primary/5'
+                      : 'border-gray-800 bg-slate-900/50'
                   }`}
                 >
                   <div className="flex flex-col gap-4 md:flex-row md:items-start">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl text-2xl bg-${getStatusColor(feedback.status)}-900/30`}>
+                    <div
+                      className={`flex h-12 w-12 items-center justify-center rounded-xl text-2xl bg-${getStatusColor(feedback.status)}-900/30`}
+                    >
                       {getStatusIcon(feedback.status)}
                     </div>
 
                     <div className="flex-1">
                       <div className="mb-3 flex flex-wrap items-center gap-3">
-                        <span className={`inline-block rounded-full px-3 py-1 text-xs font-medium bg-${getStatusColor(feedback.status)}-900/50 text-${getStatusColor(feedback.status)}-400`}>
+                        <span
+                          className={`inline-block rounded-full px-3 py-1 text-xs font-medium bg-${getStatusColor(feedback.status)}-900/50 text-${getStatusColor(feedback.status)}-400`}
+                        >
                           {feedback.status}
                         </span>
                         {feedback.adminResponse && (
-                          <span className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${
-                            hasUnreadAdminResponse(feedback)
-                              ? "border border-green-700 bg-green-600/30 text-green-400"
-                              : "bg-green-900/30 text-green-400"
-                          }`}>
-                            <span>✓</span> 
+                          <span
+                            className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${
+                              hasUnreadAdminResponse(feedback)
+                                ? 'border border-green-700 bg-green-600/30 text-green-400'
+                                : 'bg-green-900/30 text-green-400'
+                            }`}
+                          >
+                            <span>✓</span>
                             Admin Responded
                             {hasUnreadAdminResponse(feedback) && (
                               <span className="ml-1 h-2 w-2 animate-pulse rounded-full bg-green-400"></span>
@@ -376,9 +387,7 @@ export default function CustomerFeedbackPage() {
                         </span>
                       </div>
 
-                      <p className="mb-3 line-clamp-2 text-white">
-                        {feedback.message}
-                      </p>
+                      <p className="mb-3 line-clamp-2 text-white">{feedback.message}</p>
 
                       {feedback.adminResponse && (
                         <div className="mt-3 border-t border-gray-800 pt-3">
@@ -403,8 +412,18 @@ export default function CustomerFeedbackPage() {
                     </div>
 
                     <div className="text-gray-500 transition group-hover:text-primary">
-                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      <svg
+                        className="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
                       </svg>
                     </div>
                   </div>
@@ -414,12 +433,12 @@ export default function CustomerFeedbackPage() {
               {totalPages > 1 && (
                 <div className="mt-8 flex justify-center gap-2">
                   <button
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page === 1}
                     className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
                       page === 1
-                        ? "cursor-not-allowed bg-slate-800 text-gray-500"
-                        : "bg-slate-800 text-white hover:bg-slate-700"
+                        ? 'cursor-not-allowed bg-slate-800 text-gray-500'
+                        : 'bg-slate-800 text-white hover:bg-slate-700'
                     }`}
                   >
                     Previous
@@ -428,12 +447,12 @@ export default function CustomerFeedbackPage() {
                     Page {page} of {totalPages}
                   </span>
                   <button
-                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages}
                     className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
                       page === totalPages
-                        ? "cursor-not-allowed bg-slate-800 text-gray-500"
-                        : "bg-slate-800 text-white hover:bg-slate-700"
+                        ? 'cursor-not-allowed bg-slate-800 text-gray-500'
+                        : 'bg-slate-800 text-white hover:bg-slate-700'
                     }`}
                   >
                     Next
@@ -459,7 +478,12 @@ export default function CustomerFeedbackPage() {
                   className="text-gray-400 hover:text-white"
                 >
                   <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
@@ -467,7 +491,9 @@ export default function CustomerFeedbackPage() {
 
             <div className="space-y-6 p-6">
               <div className="flex flex-wrap items-center gap-3">
-                <span className={`inline-block rounded-full px-3 py-1 text-xs font-medium bg-${getStatusColor(selectedFeedback.status)}-900/50 text-${getStatusColor(selectedFeedback.status)}-400`}>
+                <span
+                  className={`inline-block rounded-full px-3 py-1 text-xs font-medium bg-${getStatusColor(selectedFeedback.status)}-900/50 text-${getStatusColor(selectedFeedback.status)}-400`}
+                >
                   {selectedFeedback.status}
                 </span>
                 <span className="text-sm text-gray-400">
@@ -516,12 +542,17 @@ export default function CustomerFeedbackPage() {
                     )}
                   </div>
                   <div className="rounded-lg border border-green-800 bg-green-900/20 p-4">
-                    <p className="whitespace-pre-wrap text-white">{selectedFeedback.adminResponse}</p>
+                    <p className="whitespace-pre-wrap text-white">
+                      {selectedFeedback.adminResponse}
+                    </p>
                   </div>
-                  
+
                   {selectedFeedback.respondedBy && (
                     <p className="mt-2 text-xs text-gray-500">
-                      Responded by: {selectedFeedback.respondedBy.fullname || selectedFeedback.respondedBy.email || "Admin"}
+                      Responded by:{' '}
+                      {selectedFeedback.respondedBy.fullname ||
+                        selectedFeedback.respondedBy.email ||
+                        'Admin'}
                     </p>
                   )}
                 </div>
@@ -532,10 +563,10 @@ export default function CustomerFeedbackPage() {
                   <h3 className="mb-2 text-sm font-medium text-gray-400">Related Design</h3>
                   <div className="rounded-lg border border-purple-800 bg-purple-900/20 p-3">
                     <p className="text-sm text-white">
-                      Product: {selectedFeedback.designId.productId?.name || "Unknown Product"}
+                      Product: {selectedFeedback.designId.productId?.name || 'Unknown Product'}
                     </p>
                     {selectedFeedback.designId.designUrl && (
-                      <a 
+                      <a
                         href={getImageUrl(selectedFeedback.designId.designUrl)}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -550,7 +581,7 @@ export default function CustomerFeedbackPage() {
             </div>
 
             <div className="flex gap-3 border-t border-gray-800 p-6">
-              {selectedFeedback.adminResponse && selectedFeedback.status !== "Resolved" && (
+              {selectedFeedback.adminResponse && selectedFeedback.status !== 'Resolved' && (
                 <Button
                   variant="primary"
                   onClick={() => handleRespondToAdmin(selectedFeedback)}
@@ -565,7 +596,7 @@ export default function CustomerFeedbackPage() {
                   setShowFeedbackModal(false);
                   setSelectedFeedback(null);
                 }}
-                className={selectedFeedback.adminResponse ? "flex-1" : "w-full"}
+                className={selectedFeedback.adminResponse ? 'flex-1' : 'w-full'}
               >
                 Close
               </Button>
@@ -583,7 +614,7 @@ export default function CustomerFeedbackPage() {
                 Order #{selectedFeedback.orderId?.orderNumber}
               </p>
             </div>
-            
+
             <div className="space-y-4 p-6">
               <div className="rounded-lg border border-green-800 bg-green-900/20 p-3">
                 <p className="mb-1 text-xs text-green-400">Admin said:</p>
@@ -612,8 +643,18 @@ export default function CustomerFeedbackPage() {
                     id="response-attachments"
                   />
                   <label htmlFor="response-attachments" className="cursor-pointer">
-                    <svg className="mx-auto mb-2 h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    <svg
+                      className="mx-auto mb-2 h-8 w-8 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                      />
                     </svg>
                     <p className="text-sm text-gray-400">Click to upload or drag and drop</p>
                     <p className="mt-1 text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
@@ -625,7 +666,10 @@ export default function CustomerFeedbackPage() {
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-gray-300">Selected Files:</p>
                   {responseFiles.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between rounded-lg bg-slate-800 p-2">
+                    <div
+                      key={index}
+                      className="flex items-center justify-between rounded-lg bg-slate-800 p-2"
+                    >
                       <span className="max-w-[250px] truncate text-sm text-white">{file.name}</span>
                       <button
                         onClick={() => removeFile(index)}
@@ -643,7 +687,7 @@ export default function CustomerFeedbackPage() {
                   variant="secondary"
                   onClick={() => {
                     setShowResponseModal(false);
-                    setResponseMessage("");
+                    setResponseMessage('');
                     setResponseFiles([]);
                   }}
                   className="flex-1"
@@ -656,7 +700,7 @@ export default function CustomerFeedbackPage() {
                   disabled={submitting || !responseMessage.trim()}
                   className="flex-1"
                 >
-                  {submitting ? "Sending..." : "Send Reply"}
+                  {submitting ? 'Sending...' : 'Send Reply'}
                 </Button>
               </div>
             </div>

@@ -5,10 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { orderService } from '@/services/orderService';
 
-const SearchBar = ({ 
-  placeholder = 'Search orders by number...', 
-  userRole = 'customer'
-}) => {
+const SearchBar = ({ placeholder = 'Search orders by number...', userRole = 'customer' }) => {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -18,11 +15,21 @@ const SearchBar = ({
 
   if (userRole === 'customer') {
     return (
-      <div className="my-3 ml-0 flex-1 max-w-full sm:ml-8 md:ml-12 lg:ml-16">
+      <div className="my-3 ml-0 max-w-full flex-1 sm:ml-8 md:ml-12 lg:ml-16">
         <div className="relative">
           <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-200">
-            <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <svg
+              className="h-4 w-4 sm:h-5 sm:w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
             </svg>
           </div>
           <input
@@ -61,13 +68,13 @@ const SearchBar = ({
 
   const searchOrders = async () => {
     if (query.length < 3) return;
-    
+
     setLoading(true);
     try {
       let orders = [];
-      
+
       const isOrderNumber = query.toUpperCase().includes('ORD-');
-      
+
       if (isOrderNumber) {
         try {
           const response = await orderService.searchByOrderNumber(query.toUpperCase());
@@ -78,9 +85,9 @@ const SearchBar = ({
         } catch (err) {
           console.log('Order not found by exact number');
           try {
-            const filterResponse = await orderService.filter({ 
+            const filterResponse = await orderService.filter({
               search: query.toUpperCase(),
-              limit: 10
+              limit: 10,
             });
             orders = filterResponse?.order || [];
           } catch (filterErr) {
@@ -88,13 +95,13 @@ const SearchBar = ({
           }
         }
       } else {
-        const response = await orderService.filter({ 
+        const response = await orderService.filter({
           search: query,
-          limit: 10
+          limit: 10,
         });
         orders = response?.order || [];
       }
-      
+
       setResults(orders);
       setShowResults(true);
     } catch (error) {
@@ -127,35 +134,62 @@ const SearchBar = ({
 
   const getStatusColor = (status) => {
     const colors = {
-      'Pending': 'text-yellow-400',
-      'OrderReceived': 'text-blue-400',
-      'FilesUploaded': 'text-purple-400',
-      'AwaitingInvoice': 'text-orange-400',
-      'InvoiceSent': 'text-red-400',
-      'DesignUploaded': 'text-indigo-400',
-      'UnderReview': 'text-yellow-400',
-      'Approved': 'text-green-400',
-      'InProduction': 'text-blue-400',
-      'Completed': 'text-green-400',
-      'Shipped': 'text-teal-400',
-      'Delivered': 'text-green-400',
-      'Cancelled': 'text-red-400'
+      Pending: 'text-yellow-400',
+      OrderReceived: 'text-blue-400',
+      FilesUploaded: 'text-purple-400',
+      AwaitingInvoice: 'text-orange-400',
+      InvoiceSent: 'text-red-400',
+      DesignUploaded: 'text-indigo-400',
+      UnderReview: 'text-yellow-400',
+      Approved: 'text-green-400',
+      InProduction: 'text-blue-400',
+      Completed: 'text-green-400',
+      Shipped: 'text-teal-400',
+      Delivered: 'text-green-400',
+      Cancelled: 'text-red-400',
     };
     return colors[status] || 'text-gray-400';
   };
 
   return (
-    <div ref={searchRef} className="relative my-3 flex-1 max-w-full sm:ml-8 md:ml-12 lg:ml-16">
+    <div ref={searchRef} className="relative my-3 max-w-full flex-1 sm:ml-8 md:ml-12 lg:ml-16">
       <div className="relative">
         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-200">
           {loading ? (
-            <svg className="h-4 w-4 animate-spin sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            <svg
+              className="h-4 w-4 animate-spin sm:h-5 sm:w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+                fill="none"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
             </svg>
           ) : (
-            <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <svg
+              className="h-4 w-4 sm:h-5 sm:w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
             </svg>
           )}
         </div>
@@ -179,7 +213,9 @@ const SearchBar = ({
             <div className="space-y-2 sm:space-y-3">
               {results.map((order) => (
                 <div key={order._id} className="overflow-hidden rounded-lg bg-[#2a2a2a]">
-                  <Link href={`/dashboards/${userRole === 'super-admin' ? 'super' : 'admin'}-dashboard/orders/${order._id}`}>
+                  <Link
+                    href={`/dashboards/${userRole === 'super-admin' ? 'super' : 'admin'}-dashboard/orders/${order._id}`}
+                  >
                     <div className="cursor-pointer p-2 transition hover:bg-[#3a3a3a] sm:p-3">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2 sm:gap-3">
@@ -187,15 +223,21 @@ const SearchBar = ({
                             <span className="text-sm sm:text-lg">📦</span>
                           </div>
                           <div>
-                            <p className="text-xs font-medium text-white sm:text-sm">{order.orderNumber}</p>
+                            <p className="text-xs font-medium text-white sm:text-sm">
+                              {order.orderNumber}
+                            </p>
                             <p className="text-[10px] text-gray-400 sm:text-xs">
                               {getCustomerName(order)} • {order.items?.length} items
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-xs font-bold text-primary sm:text-sm">{formatCurrency(order.totalAmount)}</p>
-                          <span className={`text-[10px] ${getStatusColor(order.status)} sm:text-xs`}>
+                          <p className="text-xs font-bold text-primary sm:text-sm">
+                            {formatCurrency(order.totalAmount)}
+                          </p>
+                          <span
+                            className={`text-[10px] ${getStatusColor(order.status)} sm:text-xs`}
+                          >
                             {order.status}
                           </span>
                         </div>

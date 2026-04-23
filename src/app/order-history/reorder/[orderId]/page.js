@@ -81,10 +81,13 @@ export default function ReorderPage() {
           });
 
           try {
-            const briefResponse = await customerBriefService.getByOrderAndProduct(orderId, productId);
+            const briefResponse = await customerBriefService.getByOrderAndProduct(
+              orderId,
+              productId
+            );
             const briefData = briefResponse?.data || briefResponse;
             if (briefData?.customer) {
-              setExistingBriefs(prev => ({
+              setExistingBriefs((prev) => ({
                 ...prev,
                 [productId]: briefData.customer,
               }));
@@ -92,7 +95,7 @@ export default function ReorderPage() {
           } catch (err) {
             console.log(`No brief found for product ${productId}`);
           }
-          setUsePrevious(prev => ({ ...prev, [productId]: false }));
+          setUsePrevious((prev) => ({ ...prev, [productId]: false }));
         }
 
         setItems(editableItems);
@@ -123,12 +126,21 @@ export default function ReorderPage() {
     }
   };
 
-  const generateBriefDescription = (product, item, quantity, customInstructions, logos, imagery, voiceNote) => {
+  const generateBriefDescription = (
+    product,
+    item,
+    quantity,
+    customInstructions,
+    logos,
+    imagery,
+    voiceNote
+  ) => {
     const productName = product?.name || item?.productName || 'Unknown Product';
     const collectionName = product?.collectionId?.name || item?.collectionId?.name || 'N/A';
-    const dimensions = product?.dimension?.width && product?.dimension?.height
-      ? `${product.dimension.width}mm x ${product.dimension.height}mm`
-      : 'Not specified (will use standard)';
+    const dimensions =
+      product?.dimension?.width && product?.dimension?.height
+        ? `${product.dimension.width}mm x ${product.dimension.height}mm`
+        : 'Not specified (will use standard)';
     const color = 'Not specified (to be discussed)';
     const productQuantity = quantity || item?.editableQuantity || 1;
     const material = product?.material || item?.material || 'Standard';
@@ -182,7 +194,7 @@ ${new Date().toLocaleString()}`;
       return;
     }
 
-    const selectedProduct = availableProducts.find(p => p._id === selectedProductId);
+    const selectedProduct = availableProducts.find((p) => p._id === selectedProductId);
 
     if (!selectedProduct) {
       setError('Product not found');
@@ -196,7 +208,7 @@ ${new Date().toLocaleString()}`;
       return;
     }
 
-    const existingItemIndex = items.findIndex(item => item.productId === selectedProduct._id);
+    const existingItemIndex = items.findIndex((item) => item.productId === selectedProduct._id);
     let updatedItems;
 
     if (existingItemIndex !== -1) {
@@ -215,7 +227,7 @@ ${new Date().toLocaleString()}`;
         productDetails: selectedProduct,
       };
       updatedItems = [...items, newItem];
-      setUsePrevious(prev => ({ ...prev, [selectedProduct._id]: false }));
+      setUsePrevious((prev) => ({ ...prev, [selectedProduct._id]: false }));
     }
 
     setItems(updatedItems);
@@ -223,7 +235,7 @@ ${new Date().toLocaleString()}`;
     setSelectedProductId('');
     setNewProductQuantity(1);
     setError('');
-    
+
     console.log('Product added. Total items:', updatedItems.length);
   };
 
@@ -256,34 +268,34 @@ ${new Date().toLocaleString()}`;
   };
 
   const handleDesignInstructionChange = (productId, value) => {
-    setDesignInstructions(prev => ({ ...prev, [productId]: value }));
+    setDesignInstructions((prev) => ({ ...prev, [productId]: value }));
   };
 
   const handleLogoUpload = (productId, files) => {
-    setLogoFiles(prev => ({ ...prev, [productId]: Array.from(files) }));
+    setLogoFiles((prev) => ({ ...prev, [productId]: Array.from(files) }));
   };
 
   const handleImageUpload = (productId, files) => {
-    setImageFiles(prev => ({ ...prev, [productId]: Array.from(files) }));
+    setImageFiles((prev) => ({ ...prev, [productId]: Array.from(files) }));
   };
 
   const handleVoiceNoteUpload = (productId, file) => {
-    setVoiceNotes(prev => ({ ...prev, [productId]: file }));
+    setVoiceNotes((prev) => ({ ...prev, [productId]: file }));
   };
 
   const toggleUsePrevious = (productId) => {
-    setUsePrevious(prev => ({ ...prev, [productId]: !prev[productId] }));
+    setUsePrevious((prev) => ({ ...prev, [productId]: !prev[productId] }));
   };
 
   const removeLogoFile = (productId, index) => {
-    setLogoFiles(prev => ({
+    setLogoFiles((prev) => ({
       ...prev,
       [productId]: prev[productId].filter((_, i) => i !== index),
     }));
   };
 
   const removeImageFile = (productId, index) => {
-    setImageFiles(prev => ({
+    setImageFiles((prev) => ({
       ...prev,
       [productId]: prev[productId].filter((_, i) => i !== index),
     }));
@@ -291,12 +303,12 @@ ${new Date().toLocaleString()}`;
 
   const calculateSubtotal = () => {
     return items
-      .filter(item => item.selected)
+      .filter((item) => item.selected)
       .reduce((sum, item) => sum + item.price * item.editableQuantity, 0);
   };
 
   const submitBriefForItem = async (newOrderId, productId) => {
-    const item = items.find(i => i.productId === productId);
+    const item = items.find((i) => i.productId === productId);
     const product = item?.productDetails || null;
     const isExistingProduct = !item?.isNew;
 
@@ -309,7 +321,8 @@ ${new Date().toLocaleString()}`;
     const newVoiceNote = voiceNotes[productId];
 
     const hasNewText = newDescription && newDescription.trim().length > 0;
-    const hasNewFiles = (newLogos && newLogos.length > 0) || (newImages && newImages.length > 0) || newVoiceNote;
+    const hasNewFiles =
+      (newLogos && newLogos.length > 0) || (newImages && newImages.length > 0) || newVoiceNote;
 
     const formData = new FormData();
     let descriptionText = '';
@@ -317,8 +330,7 @@ ${new Date().toLocaleString()}`;
     if (usePrev && existingBrief && isExistingProduct) {
       descriptionText = existingBrief.description;
       formData.append('description', descriptionText);
-    }
-    else if (hasNewText || hasNewFiles) {
+    } else if (hasNewText || hasNewFiles) {
       descriptionText = generateBriefDescription(
         product,
         item,
@@ -329,22 +341,29 @@ ${new Date().toLocaleString()}`;
         newVoiceNote
       );
       formData.append('description', descriptionText);
-      
+
       if (newLogos && newLogos.length) {
-        newLogos.forEach(file => formData.append('logo', file));
+        newLogos.forEach((file) => formData.append('logo', file));
       }
       if (newImages && newImages.length) {
-        newImages.forEach(file => formData.append('image', file));
+        newImages.forEach((file) => formData.append('image', file));
       }
       if (newVoiceNote) {
         formData.append('voiceNote', newVoiceNote);
       }
-    }
-    else {
+    } else {
       if (isExistingProduct && existingBrief) {
         descriptionText = existingBrief.description;
       } else {
-        descriptionText = generateBriefDescription(product, item, item?.editableQuantity, null, null, null, null);
+        descriptionText = generateBriefDescription(
+          product,
+          item,
+          item?.editableQuantity,
+          null,
+          null,
+          null,
+          null
+        );
       }
       formData.append('description', descriptionText);
     }
@@ -353,8 +372,8 @@ ${new Date().toLocaleString()}`;
   };
 
   const handleSubmit = async () => {
-    const selectedItems = items.filter(item => item.selected);
-    
+    const selectedItems = items.filter((item) => item.selected);
+
     console.log('Selected items for order:', selectedItems);
 
     if (selectedItems.length === 0) {
@@ -375,7 +394,7 @@ ${new Date().toLocaleString()}`;
       setError('');
 
       const orderData = {
-        items: selectedItems.map(item => ({
+        items: selectedItems.map((item) => ({
           productId: item.productId,
           quantity: item.editableQuantity,
         })),
@@ -406,7 +425,7 @@ ${new Date().toLocaleString()}`;
     }
   };
 
-  const formatCurrency = amount => {
+  const formatCurrency = (amount) => {
     return `₦${amount?.toLocaleString() || '0'}`;
   };
 
@@ -422,7 +441,11 @@ ${new Date().toLocaleString()}`;
 
   return (
     <>
-      <SEOHead title="Reorder Items" description="Review and edit your order before placing" robots="noindex, nofollow" />
+      <SEOHead
+        title="Reorder Items"
+        description="Review and edit your order before placing"
+        robots="noindex, nofollow"
+      />
       <DashboardLayout userRole="customer">
         <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
           <div className="mb-6">
@@ -431,7 +454,12 @@ ${new Date().toLocaleString()}`;
               className="mb-4 flex items-center gap-2 text-gray-400 transition-colors hover:text-white"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
               Back
             </button>
@@ -457,7 +485,10 @@ ${new Date().toLocaleString()}`;
             <div className="mb-6 rounded-xl border border-gray-800 bg-slate-900/50 p-4">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-white">Add New Product</h3>
-                <button onClick={() => setShowAddProduct(false)} className="text-gray-400 hover:text-white">
+                <button
+                  onClick={() => setShowAddProduct(false)}
+                  className="text-gray-400 hover:text-white"
+                >
                   ✕
                 </button>
               </div>
@@ -470,13 +501,14 @@ ${new Date().toLocaleString()}`;
                   ) : (
                     <select
                       value={selectedProductId}
-                      onChange={e => setSelectedProductId(e.target.value)}
+                      onChange={(e) => setSelectedProductId(e.target.value)}
                       className="w-full rounded-lg border border-gray-700 bg-slate-800 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                       <option value="">-- Select a product --</option>
-                      {availableProducts.map(product => (
+                      {availableProducts.map((product) => (
                         <option key={product._id} value={product._id}>
-                          {product.name} - {formatCurrency(product.price)} (MOQ: {product.minOrder || 1})
+                          {product.name} - {formatCurrency(product.price)} (MOQ:{' '}
+                          {product.minOrder || 1})
                         </option>
                       ))}
                     </select>
@@ -489,18 +521,24 @@ ${new Date().toLocaleString()}`;
                     type="number"
                     min="1"
                     value={newProductQuantity}
-                    onChange={e => setNewProductQuantity(parseInt(e.target.value) || 1)}
+                    onChange={(e) => setNewProductQuantity(parseInt(e.target.value) || 1)}
                     className="w-32 rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-white"
                   />
                   {selectedProductId && (
                     <p className="mt-1 text-xs text-gray-500">
-                      Minimum order: {availableProducts.find(p => p._id === selectedProductId)?.minOrder || 1}
+                      Minimum order:{' '}
+                      {availableProducts.find((p) => p._id === selectedProductId)?.minOrder || 1}
                     </p>
                   )}
                 </div>
 
                 <div className="flex gap-3 pt-2">
-                  <Button variant="primary" size="sm" onClick={addNewProduct} disabled={!selectedProductId}>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={addNewProduct}
+                    disabled={!selectedProductId}
+                  >
                     Add to Order
                   </Button>
                   <Button variant="secondary" size="sm" onClick={() => setShowAddProduct(false)}>
@@ -513,7 +551,10 @@ ${new Date().toLocaleString()}`;
 
           <div className="space-y-4">
             {items.map((item, index) => (
-              <div key={index} className="overflow-hidden rounded-xl border border-gray-800 bg-slate-900/50">
+              <div
+                key={index}
+                className="overflow-hidden rounded-xl border border-gray-800 bg-slate-900/50"
+              >
                 <div className="p-4">
                   <div className="flex items-start gap-3">
                     <input
@@ -528,7 +569,9 @@ ${new Date().toLocaleString()}`;
                           {item.productName}
                           {item.isNew && <span className="ml-2 text-xs text-green-400">(New)</span>}
                         </h3>
-                        <p className="font-bold text-primary">{formatCurrency(item.price * item.editableQuantity)}</p>
+                        <p className="font-bold text-primary">
+                          {formatCurrency(item.price * item.editableQuantity)}
+                        </p>
                       </div>
                       <p className="text-sm text-gray-400">{formatCurrency(item.price)} each</p>
                       <p className="text-xs text-gray-500">Minimum: {item.minOrder || 1} units</p>
@@ -539,12 +582,15 @@ ${new Date().toLocaleString()}`;
                             type="number"
                             min={item.minOrder || 1}
                             value={item.editableQuantity}
-                            onChange={e => updateQuantity(index, e.target.value)}
+                            onChange={(e) => updateQuantity(index, e.target.value)}
                             className="w-20 rounded-lg border border-gray-700 bg-slate-800 px-2 py-1 text-center text-white"
                             disabled={!item.selected}
                           />
                         </div>
-                        <button onClick={() => removeItem(index)} className="text-sm text-red-400 hover:text-red-300">
+                        <button
+                          onClick={() => removeItem(index)}
+                          className="text-sm text-red-400 hover:text-red-300"
+                        >
                           Remove
                         </button>
                         <button
@@ -583,7 +629,9 @@ ${new Date().toLocaleString()}`;
                           </label>
                           <Textarea
                             value={designInstructions[item.productId] || ''}
-                            onChange={e => handleDesignInstructionChange(item.productId, e.target.value)}
+                            onChange={(e) =>
+                              handleDesignInstructionChange(item.productId, e.target.value)
+                            }
                             placeholder="Describe your design requirements..."
                             rows={3}
                             className="w-full"
@@ -596,15 +644,21 @@ ${new Date().toLocaleString()}`;
                             type="file"
                             accept="image/*,.svg,.pdf"
                             multiple
-                            onChange={e => handleLogoUpload(item.productId, e.target.files)}
+                            onChange={(e) => handleLogoUpload(item.productId, e.target.files)}
                             className="w-full text-sm text-gray-400 file:mr-2 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-1 file:text-white"
                           />
                           {logoFiles[item.productId]?.length > 0 && (
                             <div className="mt-2 flex flex-wrap gap-2">
                               {logoFiles[item.productId].map((file, i) => (
-                                <div key={i} className="flex items-center gap-1 rounded bg-slate-700 px-2 py-1 text-xs">
+                                <div
+                                  key={i}
+                                  className="flex items-center gap-1 rounded bg-slate-700 px-2 py-1 text-xs"
+                                >
                                   <span>{file.name}</span>
-                                  <button onClick={() => removeLogoFile(item.productId, i)} className="text-red-400">
+                                  <button
+                                    onClick={() => removeLogoFile(item.productId, i)}
+                                    className="text-red-400"
+                                  >
                                     ×
                                   </button>
                                 </div>
@@ -614,20 +668,28 @@ ${new Date().toLocaleString()}`;
                         </div>
 
                         <div>
-                          <label className="mb-1 block text-sm text-gray-400">Reference Images</label>
+                          <label className="mb-1 block text-sm text-gray-400">
+                            Reference Images
+                          </label>
                           <input
                             type="file"
                             accept="image/*"
                             multiple
-                            onChange={e => handleImageUpload(item.productId, e.target.files)}
+                            onChange={(e) => handleImageUpload(item.productId, e.target.files)}
                             className="w-full text-sm text-gray-400 file:mr-2 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-1 file:text-white"
                           />
                           {imageFiles[item.productId]?.length > 0 && (
                             <div className="mt-2 flex flex-wrap gap-2">
                               {imageFiles[item.productId].map((file, i) => (
-                                <div key={i} className="flex items-center gap-1 rounded bg-slate-700 px-2 py-1 text-xs">
+                                <div
+                                  key={i}
+                                  className="flex items-center gap-1 rounded bg-slate-700 px-2 py-1 text-xs"
+                                >
                                   <span>{file.name}</span>
-                                  <button onClick={() => removeImageFile(item.productId, i)} className="text-red-400">
+                                  <button
+                                    onClick={() => removeImageFile(item.productId, i)}
+                                    className="text-red-400"
+                                  >
                                     ×
                                   </button>
                                 </div>
@@ -641,14 +703,20 @@ ${new Date().toLocaleString()}`;
                           <input
                             type="file"
                             accept="audio/*"
-                            onChange={e => handleVoiceNoteUpload(item.productId, e.target.files[0])}
+                            onChange={(e) =>
+                              handleVoiceNoteUpload(item.productId, e.target.files[0])
+                            }
                             className="w-full text-sm text-gray-400 file:mr-2 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-1 file:text-white"
                           />
-                          {voiceNotes[item.productId] && <p className="mt-1 text-xs text-green-400">✓ Voice note added</p>}
+                          {voiceNotes[item.productId] && (
+                            <p className="mt-1 text-xs text-green-400">✓ Voice note added</p>
+                          )}
                         </div>
                       </div>
                     ) : (
-                      <p className="italic text-sm text-gray-500">Using previous customization from your past order.</p>
+                      <p className="text-sm italic text-gray-500">
+                        Using previous customization from your past order.
+                      </p>
                     )}
                   </div>
                 )}
@@ -659,7 +727,12 @@ ${new Date().toLocaleString()}`;
           {items.length === 0 && (
             <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-8 text-center">
               <p className="text-gray-400">No items in this order</p>
-              <Button variant="primary" size="sm" onClick={() => setShowAddProduct(true)} className="mt-4">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setShowAddProduct(true)}
+                className="mt-4"
+              >
                 Add Products
               </Button>
             </div>
@@ -675,7 +748,7 @@ ${new Date().toLocaleString()}`;
                 <Button
                   variant="primary"
                   onClick={handleSubmit}
-                  disabled={submitting || items.filter(i => i.selected).length === 0}
+                  disabled={submitting || items.filter((i) => i.selected).length === 0}
                   className="flex-1"
                 >
                   {submitting ? 'Creating...' : 'Place Order'}

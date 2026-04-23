@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import DashboardLayout from "@/components/layouts/DashboardLayout";
-import Button from "@/components/ui/Button";
-import StatusBadge from "@/components/ui/StatusBadge";
-import SEOHead from "@/components/common/SEOHead";
-import { paymentService } from "@/services/paymentService";
-import { invoiceService } from "@/services/invoiceService";
-import { orderService } from "@/services/orderService";
-import { profileService } from "@/services/profileService";
-import { useAuthCheck } from "@/app/lib/auth";
-import { METADATA } from "@/lib/metadata";
-import { getReceiptUrl } from "@/lib/imageUtils";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import DashboardLayout from '@/components/layouts/DashboardLayout';
+import Button from '@/components/ui/Button';
+import StatusBadge from '@/components/ui/StatusBadge';
+import SEOHead from '@/components/common/SEOHead';
+import { paymentService } from '@/services/paymentService';
+import { invoiceService } from '@/services/invoiceService';
+import { orderService } from '@/services/orderService';
+import { profileService } from '@/services/profileService';
+import { useAuthCheck } from '@/app/lib/auth';
+import { METADATA } from '@/lib/metadata';
+import { getReceiptUrl } from '@/lib/imageUtils';
 
 export default function PaymentVerificationPage() {
   const router = useRouter();
@@ -20,12 +20,12 @@ export default function PaymentVerificationPage() {
 
   const [allTransactions, setAllTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [processingId, setProcessingId] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(null);
-  const [rejectionReason, setRejectionReason] = useState("");
-  const [activeTab, setActiveTab] = useState("pending");
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [activeTab, setActiveTab] = useState('pending');
   const [imageErrors, setImageErrors] = useState({});
   const [showRejectionInput, setShowRejectionInput] = useState(false);
   const [customerData, setCustomerData] = useState({});
@@ -37,13 +37,13 @@ export default function PaymentVerificationPage() {
   const fetchAllTransactions = async () => {
     try {
       setLoading(true);
-      setError("");
-      
+      setError('');
+
       // Fetch ALL transactions (no filtering on backend)
       const response = await paymentService.getPendingBankTransfers({ limit: 100 });
-      
-      console.log("Raw payments response:", response);
-      
+
+      console.log('Raw payments response:', response);
+
       let transactions = [];
       if (response?.transactions && Array.isArray(response.transactions)) {
         transactions = response.transactions;
@@ -52,34 +52,34 @@ export default function PaymentVerificationPage() {
       } else if (Array.isArray(response)) {
         transactions = response;
       }
-      
+
       // Process all transactions to get customer details
       const transactionsWithDetails = await Promise.all(
         transactions.map(async (payment) => {
           try {
             let invoiceId = null;
             if (payment.invoiceId) {
-              if (typeof payment.invoiceId === "object") {
+              if (typeof payment.invoiceId === 'object') {
                 invoiceId = payment.invoiceId._id || payment.invoiceId;
               } else {
                 invoiceId = payment.invoiceId;
               }
             }
-            
+
             let orderId = null;
             if (payment.orderId) {
-              if (typeof payment.orderId === "object") {
+              if (typeof payment.orderId === 'object') {
                 orderId = payment.orderId._id || payment.orderId;
               } else {
                 orderId = payment.orderId;
               }
             }
-            
+
             let invoiceData = null;
             let orderData = null;
-            let customerInfo = { firstName: "", lastName: "", email: "", fullName: "Customer" };
-            
-            if (invoiceId && typeof invoiceId === "string" && invoiceId.length === 24) {
+            let customerInfo = { firstName: '', lastName: '', email: '', fullName: 'Customer' };
+
+            if (invoiceId && typeof invoiceId === 'string' && invoiceId.length === 24) {
               try {
                 const invoiceResponse = await invoiceService.getById(invoiceId);
                 invoiceData = invoiceResponse?.data || invoiceResponse?.invoice || invoiceResponse;
@@ -87,8 +87,8 @@ export default function PaymentVerificationPage() {
                 console.error(`Failed to fetch invoice ${invoiceId}:`, err);
               }
             }
-            
-            if (orderId && typeof orderId === "string" && orderId.length === 24) {
+
+            if (orderId && typeof orderId === 'string' && orderId.length === 24) {
               try {
                 const orderResponse = await orderService.getById(orderId);
                 orderData = orderResponse?.order || orderResponse?.data || orderResponse;
@@ -96,56 +96,59 @@ export default function PaymentVerificationPage() {
                 console.error(`Failed to fetch order ${orderId}:`, err);
               }
             }
-            
+
             let userId = null;
             if (orderData?.userId) {
-              if (typeof orderData.userId === "object") {
+              if (typeof orderData.userId === 'object') {
                 userId = orderData.userId._id || orderData.userId;
               } else {
                 userId = orderData.userId;
               }
             } else if (invoiceData?.userId) {
-              if (typeof invoiceData.userId === "object") {
+              if (typeof invoiceData.userId === 'object') {
                 userId = invoiceData.userId._id || invoiceData.userId;
               } else {
                 userId = invoiceData.userId;
               }
             }
-            
+
             if (userId) {
               try {
                 const userIdStr = userId.toString ? userId.toString() : userId;
                 const profileResponse = await profileService.getUserById(userIdStr);
                 const userData = profileResponse?.user || profileResponse?.data || profileResponse;
-                
+
                 if (userData) {
                   customerInfo = {
-                    firstName: userData.firstName || "",
-                    lastName: userData.lastName || "",
-                    email: userData.email || "",
-                    fullName: `${userData.firstName || ""} ${userData.lastName || ""}`.trim() || userData.email?.split("@")[0] || "Customer"
+                    firstName: userData.firstName || '',
+                    lastName: userData.lastName || '',
+                    email: userData.email || '',
+                    fullName:
+                      `${userData.firstName || ''} ${userData.lastName || ''}`.trim() ||
+                      userData.email?.split('@')[0] ||
+                      'Customer',
                   };
                 }
               } catch (err) {
                 console.error(`Failed to fetch customer for payment ${payment._id}:`, err);
-                const fallbackEmail = payment.metadata?.uploadedBy || "";
+                const fallbackEmail = payment.metadata?.uploadedBy || '';
                 customerInfo = {
-                  firstName: "",
-                  lastName: "",
+                  firstName: '',
+                  lastName: '',
                   email: fallbackEmail,
-                  fullName: fallbackEmail.split("@")[0] || "Customer"
+                  fullName: fallbackEmail.split('@')[0] || 'Customer',
                 };
               }
             } else {
-              const fallbackEmail = payment.metadata?.uploadedBy || "";
+              const fallbackEmail = payment.metadata?.uploadedBy || '';
               customerInfo = {
-                firstName: "",
-                lastName: "",
+                firstName: '',
+                lastName: '',
                 email: fallbackEmail,
-                fullName: fallbackEmail.split("@")[0] || "Customer"
+                fullName: fallbackEmail.split('@')[0] || 'Customer',
               };
             }
-            
+
             return {
               ...payment,
               invoice: invoiceData,
@@ -162,25 +165,24 @@ export default function PaymentVerificationPage() {
               ...payment,
               invoice: null,
               order: null,
-              customerInfo: { firstName: "", lastName: "", email: "", fullName: "Customer" },
+              customerInfo: { firstName: '', lastName: '', email: '', fullName: 'Customer' },
             };
           }
         })
       );
-      
+
       setAllTransactions(transactionsWithDetails);
-      
+
       const customerMap = {};
-      transactionsWithDetails.forEach(payment => {
+      transactionsWithDetails.forEach((payment) => {
         if (payment.customerInfo) {
           customerMap[payment._id] = payment.customerInfo;
         }
       });
       setCustomerData(customerMap);
-      
     } catch (err) {
-      console.error("Failed to fetch payments:", err);
-      setError("Failed to load payments");
+      console.error('Failed to fetch payments:', err);
+      setError('Failed to load payments');
     } finally {
       setLoading(false);
     }
@@ -188,12 +190,12 @@ export default function PaymentVerificationPage() {
 
   // Get filtered transactions based on active tab
   const getFilteredTransactions = () => {
-    if (activeTab === "pending") {
-      return allTransactions.filter(t => t.transactionStatus === "pending");
-    } else if (activeTab === "verified") {
-      return allTransactions.filter(t => t.transactionStatus === "completed");
-    } else if (activeTab === "rejected") {
-      return allTransactions.filter(t => t.transactionStatus === "failed");
+    if (activeTab === 'pending') {
+      return allTransactions.filter((t) => t.transactionStatus === 'pending');
+    } else if (activeTab === 'verified') {
+      return allTransactions.filter((t) => t.transactionStatus === 'completed');
+    } else if (activeTab === 'rejected') {
+      return allTransactions.filter((t) => t.transactionStatus === 'failed');
     }
     return [];
   };
@@ -203,28 +205,27 @@ export default function PaymentVerificationPage() {
   const handleVerifyClick = (payment, action) => {
     setSelectedPayment(payment);
     setShowModal(true);
-    setShowRejectionInput(action === "reject");
-    setRejectionReason("");
+    setShowRejectionInput(action === 'reject');
+    setRejectionReason('');
   };
 
   const handleVerify = async () => {
     if (!selectedPayment) return;
-    
+
     try {
       setProcessingId(selectedPayment._id);
-      setError("");
-      
+      setError('');
+
       await paymentService.verifyBankTransfer(selectedPayment._id, {
-        status: "approve"
+        status: 'approve',
       });
-      
+
       await fetchAllTransactions();
       setShowModal(false);
       setSelectedPayment(null);
-      
     } catch (err) {
-      console.error("Failed to verify payment:", err);
-      setError(err.message || "Failed to verify payment");
+      console.error('Failed to verify payment:', err);
+      setError(err.message || 'Failed to verify payment');
     } finally {
       setProcessingId(null);
     }
@@ -232,25 +233,24 @@ export default function PaymentVerificationPage() {
 
   const handleReject = async () => {
     if (!selectedPayment) return;
-    
+
     try {
       setProcessingId(selectedPayment._id);
-      setError("");
-      
+      setError('');
+
       await paymentService.verifyBankTransfer(selectedPayment._id, {
-        status: "reject",
-        notes: rejectionReason || "Payment rejected by admin"
+        status: 'reject',
+        notes: rejectionReason || 'Payment rejected by admin',
       });
-      
+
       await fetchAllTransactions();
       setShowModal(false);
       setSelectedPayment(null);
-      setRejectionReason("");
+      setRejectionReason('');
       setShowRejectionInput(false);
-      
     } catch (err) {
-      console.error("Failed to reject payment:", err);
-      setError(err.message || "Failed to reject payment");
+      console.error('Failed to reject payment:', err);
+      setError(err.message || 'Failed to reject payment');
     } finally {
       setProcessingId(null);
     }
@@ -261,39 +261,39 @@ export default function PaymentVerificationPage() {
   };
 
   const handleImageError = (paymentId) => {
-    setImageErrors(prev => ({ ...prev, [paymentId]: true }));
+    setImageErrors((prev) => ({ ...prev, [paymentId]: true }));
   };
 
   const formatCurrency = (amount) => {
-    return `₦${amount?.toLocaleString() || "0"}`;
+    return `₦${amount?.toLocaleString() || '0'}`;
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
+    if (!dateString) return 'N/A';
     try {
-      return new Date(dateString).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
       });
     } catch (e) {
-      return "Invalid date";
+      return 'Invalid date';
     }
   };
 
   // Get status display text and color
   const getStatusDisplay = (status) => {
-    switch(status) {
-      case "pending":
-        return { text: "Pending", color: "yellow" };
-      case "completed":
-        return { text: "Verified", color: "green" };
-      case "failed":
-        return { text: "Rejected", color: "red" };
+    switch (status) {
+      case 'pending':
+        return { text: 'Pending', color: 'yellow' };
+      case 'completed':
+        return { text: 'Verified', color: 'green' };
+      case 'failed':
+        return { text: 'Rejected', color: 'red' };
       default:
-        return { text: "Unknown", color: "gray" };
+        return { text: 'Unknown', color: 'gray' };
     }
   };
 
@@ -325,34 +325,35 @@ export default function PaymentVerificationPage() {
 
           <div className="mb-6 flex gap-2 border-b border-gray-800">
             <button
-              onClick={() => setActiveTab("pending")}
+              onClick={() => setActiveTab('pending')}
               className={`px-4 py-2 text-sm font-medium transition-colors ${
-                activeTab === "pending"
-                  ? "border-b-2 border-primary text-primary"
-                  : "text-gray-400 hover:text-white"
+                activeTab === 'pending'
+                  ? 'border-b-2 border-primary text-primary'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
-              Pending Verification ({allTransactions.filter(t => t.transactionStatus === "pending").length})
+              Pending Verification (
+              {allTransactions.filter((t) => t.transactionStatus === 'pending').length})
             </button>
             <button
-              onClick={() => setActiveTab("verified")}
+              onClick={() => setActiveTab('verified')}
               className={`px-4 py-2 text-sm font-medium transition-colors ${
-                activeTab === "verified"
-                  ? "border-b-2 border-primary text-primary"
-                  : "text-gray-400 hover:text-white"
+                activeTab === 'verified'
+                  ? 'border-b-2 border-primary text-primary'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
-              Verified ({allTransactions.filter(t => t.transactionStatus === "completed").length})
+              Verified ({allTransactions.filter((t) => t.transactionStatus === 'completed').length})
             </button>
             <button
-              onClick={() => setActiveTab("rejected")}
+              onClick={() => setActiveTab('rejected')}
               className={`px-4 py-2 text-sm font-medium transition-colors ${
-                activeTab === "rejected"
-                  ? "border-b-2 border-primary text-primary"
-                  : "text-gray-400 hover:text-white"
+                activeTab === 'rejected'
+                  ? 'border-b-2 border-primary text-primary'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
-              Rejected ({allTransactions.filter(t => t.transactionStatus === "failed").length})
+              Rejected ({allTransactions.filter((t) => t.transactionStatus === 'failed').length})
             </button>
           </div>
 
@@ -361,37 +362,51 @@ export default function PaymentVerificationPage() {
               <div className="mb-4 text-6xl">📄</div>
               <h3 className="mb-2 text-xl font-semibold text-white">No payments found</h3>
               <p className="text-gray-400">
-                {activeTab === "pending" 
-                  ? "No pending payments to verify" 
+                {activeTab === 'pending'
+                  ? 'No pending payments to verify'
                   : `No ${activeTab} payments`}
               </p>
             </div>
           ) : (
             <div className="space-y-6">
               {filteredPayments.map((payment) => {
-                const customer = payment.customerInfo || { firstName: "", lastName: "", email: "", fullName: "Customer" };
+                const customer = payment.customerInfo || {
+                  firstName: '',
+                  lastName: '',
+                  email: '',
+                  fullName: 'Customer',
+                };
                 const statusDisplay = getStatusDisplay(payment.transactionStatus);
-                
+
                 return (
-                  <div key={payment._id} className="rounded-xl border border-gray-800 bg-slate-900/50 p-6 backdrop-blur-sm transition-all hover:border-gray-700">
+                  <div
+                    key={payment._id}
+                    className="rounded-xl border border-gray-800 bg-slate-900/50 p-6 backdrop-blur-sm transition-all hover:border-gray-700"
+                  >
                     <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                       <div>
                         <div className="mb-2 flex flex-wrap items-center gap-3">
                           <h3 className="text-xl font-semibold text-white">
-                            Order {payment.orderNumber || payment.order?.orderNumber || "N/A"}
+                            Order {payment.orderNumber || payment.order?.orderNumber || 'N/A'}
                           </h3>
-                          <span className={`rounded-full px-2 py-1 text-xs font-medium bg-${statusDisplay.color}-600/20 text-${statusDisplay.color}-400`}>
+                          <span
+                            className={`rounded-full px-2 py-1 text-xs font-medium bg-${statusDisplay.color}-600/20 text-${statusDisplay.color}-400`}
+                          >
                             {statusDisplay.text}
                           </span>
                         </div>
                         <p className="text-sm text-gray-400">
-                          Customer: <span className="font-medium text-white">{customer.fullName}</span>
+                          Customer:{' '}
+                          <span className="font-medium text-white">{customer.fullName}</span>
                         </p>
                         {customer.email && (
                           <p className="text-xs text-gray-500">{customer.email}</p>
                         )}
                         <p className="text-sm text-gray-400">
-                          Amount: <span className="font-bold text-primary">{formatCurrency(payment.transactionAmount)}</span>
+                          Amount:{' '}
+                          <span className="font-bold text-primary">
+                            {formatCurrency(payment.transactionAmount)}
+                          </span>
                         </p>
                         <p className="text-sm text-gray-400">
                           Submitted: {formatDate(payment.metadata?.uploadedAt || payment.createdAt)}
@@ -401,27 +416,25 @@ export default function PaymentVerificationPage() {
                             Invoice: #{payment.invoice.invoiceNumber || payment.invoiceNumber}
                           </p>
                         )}
-                        {payment.transactionType === "part" && (
-                          <p className="mt-1 text-xs text-yellow-400">
-                            ⚡ Deposit Payment
-                          </p>
+                        {payment.transactionType === 'part' && (
+                          <p className="mt-1 text-xs text-yellow-400">⚡ Deposit Payment</p>
                         )}
                       </div>
-                      
-                      {payment.transactionStatus === "pending" && (
+
+                      {payment.transactionStatus === 'pending' && (
                         <div className="flex gap-2">
                           <Button
                             variant="primary"
                             size="sm"
-                            onClick={() => handleVerifyClick(payment, "verify")}
+                            onClick={() => handleVerifyClick(payment, 'verify')}
                             disabled={processingId === payment._id}
                           >
-                            {processingId === payment._id ? "Processing..." : "Verify"}
+                            {processingId === payment._id ? 'Processing...' : 'Verify'}
                           </Button>
                           <Button
                             variant="danger"
                             size="sm"
-                            onClick={() => handleVerifyClick(payment, "reject")}
+                            onClick={() => handleVerifyClick(payment, 'reject')}
                             disabled={processingId === payment._id}
                           >
                             Reject
@@ -445,28 +458,33 @@ export default function PaymentVerificationPage() {
                             <div className="py-8 text-center">
                               <div className="mb-2 text-4xl">🖼️</div>
                               <p className="text-gray-400">Image failed to load</p>
-                              <p className="mt-1 text-xs text-gray-500">{getReceiptImageUrl(payment.receiptUrl)}</p>
+                              <p className="mt-1 text-xs text-gray-500">
+                                {getReceiptImageUrl(payment.receiptUrl)}
+                              </p>
                             </div>
                           )}
                         </div>
                       </div>
                     )}
 
-                    {payment.transactionStatus !== "pending" && (
+                    {payment.transactionStatus !== 'pending' && (
                       <div className="mt-4 rounded-lg bg-slate-800/50 p-3 text-sm">
                         <p className="text-gray-400">
-                          Verified by: <span className="text-white">
-                            {typeof payment.verifiedBy === "object" 
-                              ? payment.verifiedBy.email || "Admin"
-                              : payment.verifiedBy || "Admin"}
+                          Verified by:{' '}
+                          <span className="text-white">
+                            {typeof payment.verifiedBy === 'object'
+                              ? payment.verifiedBy.email || 'Admin'
+                              : payment.verifiedBy || 'Admin'}
                           </span>
                         </p>
                         <p className="text-gray-400">
-                          Verified at: <span className="text-white">{formatDate(payment.verifiedAt)}</span>
+                          Verified at:{' '}
+                          <span className="text-white">{formatDate(payment.verifiedAt)}</span>
                         </p>
                         {payment.metadata?.verificationNotes && (
                           <p className="mt-1 text-gray-400">
-                            Notes: <span className="text-white">{payment.metadata.verificationNotes}</span>
+                            Notes:{' '}
+                            <span className="text-white">{payment.metadata.verificationNotes}</span>
                           </p>
                         )}
                       </div>
@@ -484,29 +502,35 @@ export default function PaymentVerificationPage() {
           <div className="w-full max-w-md rounded-xl border border-gray-800 bg-slate-900">
             <div className="border-b border-gray-800 p-6">
               <h3 className="text-xl font-bold text-white">
-                {showRejectionInput ? "Reject Payment" : "Verify Payment"}
+                {showRejectionInput ? 'Reject Payment' : 'Verify Payment'}
               </h3>
             </div>
-            
+
             <div className="p-6">
               <p className="mb-4 text-gray-300">
-                {showRejectionInput 
-                  ? "Are you sure you want to reject this payment?" 
-                  : "Are you sure you want to verify this payment?"}
+                {showRejectionInput
+                  ? 'Are you sure you want to reject this payment?'
+                  : 'Are you sure you want to verify this payment?'}
               </p>
-              
+
               <div className="mb-4 rounded-lg bg-slate-800/50 p-4">
                 <div className="mb-2 flex justify-between">
                   <span className="text-gray-400">Order:</span>
-                  <span className="text-white">{selectedPayment.orderNumber || selectedPayment.order?.orderNumber || "N/A"}</span>
+                  <span className="text-white">
+                    {selectedPayment.orderNumber || selectedPayment.order?.orderNumber || 'N/A'}
+                  </span>
                 </div>
                 <div className="mb-2 flex justify-between">
                   <span className="text-gray-400">Amount:</span>
-                  <span className="font-bold text-primary">{formatCurrency(selectedPayment.transactionAmount)}</span>
+                  <span className="font-bold text-primary">
+                    {formatCurrency(selectedPayment.transactionAmount)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Customer:</span>
-                  <span className="text-white">{selectedPayment.customerInfo?.fullName || "Customer"}</span>
+                  <span className="text-white">
+                    {selectedPayment.customerInfo?.fullName || 'Customer'}
+                  </span>
                 </div>
               </div>
 
@@ -533,9 +557,11 @@ export default function PaymentVerificationPage() {
                   disabled={processingId === selectedPayment._id}
                   className="flex-1"
                 >
-                  {processingId === selectedPayment._id 
-                    ? "Processing..." 
-                    : showRejectionInput ? "Reject Payment" : "Verify Payment"}
+                  {processingId === selectedPayment._id
+                    ? 'Processing...'
+                    : showRejectionInput
+                      ? 'Reject Payment'
+                      : 'Verify Payment'}
                 </Button>
                 <Button
                   variant="secondary"
@@ -543,7 +569,7 @@ export default function PaymentVerificationPage() {
                   onClick={() => {
                     setShowModal(false);
                     setSelectedPayment(null);
-                    setRejectionReason("");
+                    setRejectionReason('');
                     setShowRejectionInput(false);
                   }}
                   className="flex-1"

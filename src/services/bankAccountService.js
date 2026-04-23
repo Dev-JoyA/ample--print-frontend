@@ -1,5 +1,5 @@
-import { api } from "@/lib/api";
-import { API_PATHS } from "@/lib/constants";
+import { api } from '@/lib/api';
+import { API_PATHS } from '@/lib/constants';
 
 export const bankAccountService = {
   getActive: async () => {
@@ -23,4 +23,3 @@ export const bankAccountService = {
     return response;
   },
 };
-

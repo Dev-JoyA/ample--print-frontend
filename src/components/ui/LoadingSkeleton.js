@@ -3,7 +3,10 @@ const LoadingSkeleton = ({ type = 'card', count = 4 }) => {
     return (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
         {[...Array(count)].map((_, i) => (
-          <div key={i} className="overflow-hidden rounded-lg border border-dark-lighter bg-slate-900">
+          <div
+            key={i}
+            className="overflow-hidden rounded-lg border border-dark-lighter bg-slate-900"
+          >
             <div className="h-40 animate-pulse bg-slate-800 sm:h-48"></div>
             <div className="space-y-2 p-3 sm:p-4">
               <div className="h-5 w-3/4 animate-pulse rounded bg-slate-800 sm:h-6"></div>
@@ -16,7 +19,7 @@ const LoadingSkeleton = ({ type = 'card', count = 4 }) => {
       </div>
     );
   }
-  
+
   if (type === 'product') {
     return (
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -31,7 +34,7 @@ const LoadingSkeleton = ({ type = 'card', count = 4 }) => {
       </div>
     );
   }
-  
+
   if (type === 'order') {
     return (
       <div className="space-y-4">
@@ -51,7 +54,7 @@ const LoadingSkeleton = ({ type = 'card', count = 4 }) => {
       </div>
     );
   }
-  
+
   return null;
 };
 

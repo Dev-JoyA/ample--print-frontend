@@ -1,23 +1,24 @@
-import { api } from "@/lib/api";
-import { API_PATHS } from "@/lib/constants";
+import { api } from '@/lib/api';
+import { API_PATHS } from '@/lib/constants';
 
 const getToken = () => {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("token="));
-  return match ? decodeURIComponent(match.split("=")[1]) : null;
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.split('; ').find((row) => row.startsWith('token='));
+  return match ? decodeURIComponent(match.split('=')[1]) : null;
 };
 
 const API_BASE_URL =
-  typeof process !== "undefined"
-    ? process.env.NEXT_PUBLIC_API_URL || "http://localhost:4001/api/v1"
-    : "http://localhost:4001/api/v1";
+  typeof process !== 'undefined'
+    ? process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4001/api/v1'
+    : 'http://localhost:4001/api/v1';
 
 export const invoiceService = {
   createShippingInvoice: async (orderId, shippingId, data) => {
     try {
-      const response = await api.post(API_PATHS.INVOICES.CREATE_SHIPPING(orderId, shippingId), data);
+      const response = await api.post(
+        API_PATHS.INVOICES.CREATE_SHIPPING(orderId, shippingId),
+        data
+      );
       return response;
     } catch (error) {
       console.error('Failed to create shipping invoice:', error);
@@ -82,7 +83,9 @@ export const invoiceService = {
       if (params.page) queryParams.append('page', params.page);
       if (params.limit) queryParams.append('limit', params.limit);
       const queryString = queryParams.toString();
-      const endpoint = queryString ? `${API_PATHS.INVOICES.MY_INVOICES}?${queryString}` : API_PATHS.INVOICES.MY_INVOICES;
+      const endpoint = queryString
+        ? `${API_PATHS.INVOICES.MY_INVOICES}?${queryString}`
+        : API_PATHS.INVOICES.MY_INVOICES;
       const response = await api.get(endpoint);
       return response;
     } catch (error) {
@@ -100,7 +103,9 @@ export const invoiceService = {
         }
       });
       const queryString = queryParams.toString();
-      const endpoint = queryString ? `${API_PATHS.INVOICES.FILTER}?${queryString}` : API_PATHS.INVOICES.FILTER;
+      const endpoint = queryString
+        ? `${API_PATHS.INVOICES.FILTER}?${queryString}`
+        : API_PATHS.INVOICES.FILTER;
       const response = await api.get(endpoint);
       return response;
     } catch (error) {
@@ -115,7 +120,9 @@ export const invoiceService = {
       if (params.page) queryParams.append('page', params.page);
       if (params.limit) queryParams.append('limit', params.limit);
       const queryString = queryParams.toString();
-      const endpoint = queryString ? `${API_PATHS.ORDERS.READY_FOR_INVOICE}?${queryString}` : API_PATHS.ORDERS.READY_FOR_INVOICE;
+      const endpoint = queryString
+        ? `${API_PATHS.ORDERS.READY_FOR_INVOICE}?${queryString}`
+        : API_PATHS.ORDERS.READY_FOR_INVOICE;
       const response = await api.get(endpoint);
       return response;
     } catch (error) {
@@ -151,7 +158,9 @@ export const invoiceService = {
       if (params.limit) queryParams.append('limit', params.limit);
       if (params.status) queryParams.append('status', params.status);
       const queryString = queryParams.toString();
-      const endpoint = queryString ? `${API_PATHS.INVOICES.ALL}?${queryString}` : API_PATHS.INVOICES.ALL;
+      const endpoint = queryString
+        ? `${API_PATHS.INVOICES.ALL}?${queryString}`
+        : API_PATHS.INVOICES.ALL;
       const response = await api.get(endpoint);
       return response;
     } catch (error) {
@@ -180,40 +189,40 @@ export const invoiceService = {
     }
   },
 
-downloadInvoice: async (invoiceId) => {
-  try {
-    const response = await api.getBlob(`/invoices/${invoiceId}/pdf`);
-    const blob = response;
-    
-    // Get filename from Content-Disposition header if available
-    const contentDisposition = response.headers?.get('Content-Disposition');
-    let filename = `invoice-${invoiceId}.pdf`;
-    
-    if (contentDisposition) {
-      const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-      if (match && match[1]) {
-        filename = match[1].replace(/['"]/g, '');
+  downloadInvoice: async (invoiceId) => {
+    try {
+      const response = await api.getBlob(`/invoices/${invoiceId}/pdf`);
+      const blob = response;
+
+      // Get filename from Content-Disposition header if available
+      const contentDisposition = response.headers?.get('Content-Disposition');
+      let filename = `invoice-${invoiceId}.pdf`;
+
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (match && match[1]) {
+          filename = match[1].replace(/['"]/g, '');
+        }
       }
+
+      // Create download link with proper blob URL
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Clean up
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 100);
+
+      return true;
+    } catch (error) {
+      console.error('Failed to download invoice:', error);
+      throw error;
     }
-    
-    // Create download link with proper blob URL
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    // Clean up
-    setTimeout(() => {
-      window.URL.revokeObjectURL(url);
-    }, 100);
-    
-    return true;
-  } catch (error) {
-    console.error('Failed to download invoice:', error);
-    throw error;
-  }
-},
+  },
 };

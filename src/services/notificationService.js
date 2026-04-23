@@ -1,5 +1,5 @@
-import { api } from "../lib/api";
-import { API_PATHS } from "../lib/constants";
+import { api } from '../lib/api';
+import { API_PATHS } from '../lib/constants';
 
 export const notificationService = {
   getHistory: async (params = {}) => {
@@ -10,7 +10,9 @@ export const notificationService = {
       if (params.read !== undefined) queryParams.append('read', params.read);
       if (params.type) queryParams.append('type', params.type);
       const queryString = queryParams.toString();
-      const endpoint = queryString ? `${API_PATHS.NOTIFICATIONS.HISTORY}?${queryString}` : API_PATHS.NOTIFICATIONS.HISTORY;
+      const endpoint = queryString
+        ? `${API_PATHS.NOTIFICATIONS.HISTORY}?${queryString}`
+        : API_PATHS.NOTIFICATIONS.HISTORY;
       const response = await api.get(endpoint);
       console.log('📋 Notifications fetched:', response);
       return response;
@@ -91,5 +93,5 @@ export const notificationService = {
       console.error('❌ Failed to clear notifications:', error);
       throw error;
     }
-  }
+  },
 };

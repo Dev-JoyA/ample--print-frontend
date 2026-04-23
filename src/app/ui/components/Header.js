@@ -1,10 +1,10 @@
-import Image from "next/image";
+import Image from 'next/image';
 
 const Header = ({ isLoading }) => {
   return (
     <div className="relative">
       <div className="absolute inset-0 -z-10 mt-[-10px] rounded-[10px] shadow-[4px_4px_8px_0px_rgba(0,0,0,0.1),-4px_-4px_8px_0px_rgba(0,0,0,0.1)]"></div>
-      <div className="flex justify-center pt-4 sm:pt-6 md:pt-8 lg:pt-10 mt-[-20px] sm:mt-[-15px] md:mt-[-10px]">
+      <div className="mt-[-20px] flex justify-center pt-4 sm:mt-[-15px] sm:pt-6 md:mt-[-10px] md:pt-8 lg:pt-10">
         <div className="relative h-24 w-48 sm:h-28 sm:w-56 md:h-32 md:w-64 lg:h-36 lg:w-72">
           <Image
             src="/images/logo/aph-logo.png"
@@ -22,8 +22,7 @@ const Header = ({ isLoading }) => {
         </div>
       )}
       <p className="mx-auto mb-3 max-w-md text-center font-carlito text-base font-semibold text-gray-800 sm:mb-4 sm:max-w-lg sm:text-lg md:text-xl lg:mt-[-150px]">
-        Join thousands of businesses who use Ampleprint every day and scale
-        your business in no time
+        Join thousands of businesses who use Ampleprint every day and scale your business in no time
       </p>
       <div className="flex flex-col items-center">
         <button className="mt-2 flex items-center gap-2 rounded-lg bg-[#D1D1D1] px-4 py-1 transition hover:bg-gray-300 sm:gap-3 sm:px-6">
@@ -39,7 +38,9 @@ const Header = ({ isLoading }) => {
             Sign in with Google
           </span>
         </button>
-        <p className="mt-3 font-carlito text-sm text-gray-600 sm:mt-4 sm:text-base md:text-lg">or</p>
+        <p className="mt-3 font-carlito text-sm text-gray-600 sm:mt-4 sm:text-base md:text-lg">
+          or
+        </p>
       </div>
       <style jsx>{`
         .loading-bar {

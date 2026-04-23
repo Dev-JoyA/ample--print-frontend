@@ -115,11 +115,11 @@ export const collections = {
   getAll: async () => {
     return api.get('/collections');
   },
-  
+
   getById: async (id) => {
     return api.get(`/collections/${id}`);
   },
-  
+
   getProducts: async (collectionId) => {
     return api.get(`/collections/${collectionId}/products`);
   },
@@ -137,11 +137,11 @@ export const products = {
     const queryParams = new URLSearchParams(filters).toString();
     return api.get(`/products?${queryParams}`);
   },
-  
+
   getById: async (id) => {
     return api.get(`/products/${id}`);
   },
-  
+
   search: async (query) => {
     return api.get(`/products/search?q=${query}`);
   },
@@ -158,19 +158,19 @@ export const orders = {
   create: async (orderData) => {
     return api.post('/orders', orderData);
   },
-  
+
   getAll: async () => {
     return api.get('/orders');
   },
-  
+
   getById: async (id) => {
     return api.get(`/orders/${id}`);
   },
-  
+
   track: async (orderNumber) => {
     return api.get(`/orders/track/${orderNumber}`);
   },
-  
+
   updateStatus: async (id, status) => {
     return api.put(`/orders/${id}/status`, { status });
   },
@@ -187,15 +187,15 @@ export const customerBriefs = {
   create: async (orderId, briefData) => {
     return api.post(`/orders/${orderId}/brief`, briefData);
   },
-  
+
   getByOrderId: async (orderId) => {
     return api.get(`/orders/${orderId}/brief`);
   },
-  
+
   respond: async (briefId, response) => {
     return api.post(`/briefs/${briefId}/respond`, { response });
   },
-  
+
   uploadAssets: async (briefId, files) => {
     const formData = new FormData();
     files.forEach((file) => {
@@ -216,17 +216,17 @@ export const payments = {
   initiatePaystack: async (orderId, amount) => {
     return api.post('/payments/paystack/initiate', { orderId, amount });
   },
-  
+
   verifyPaystack: async (reference) => {
     return api.post('/payments/paystack/verify', { reference });
   },
-  
+
   uploadReceipt: async (orderId, receiptFile) => {
     const formData = new FormData();
     formData.append('receipt', receiptFile);
     return api.upload(`/payments/${orderId}/receipt`, formData);
   },
-  
+
   verifyBankTransfer: async (paymentId, verified) => {
     return api.put(`/payments/${paymentId}/verify`, { verified });
   },
@@ -243,7 +243,7 @@ export const shipping = {
   calculateCost: async (address) => {
     return api.post('/shipping/calculate', { address });
   },
-  
+
   createShippingInvoice: async (orderId, shippingData) => {
     return api.post(`/orders/${orderId}/shipping`, shippingData);
   },
@@ -260,19 +260,19 @@ export const invoices = {
   create: async (orderId, invoiceData) => {
     return api.post(`/orders/${orderId}/invoice`, invoiceData);
   },
-  
+
   getAll: async () => {
     return api.get('/invoices');
   },
-  
+
   getById: async (id) => {
     return api.get(`/invoices/${id}`);
   },
-  
+
   applyDiscount: async (invoiceId, discountCode) => {
     return api.put(`/invoices/${invoiceId}/discount`, { discountCode });
   },
-  
+
   pay: async (invoiceId, paymentData) => {
     return api.post(`/invoices/${invoiceId}/pay`, paymentData);
   },
@@ -293,11 +293,11 @@ export const designs = {
     });
     return api.upload(`/orders/${orderId}/designs`, formData);
   },
-  
+
   approve: async (designId) => {
     return api.put(`/designs/${designId}/approve`, { approved: true });
   },
-  
+
   reject: async (designId, feedback) => {
     return api.put(`/designs/${designId}/approve`, { approved: false, feedback });
   },
@@ -314,11 +314,11 @@ export const discounts = {
   getAll: async () => {
     return api.get('/discounts');
   },
-  
+
   create: async (discountData) => {
     return api.post('/discounts', discountData);
   },
-  
+
   toggle: async (discountId, active) => {
     return api.put(`/discounts/${discountId}`, { active });
   },
@@ -441,7 +441,7 @@ export const usePaystack = () => {
     try {
       // Initiate payment on backend
       const { reference } = await payments.initiatePaystack(orderId, amount);
-      
+
       initializePayment({
         ...config,
         amount: amount * 100, // Convert to kobo
@@ -562,9 +562,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={{ user, login, logout, loading }}>{children}</AuthContext.Provider>
   );
 }
 

@@ -24,7 +24,7 @@ export default function CustomerBriefsPage() {
   const [responseText, setResponseText] = useState('');
   const [responseFiles, setResponseFiles] = useState({
     images: [],
-    logo: null
+    logo: null,
   });
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -39,7 +39,7 @@ export default function CustomerBriefsPage() {
   const [filterHasFiles, setFilterHasFiles] = useState(false);
   const [searchTimeout, setSearchTimeout] = useState(null);
   const [updatingBrief, setUpdatingBrief] = useState(null);
-  
+
   const fileInputRef = useRef(null);
   const logoInputRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -49,7 +49,7 @@ export default function CustomerBriefsPage() {
   const statusColors = {
     pending: 'blue',
     responded: 'green',
-    viewed: 'purple'
+    viewed: 'purple',
   };
 
   useEffect(() => {
@@ -66,11 +66,11 @@ export default function CustomerBriefsPage() {
   const fetchBriefs = async () => {
     try {
       setLoading(true);
-      
+
       const params = {
         limit: 50,
         sortBy: 'createdAt',
-        sortOrder: 'desc'
+        sortOrder: 'desc',
       };
 
       if (activeTab === 'pending') {
@@ -93,20 +93,23 @@ export default function CustomerBriefsPage() {
 
       const response = await customerBriefService.getAdminBriefs(params);
       console.log('Briefs response:', response);
-      
+
       let briefsData = [];
       if (response?.briefs && Array.isArray(response.briefs)) {
         briefsData = response.briefs;
       } else if (Array.isArray(response)) {
         briefsData = response;
       }
-       console.log('Briefs data count:', briefsData.length);
-        console.log('Briefs data details:', briefsData.map(b => ({ 
-        id: b._id, 
-        product: b.productName, 
-        order: b.orderNumber,
-        status: b.status 
-        })));
+      console.log('Briefs data count:', briefsData.length);
+      console.log(
+        'Briefs data details:',
+        briefsData.map((b) => ({
+          id: b._id,
+          product: b.productName,
+          order: b.orderNumber,
+          status: b.status,
+        }))
+      );
 
       setBriefs(briefsData);
     } catch (err) {
@@ -121,16 +124,16 @@ export default function CustomerBriefsPage() {
   const fetchConversation = async (orderId, productId) => {
     try {
       setLoadingConversation(true);
-      
+
       const response = await customerBriefService.getByOrderAndProduct(orderId, productId);
       console.log('Conversation response:', response);
-      
+
       let allMessages = [];
-      
+
       // Check if response.data is an array (new format)
       if (response?.data && Array.isArray(response.data)) {
         allMessages = response.data;
-      } 
+      }
       // Check if response itself is an array
       else if (Array.isArray(response)) {
         allMessages = response;
@@ -142,10 +145,10 @@ export default function CustomerBriefsPage() {
         if (data.admin) allMessages.push({ ...data.admin, role: 'admin' });
         if (data.superAdmin) allMessages.push({ ...data.superAdmin, role: 'super-admin' });
       }
-      
+
       // Sort chronologically (oldest first)
       allMessages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-      
+
       console.log('Processed messages:', allMessages);
       setConversation(allMessages);
     } catch (err) {
@@ -164,7 +167,10 @@ export default function CustomerBriefsPage() {
   const handleViewBrief = async (brief) => {
     setUpdatingBrief(brief._id);
     setSelectedBrief(brief);
-    await fetchConversation(brief.orderId?._id || brief.orderId, brief.productId?._id || brief.productId);
+    await fetchConversation(
+      brief.orderId?._id || brief.orderId,
+      brief.productId?._id || brief.productId
+    );
     setUpdatingBrief(null);
   };
 
@@ -187,7 +193,7 @@ export default function CustomerBriefsPage() {
     setResponseText('');
     setResponseFiles({
       images: [],
-      logo: null
+      logo: null,
     });
     setAudioBlob(null);
     setAudioUrl(null);
@@ -198,30 +204,30 @@ export default function CustomerBriefsPage() {
 
   const handleFileChange = (e, type) => {
     const files = Array.from(e.target.files);
-    
+
     if (type === 'images') {
-      setResponseFiles(prev => ({
+      setResponseFiles((prev) => ({
         ...prev,
-        images: [...prev.images, ...files]
+        images: [...prev.images, ...files],
       }));
     } else if (type === 'logo') {
-      setResponseFiles(prev => ({
+      setResponseFiles((prev) => ({
         ...prev,
-        logo: files[0]
+        logo: files[0],
       }));
     }
   };
 
   const removeFile = (type, index = null) => {
     if (type === 'images' && index !== null) {
-      setResponseFiles(prev => ({
+      setResponseFiles((prev) => ({
         ...prev,
-        images: prev.images.filter((_, i) => i !== index)
+        images: prev.images.filter((_, i) => i !== index),
       }));
     } else if (type === 'logo') {
-      setResponseFiles(prev => ({
+      setResponseFiles((prev) => ({
         ...prev,
-        logo: null
+        logo: null,
       }));
       if (logoInputRef.current) logoInputRef.current.value = '';
     }
@@ -242,16 +248,15 @@ export default function CustomerBriefsPage() {
         const audioUrl = URL.createObjectURL(audioBlob);
         setAudioBlob(audioBlob);
         setAudioUrl(audioUrl);
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach((track) => track.stop());
       };
 
       mediaRecorderRef.current.start();
       setIsRecording(true);
       setRecordingTime(0);
       timerRef.current = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
+        setRecordingTime((prev) => prev + 1);
       }, 1000);
-      
     } catch (err) {
       console.error('Failed to start recording:', err);
       alert('Could not access microphone. Please check your permissions.');
@@ -279,33 +284,37 @@ export default function CustomerBriefsPage() {
   };
 
   const handleSubmitResponse = async () => {
-    if (!responseText.trim() && 
-        responseFiles.images.length === 0 && 
-        !responseFiles.logo && 
-        !audioBlob) {
+    if (
+      !responseText.trim() &&
+      responseFiles.images.length === 0 &&
+      !responseFiles.logo &&
+      !audioBlob
+    ) {
       alert('Please add some content to your response');
       return;
     }
 
     try {
       setSubmitting(true);
-      
+
       const formData = new FormData();
-      
+
       if (responseText.trim()) {
         formData.append('description', responseText.trim());
       }
-      
-      responseFiles.images.forEach(file => {
+
+      responseFiles.images.forEach((file) => {
         formData.append('image', file);
       });
-      
+
       if (responseFiles.logo) {
         formData.append('logo', responseFiles.logo);
       }
-      
+
       if (audioBlob) {
-        const audioFile = new File([audioBlob], `voice-note-${Date.now()}.webm`, { type: 'audio/webm' });
+        const audioFile = new File([audioBlob], `voice-note-${Date.now()}.webm`, {
+          type: 'audio/webm',
+        });
         formData.append('voiceNote', audioFile);
       }
 
@@ -313,22 +322,21 @@ export default function CustomerBriefsPage() {
       const productId = selectedBrief.productId?._id || selectedBrief.productId;
 
       await customerBriefService.adminRespond(orderId, productId, formData);
-      
+
       await fetchConversation(orderId, productId);
-      
+
       setResponseText('');
       setResponseFiles({
         images: [],
-        logo: null
+        logo: null,
       });
       setAudioBlob(null);
       setAudioUrl(null);
-      
+
       if (fileInputRef.current) fileInputRef.current.value = '';
       if (logoInputRef.current) logoInputRef.current.value = '';
-      
+
       await fetchBriefs();
-      
     } catch (err) {
       console.error('Failed to submit response:', err);
       alert('Failed to submit response');
@@ -344,7 +352,7 @@ export default function CustomerBriefsPage() {
       day: 'numeric',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
@@ -365,14 +373,26 @@ export default function CustomerBriefsPage() {
   // FIXED: getRoleBadge - case insensitive
   const getRoleBadge = (role) => {
     const roleLower = role?.toLowerCase();
-    switch(roleLower) {
+    switch (roleLower) {
       case 'customer':
-        return <span className="bg-blue-600/20 text-blue-400 px-2 py-1 rounded-full text-xs font-medium">Customer</span>;
+        return (
+          <span className="rounded-full bg-blue-600/20 px-2 py-1 text-xs font-medium text-blue-400">
+            Customer
+          </span>
+        );
       case 'admin':
-        return <span className="bg-green-600/20 text-green-400 px-2 py-1 rounded-full text-xs font-medium">Admin</span>;
+        return (
+          <span className="rounded-full bg-green-600/20 px-2 py-1 text-xs font-medium text-green-400">
+            Admin
+          </span>
+        );
       case 'super-admin':
       case 'superadmin':
-        return <span className="bg-purple-600/20 text-purple-400 px-2 py-1 rounded-full text-xs font-medium">Super Admin</span>;
+        return (
+          <span className="rounded-full bg-purple-600/20 px-2 py-1 text-xs font-medium text-purple-400">
+            Super Admin
+          </span>
+        );
       default:
         return null;
     }
@@ -381,7 +401,7 @@ export default function CustomerBriefsPage() {
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
-    
+
     if (searchTimeout) clearTimeout(searchTimeout);
     const timeout = setTimeout(() => {
       fetchBriefs();
@@ -395,10 +415,10 @@ export default function CustomerBriefsPage() {
 
   const stats = {
     total: briefs.length,
-    pending: briefs.filter(b => b.status === 'pending').length,
-    responded: briefs.filter(b => b.status === 'responded').length,
-    viewed: briefs.filter(b => b.status === 'viewed').length,
-    hasFiles: briefs.filter(b => b.hasFiles).length
+    pending: briefs.filter((b) => b.status === 'pending').length,
+    responded: briefs.filter((b) => b.status === 'responded').length,
+    viewed: briefs.filter((b) => b.status === 'viewed').length,
+    hasFiles: briefs.filter((b) => b.hasFiles).length,
   };
 
   return (
@@ -406,38 +426,40 @@ export default function CustomerBriefsPage() {
       <SEOHead {...METADATA.briefs} />
       <DashboardLayout userRole="admin">
         <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Customer Briefs</h1>
-                <p className="text-gray-400 text-sm sm:text-base">Review and respond to customer design briefs</p>
+                <h1 className="mb-2 text-3xl font-bold text-white sm:text-4xl">Customer Briefs</h1>
+                <p className="text-sm text-gray-400 sm:text-base">
+                  Review and respond to customer design briefs
+                </p>
               </div>
               <div className="flex flex-wrap gap-3">
-                <div className="bg-slate-800/50 rounded-lg px-3 sm:px-4 py-2">
+                <div className="rounded-lg bg-slate-800/50 px-3 py-2 sm:px-4">
                   <p className="text-xs text-gray-400">Total</p>
-                  <p className="text-lg sm:text-xl font-bold text-white">{stats.total}</p>
+                  <p className="text-lg font-bold text-white sm:text-xl">{stats.total}</p>
                 </div>
-                <div className="bg-blue-600/20 rounded-lg px-3 sm:px-4 py-2">
+                <div className="rounded-lg bg-blue-600/20 px-3 py-2 sm:px-4">
                   <p className="text-xs text-blue-400">Pending</p>
-                  <p className="text-lg sm:text-xl font-bold text-blue-400">{stats.pending}</p>
+                  <p className="text-lg font-bold text-blue-400 sm:text-xl">{stats.pending}</p>
                 </div>
-                <div className="bg-green-600/20 rounded-lg px-3 sm:px-4 py-2">
+                <div className="rounded-lg bg-green-600/20 px-3 py-2 sm:px-4">
                   <p className="text-xs text-green-400">Responded</p>
-                  <p className="text-lg sm:text-xl font-bold text-green-400">{stats.responded}</p>
+                  <p className="text-lg font-bold text-green-400 sm:text-xl">{stats.responded}</p>
                 </div>
-                <div className="bg-purple-600/20 rounded-lg px-3 sm:px-4 py-2">
+                <div className="rounded-lg bg-purple-600/20 px-3 py-2 sm:px-4">
                   <p className="text-xs text-purple-400">Viewed</p>
-                  <p className="text-lg sm:text-xl font-bold text-purple-400">{stats.viewed}</p>
+                  <p className="text-lg font-bold text-purple-400 sm:text-xl">{stats.viewed}</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-slate-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-4 mb-6">
-              <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-                <div className="flex flex-wrap gap-2 bg-slate-800/50 p-1 rounded-lg">
+            <div className="mb-6 rounded-xl border border-gray-800 bg-slate-900/50 p-4 backdrop-blur-sm">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+                <div className="flex flex-wrap gap-2 rounded-lg bg-slate-800/50 p-1">
                   <button
                     onClick={() => setActiveTab('pending')}
-                    className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
+                    className={`whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition sm:px-4 sm:text-sm ${
                       activeTab === 'pending'
                         ? 'bg-blue-600 text-white'
                         : 'text-gray-400 hover:text-white'
@@ -447,7 +469,7 @@ export default function CustomerBriefsPage() {
                   </button>
                   <button
                     onClick={() => setActiveTab('responded')}
-                    className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
+                    className={`whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition sm:px-4 sm:text-sm ${
                       activeTab === 'responded'
                         ? 'bg-green-600 text-white'
                         : 'text-gray-400 hover:text-white'
@@ -457,7 +479,7 @@ export default function CustomerBriefsPage() {
                   </button>
                   <button
                     onClick={() => setActiveTab('viewed')}
-                    className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
+                    className={`whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition sm:px-4 sm:text-sm ${
                       activeTab === 'viewed'
                         ? 'bg-purple-600 text-white'
                         : 'text-gray-400 hover:text-white'
@@ -467,7 +489,7 @@ export default function CustomerBriefsPage() {
                   </button>
                   <button
                     onClick={() => setActiveTab('all')}
-                    className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
+                    className={`whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition sm:px-4 sm:text-sm ${
                       activeTab === 'all'
                         ? 'bg-primary text-white'
                         : 'text-gray-400 hover:text-white'
@@ -479,7 +501,7 @@ export default function CustomerBriefsPage() {
 
                 <button
                   onClick={toggleHasFilesFilter}
-                  className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition flex items-center gap-2 whitespace-nowrap ${
+                  className={`flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition sm:text-sm ${
                     filterHasFiles
                       ? 'bg-primary text-white'
                       : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
@@ -489,24 +511,44 @@ export default function CustomerBriefsPage() {
                   Has Files ({stats.hasFiles})
                 </button>
 
-                <div className="flex-1 relative">
+                <div className="relative flex-1">
                   <input
                     type="text"
                     placeholder="Search by order number, product name, or customer..."
                     value={searchTerm}
                     onChange={handleSearchChange}
-                    className="w-full bg-slate-800 border border-gray-700 rounded-lg px-4 py-2 pl-9 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full rounded-lg border border-gray-700 bg-slate-800 px-4 py-2 pl-9 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
                   />
-                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  <svg
+                    className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
                   </svg>
                   {searchTerm && (
                     <button
                       onClick={() => setSearchTerm('')}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                   )}
@@ -514,20 +556,22 @@ export default function CustomerBriefsPage() {
               </div>
 
               {(activeTab !== 'all' || filterHasFiles || searchTerm) && (
-                <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-gray-800">
+                <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-gray-800 pt-4">
                   <span className="text-xs text-gray-500">Active filters:</span>
                   {activeTab !== 'all' && (
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium bg-${statusColors[activeTab]}-600/20 text-${statusColors[activeTab]}-400`}>
+                    <span
+                      className={`rounded-full px-2 py-1 text-xs font-medium bg-${statusColors[activeTab]}-600/20 text-${statusColors[activeTab]}-400`}
+                    >
                       {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
                     </span>
                   )}
                   {filterHasFiles && (
-                    <span className="px-2 py-1 bg-primary/20 text-primary rounded-full text-xs font-medium">
+                    <span className="rounded-full bg-primary/20 px-2 py-1 text-xs font-medium text-primary">
                       Has Files
                     </span>
                   )}
                   {searchTerm && (
-                    <span className="px-2 py-1 bg-primary/20 text-primary rounded-full text-xs font-medium">
+                    <span className="rounded-full bg-primary/20 px-2 py-1 text-xs font-medium text-primary">
                       "{searchTerm}"
                     </span>
                   )}
@@ -537,7 +581,7 @@ export default function CustomerBriefsPage() {
                       setFilterHasFiles(false);
                       setSearchTerm('');
                     }}
-                    className="text-xs text-gray-400 hover:text-white underline ml-2"
+                    className="ml-2 text-xs text-gray-400 underline hover:text-white"
                   >
                     Clear all
                   </button>
@@ -546,112 +590,127 @@ export default function CustomerBriefsPage() {
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-200">
+              <div className="mb-4 rounded-lg border border-red-700 bg-red-900/50 p-3 text-red-200">
                 {error}
               </div>
             )}
 
             {loading && (
               <div className="flex justify-center py-12">
-                <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
               </div>
             )}
 
             {!loading && briefs.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
                 {briefs.map((brief) => {
                   const status = brief.status || determineBriefStatus(brief);
                   const orderNumber = brief.orderNumber || brief.orderId?.orderNumber || 'N/A';
-                  const productName = brief.productName || brief.productId?.name || 'Unknown Product';
-                  const customerName = brief.customerName || brief.orderId?.userId?.email?.split('@')[0] || 'Customer';
-                  const hasFiles = brief.hasFiles || brief.image || brief.voiceNote || brief.video || brief.logo;
-                  
+                  const productName =
+                    brief.productName || brief.productId?.name || 'Unknown Product';
+                  const customerName =
+                    brief.customerName || brief.orderId?.userId?.email?.split('@')[0] || 'Customer';
+                  const hasFiles =
+                    brief.hasFiles || brief.image || brief.voiceNote || brief.video || brief.logo;
+
                   return (
                     <div
                       key={brief._id}
-                      className={`bg-slate-900/50 backdrop-blur-sm border border-gray-800 rounded-xl overflow-hidden hover:border-${statusColors[status]}-500/50 hover:shadow-xl hover:shadow-${statusColors[status]}-500/5 transition-all duration-300 group ${
+                      className={`overflow-hidden rounded-xl border border-gray-800 bg-slate-900/50 backdrop-blur-sm hover:border-${statusColors[status]}-500/50 hover:shadow-xl hover:shadow-${statusColors[status]}-500/5 group transition-all duration-300 ${
                         updatingBrief === brief._id ? 'opacity-50' : ''
                       }`}
                     >
                       <div className={`h-1 bg-${statusColors[status]}-500`}></div>
                       <div className="p-4 sm:p-5">
-                        <div className="flex items-start justify-between mb-3">
+                        <div className="mb-3 flex items-start justify-between">
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center text-lg">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20 text-lg">
                               📝
                             </div>
                             <div>
-                              <span className="text-xs font-mono text-primary">
-                                #{orderNumber}
-                              </span>
-                              <h3 className="text-white font-semibold text-sm line-clamp-1">
+                              <span className="font-mono text-xs text-primary">#{orderNumber}</span>
+                              <h3 className="line-clamp-1 text-sm font-semibold text-white">
                                 {productName}
                               </h3>
                             </div>
                           </div>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium bg-${statusColors[status]}-600/20 text-${statusColors[status]}-400`}>
+                          <span
+                            className={`rounded-full px-2 py-1 text-xs font-medium bg-${statusColors[status]}-600/20 text-${statusColors[status]}-400`}
+                          >
                             {status.charAt(0).toUpperCase() + status.slice(1)}
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-2 mb-3 text-sm">
-                          <div className="w-6 h-6 bg-blue-600/20 rounded-full flex items-center justify-center text-xs">
+                        <div className="mb-3 flex items-center gap-2 text-sm">
+                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600/20 text-xs">
                             👤
                           </div>
-                          <span className="text-gray-300 text-sm">{customerName}</span>
-                          <span className="text-gray-600 text-xs">•</span>
-                          <span className="text-gray-500 text-xs">{getTimeAgo(brief.createdAt)}</span>
+                          <span className="text-sm text-gray-300">{customerName}</span>
+                          <span className="text-xs text-gray-600">•</span>
+                          <span className="text-xs text-gray-500">
+                            {getTimeAgo(brief.createdAt)}
+                          </span>
                         </div>
 
-                        <p className="text-gray-400 text-sm line-clamp-2 mb-4 h-10">
+                        <p className="mb-4 line-clamp-2 h-10 text-sm text-gray-400">
                           {brief.description || 'No description provided'}
                         </p>
 
                         {hasFiles && (
-                          <div className="flex flex-wrap gap-2 mb-4">
+                          <div className="mb-4 flex flex-wrap gap-2">
                             {brief.image && (
-                              <span className="inline-flex items-center gap-1 text-blue-400 text-xs bg-blue-600/10 px-2 py-1 rounded-full">
+                              <span className="inline-flex items-center gap-1 rounded-full bg-blue-600/10 px-2 py-1 text-xs text-blue-400">
                                 🖼️ Image
                               </span>
                             )}
                             {brief.voiceNote && (
-                              <span className="inline-flex items-center gap-1 text-green-400 text-xs bg-green-600/10 px-2 py-1 rounded-full">
+                              <span className="inline-flex items-center gap-1 rounded-full bg-green-600/10 px-2 py-1 text-xs text-green-400">
                                 🎤 Voice
                               </span>
                             )}
                             {brief.video && (
-                              <span className="inline-flex items-center gap-1 text-red-400 text-xs bg-red-600/10 px-2 py-1 rounded-full">
+                              <span className="inline-flex items-center gap-1 rounded-full bg-red-600/10 px-2 py-1 text-xs text-red-400">
                                 🎥 Video
                               </span>
                             )}
                             {brief.logo && (
-                              <span className="inline-flex items-center gap-1 text-purple-400 text-xs bg-purple-600/10 px-2 py-1 rounded-full">
+                              <span className="inline-flex items-center gap-1 rounded-full bg-purple-600/10 px-2 py-1 text-xs text-purple-400">
                                 🎨 Logo
                               </span>
                             )}
                           </div>
                         )}
 
-                        <div className="flex gap-2 mt-2">
+                        <div className="mt-2 flex gap-2">
                           <button
                             onClick={() => handleViewBrief(brief)}
                             disabled={updatingBrief === brief._id}
-                            className={`flex-1 bg-${statusColors[status]}-600/10 hover:bg-${statusColors[status]}-600/20 text-${statusColors[status]}-400 text-sm font-medium py-2 rounded-lg transition ${
-                              updatingBrief === brief._id ? 'opacity-50 cursor-not-allowed' : ''
+                            className={`flex-1 bg-${statusColors[status]}-600/10 hover:bg-${statusColors[status]}-600/20 text-${statusColors[status]}-400 rounded-lg py-2 text-sm font-medium transition ${
+                              updatingBrief === brief._id ? 'cursor-not-allowed opacity-50' : ''
                             }`}
                           >
                             View Details
                           </button>
-                          
+
                           {status === 'pending' && (
                             <button
                               onClick={() => handleMarkAsViewed(brief._id)}
                               disabled={markingViewed || updatingBrief === brief._id}
-                              className="px-3 bg-slate-800 hover:bg-slate-700 text-gray-400 hover:text-white text-sm rounded-lg transition"
+                              className="rounded-lg bg-slate-800 px-3 text-sm text-gray-400 transition hover:bg-slate-700 hover:text-white"
                               title="Mark as viewed (no response needed)"
                             >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              <svg
+                                className="h-5 w-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M5 13l4 4L19 7"
+                                />
                               </svg>
                             </button>
                           )}
@@ -661,89 +720,107 @@ export default function CustomerBriefsPage() {
                   );
                 })}
               </div>
-            ) : !loading && (
-              <div className="text-center py-16 bg-slate-900/30 rounded-xl border border-gray-800">
-                <div className="text-6xl mb-4">📝</div>
-                <h3 className="text-xl font-semibold text-white mb-2">No briefs found</h3>
-                <p className="text-gray-400">
-                  {searchTerm 
-                    ? `No briefs matching "${searchTerm}"`
-                    : filterHasFiles
-                    ? 'No briefs with files'
-                    : activeTab === 'pending'
-                    ? 'No pending briefs awaiting your response'
-                    : activeTab === 'responded'
-                    ? 'No responded briefs'
-                    : activeTab === 'viewed'
-                    ? 'No viewed briefs'
-                    : 'No customer briefs have been submitted yet'}
-                </p>
-                {(searchTerm || filterHasFiles || activeTab !== 'all') && (
-                  <button
-                    onClick={() => {
-                      setActiveTab('all');
-                      setFilterHasFiles(false);
-                      setSearchTerm('');
-                    }}
-                    className="mt-4 text-primary hover:text-primary-dark text-sm underline"
-                  >
-                    Clear filters
-                  </button>
-                )}
-              </div>
+            ) : (
+              !loading && (
+                <div className="rounded-xl border border-gray-800 bg-slate-900/30 py-16 text-center">
+                  <div className="mb-4 text-6xl">📝</div>
+                  <h3 className="mb-2 text-xl font-semibold text-white">No briefs found</h3>
+                  <p className="text-gray-400">
+                    {searchTerm
+                      ? `No briefs matching "${searchTerm}"`
+                      : filterHasFiles
+                        ? 'No briefs with files'
+                        : activeTab === 'pending'
+                          ? 'No pending briefs awaiting your response'
+                          : activeTab === 'responded'
+                            ? 'No responded briefs'
+                            : activeTab === 'viewed'
+                              ? 'No viewed briefs'
+                              : 'No customer briefs have been submitted yet'}
+                  </p>
+                  {(searchTerm || filterHasFiles || activeTab !== 'all') && (
+                    <button
+                      onClick={() => {
+                        setActiveTab('all');
+                        setFilterHasFiles(false);
+                        setSearchTerm('');
+                      }}
+                      className="mt-4 text-sm text-primary underline hover:text-primary-dark"
+                    >
+                      Clear filters
+                    </button>
+                  )}
+                </div>
+              )
             )}
           </div>
         </div>
 
         {/* Modal for viewing/responding to brief */}
         {selectedBrief && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-            <div className="bg-slate-900 rounded-2xl border border-gray-800 w-full max-w-4xl max-h-[90vh] flex flex-col">
-              <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-800">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+            <div className="flex max-h-[90vh] w-full max-w-4xl flex-col rounded-2xl border border-gray-800 bg-slate-900">
+              <div className="flex items-center justify-between border-b border-gray-800 p-4 sm:p-6">
                 <div>
-                  <div className="flex flex-wrap items-center gap-3 mb-1">
-                    <h2 className="text-xl sm:text-2xl font-bold text-white">Conversation Thread</h2>
+                  <div className="mb-1 flex flex-wrap items-center gap-3">
+                    <h2 className="text-xl font-bold text-white sm:text-2xl">
+                      Conversation Thread
+                    </h2>
                   </div>
                   <p className="text-sm text-gray-400">
-                    Order #{selectedBrief.orderNumber || selectedBrief.orderId?.orderNumber || 'N/A'} • {selectedBrief.productName || selectedBrief.productId?.name || 'Product'}
+                    Order #
+                    {selectedBrief.orderNumber || selectedBrief.orderId?.orderNumber || 'N/A'} •{' '}
+                    {selectedBrief.productName || selectedBrief.productId?.name || 'Product'}
                   </p>
                 </div>
                 <button
                   onClick={handleCloseModal}
-                  className="text-gray-400 hover:text-white p-2 hover:bg-slate-800 rounded-lg transition"
+                  className="rounded-lg p-2 text-gray-400 transition hover:bg-slate-800 hover:text-white"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+              <div className="flex-1 space-y-6 overflow-y-auto p-4 sm:p-6">
                 {loadingConversation ? (
                   <div className="flex justify-center py-8">
-                    <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    <div className="border-3 h-8 w-8 animate-spin rounded-full border-primary border-t-transparent"></div>
                   </div>
                 ) : conversation.length > 0 ? (
                   conversation.map((msg, index) => {
-                    const isAdminMsg = msg.role === 'admin' || msg.role === 'super-admin' || msg.role === 'superadmin';
-                    
+                    const isAdminMsg =
+                      msg.role === 'admin' ||
+                      msg.role === 'super-admin' ||
+                      msg.role === 'superadmin';
+
                     return (
                       <div
                         key={index}
                         className={`flex ${isAdminMsg ? 'justify-end' : 'justify-start'}`}
                       >
-                        <div className={`max-w-[90%] sm:max-w-[80%] ${
-                          isAdminMsg
-                            ? 'bg-primary/10 border border-primary/20' 
-                            : 'bg-slate-800/50 border border-gray-700'
-                        } rounded-xl p-3 sm:p-4`}>
-                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <div
+                          className={`max-w-[90%] sm:max-w-[80%] ${
+                            isAdminMsg
+                              ? 'border border-primary/20 bg-primary/10'
+                              : 'border border-gray-700 bg-slate-800/50'
+                          } rounded-xl p-3 sm:p-4`}
+                        >
+                          <div className="mb-2 flex flex-wrap items-center gap-2">
                             {getRoleBadge(msg.role)}
-                            <span className="text-xs text-gray-500">{formatDate(msg.createdAt)}</span>
+                            <span className="text-xs text-gray-500">
+                              {formatDate(msg.createdAt)}
+                            </span>
                           </div>
 
                           {msg.description && (
-                            <p className="text-gray-300 whitespace-pre-wrap mb-3 text-sm">
+                            <p className="mb-3 whitespace-pre-wrap text-sm text-gray-300">
                               {msg.description}
                             </p>
                           )}
@@ -753,7 +830,7 @@ export default function CustomerBriefsPage() {
                               <div className="flex flex-wrap gap-2">
                                 <button
                                   onClick={() => setPreviewImage(getImageUrl(msg.image))}
-                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-blue-400 transition"
+                                  className="inline-flex items-center gap-1 rounded-lg bg-slate-700/50 px-3 py-1.5 text-sm text-blue-400 transition hover:bg-slate-700"
                                 >
                                   <span>🖼️</span>
                                   View Image
@@ -761,16 +838,16 @@ export default function CustomerBriefsPage() {
                                 <a
                                   href={getDownloadUrl(msg.image)}
                                   download
-                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-gray-300 transition"
+                                  className="inline-flex items-center gap-1 rounded-lg bg-slate-700/50 px-3 py-1.5 text-sm text-gray-300 transition hover:bg-slate-700"
                                 >
                                   <span>⬇️</span>
                                   Download
                                 </a>
                               </div>
                             )}
-                            
+
                             {msg.voiceNote && (
-                              <div className="flex flex-wrap items-center gap-2 px-3 py-1.5 bg-slate-700/50 rounded-lg">
+                              <div className="flex flex-wrap items-center gap-2 rounded-lg bg-slate-700/50 px-3 py-1.5">
                                 <span className="text-green-400">🎤</span>
                                 <audio controls className="h-8 max-w-[150px] sm:max-w-[200px]">
                                   <source src={getAudioUrl(msg.voiceNote)} />
@@ -780,18 +857,28 @@ export default function CustomerBriefsPage() {
                                   download
                                   className="text-gray-400 hover:text-white"
                                 >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                  <svg
+                                    className="h-4 w-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                                    />
                                   </svg>
                                 </a>
                               </div>
                             )}
-                            
+
                             {msg.video && (
                               <div className="flex flex-wrap gap-2">
                                 <button
                                   onClick={() => setPreviewVideo(getImageUrl(msg.video))}
-                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-red-400 transition"
+                                  className="inline-flex items-center gap-1 rounded-lg bg-slate-700/50 px-3 py-1.5 text-sm text-red-400 transition hover:bg-slate-700"
                                 >
                                   <span>🎥</span>
                                   View Video
@@ -799,19 +886,19 @@ export default function CustomerBriefsPage() {
                                 <a
                                   href={getDownloadUrl(msg.video)}
                                   download
-                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-gray-300 transition"
+                                  className="inline-flex items-center gap-1 rounded-lg bg-slate-700/50 px-3 py-1.5 text-sm text-gray-300 transition hover:bg-slate-700"
                                 >
                                   <span>⬇️</span>
                                   Download
                                 </a>
                               </div>
                             )}
-                            
+
                             {msg.logo && (
                               <div className="flex flex-wrap gap-2">
                                 <button
                                   onClick={() => setPreviewImage(getImageUrl(msg.logo))}
-                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-purple-400 transition"
+                                  className="inline-flex items-center gap-1 rounded-lg bg-slate-700/50 px-3 py-1.5 text-sm text-purple-400 transition hover:bg-slate-700"
                                 >
                                   <span>🎨</span>
                                   View Logo
@@ -819,7 +906,7 @@ export default function CustomerBriefsPage() {
                                 <a
                                   href={getDownloadUrl(msg.logo)}
                                   download
-                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-gray-300 transition"
+                                  className="inline-flex items-center gap-1 rounded-lg bg-slate-700/50 px-3 py-1.5 text-sm text-gray-300 transition hover:bg-slate-700"
                                 >
                                   <span>⬇️</span>
                                   Download
@@ -832,56 +919,79 @@ export default function CustomerBriefsPage() {
                     );
                   })
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    No conversation history
-                  </div>
+                  <div className="py-8 text-center text-gray-500">No conversation history</div>
                 )}
               </div>
 
-              <div className="border-t border-gray-800 p-4 sm:p-6 space-y-4">
+              <div className="space-y-4 border-t border-gray-800 p-4 sm:p-6">
                 <Textarea
                   placeholder="Type your response here..."
                   value={responseText}
                   onChange={(e) => setResponseText(e.target.value)}
                   rows={3}
-                  className="w-full bg-slate-800 border-gray-700 focus:border-primary"
+                  className="w-full border-gray-700 bg-slate-800 focus:border-primary"
                 />
 
                 <div className="flex flex-wrap items-center gap-3">
                   {!isRecording && !audioBlob ? (
                     <button
                       onClick={startRecording}
-                      className="flex items-center gap-2 px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg transition text-sm"
+                      className="flex items-center gap-2 rounded-lg bg-red-600/20 px-4 py-2 text-sm text-red-400 transition hover:bg-red-600/30"
                     >
                       <span>🎤</span>
                       <span>Record Voice Note</span>
                     </button>
                   ) : isRecording ? (
-                    <div className="flex items-center gap-3 bg-red-600/20 rounded-lg px-4 py-2">
-                      <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
-                      <span className="text-red-400 font-mono text-sm">{formatTime(recordingTime)}</span>
-                      <button
-                        onClick={stopRecording}
-                        className="text-white hover:text-gray-300"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                    <div className="flex items-center gap-3 rounded-lg bg-red-600/20 px-4 py-2">
+                      <span className="h-3 w-3 animate-pulse rounded-full bg-red-500"></span>
+                      <span className="font-mono text-sm text-red-400">
+                        {formatTime(recordingTime)}
+                      </span>
+                      <button onClick={stopRecording} className="text-white hover:text-gray-300">
+                        <svg
+                          className="h-5 w-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"
+                          />
                         </svg>
                       </button>
                     </div>
-                  ) : audioBlob && (
-                    <div className="flex flex-wrap items-center gap-3 bg-slate-800 rounded-lg px-4 py-2">
-                      <span className="text-green-400">🎤</span>
-                      <audio controls src={audioUrl} className="h-8 max-w-[150px] sm:max-w-[200px]" />
-                      <button
-                        onClick={discardRecording}
-                        className="text-gray-400 hover:text-red-400"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
+                  ) : (
+                    audioBlob && (
+                      <div className="flex flex-wrap items-center gap-3 rounded-lg bg-slate-800 px-4 py-2">
+                        <span className="text-green-400">🎤</span>
+                        <audio
+                          controls
+                          src={audioUrl}
+                          className="h-8 max-w-[150px] sm:max-w-[200px]"
+                        />
+                        <button
+                          onClick={discardRecording}
+                          className="text-gray-400 hover:text-red-400"
+                        >
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    )
                   )}
                 </div>
 
@@ -898,7 +1008,7 @@ export default function CustomerBriefsPage() {
                     />
                     <label
                       htmlFor="image-upload"
-                      className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg cursor-pointer transition text-sm"
+                      className="flex cursor-pointer items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm transition hover:bg-slate-700"
                     >
                       <span className="text-blue-400">🖼️</span>
                       <span>Add Images</span>
@@ -916,7 +1026,7 @@ export default function CustomerBriefsPage() {
                     />
                     <label
                       htmlFor="logo-upload"
-                      className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg cursor-pointer transition text-sm"
+                      className="flex cursor-pointer items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm transition hover:bg-slate-700"
                     >
                       <span className="text-purple-400">🎨</span>
                       <span>Add Logo</span>
@@ -924,33 +1034,62 @@ export default function CustomerBriefsPage() {
                   </div>
                 </div>
 
-                {Object.values(responseFiles).some(f => f && (Array.isArray(f) ? f.length > 0 : true)) && (
-                  <div className="flex flex-wrap gap-2 p-3 bg-slate-800/30 rounded-lg">
+                {Object.values(responseFiles).some(
+                  (f) => f && (Array.isArray(f) ? f.length > 0 : true)
+                ) && (
+                  <div className="flex flex-wrap gap-2 rounded-lg bg-slate-800/30 p-3">
                     {responseFiles.images.map((file, index) => (
-                      <div key={index} className="flex items-center gap-2 bg-slate-700 rounded-lg px-3 py-1.5">
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 rounded-lg bg-slate-700 px-3 py-1.5"
+                      >
                         <span className="text-blue-400">🖼️</span>
-                        <span className="text-sm text-gray-300 truncate max-w-[100px] sm:max-w-[150px]">{file.name}</span>
+                        <span className="max-w-[100px] truncate text-sm text-gray-300 sm:max-w-[150px]">
+                          {file.name}
+                        </span>
                         <button
                           onClick={() => removeFile('images', index)}
                           className="text-gray-500 hover:text-red-400"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
                           </svg>
                         </button>
                       </div>
                     ))}
 
                     {responseFiles.logo && (
-                      <div className="flex items-center gap-2 bg-slate-700 rounded-lg px-3 py-1.5">
+                      <div className="flex items-center gap-2 rounded-lg bg-slate-700 px-3 py-1.5">
                         <span className="text-purple-400">🎨</span>
-                        <span className="text-sm text-gray-300 truncate max-w-[100px] sm:max-w-[150px]">{responseFiles.logo.name}</span>
+                        <span className="max-w-[100px] truncate text-sm text-gray-300 sm:max-w-[150px]">
+                          {responseFiles.logo.name}
+                        </span>
                         <button
                           onClick={() => removeFile('logo')}
                           className="text-gray-500 hover:text-red-400"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
                           </svg>
                         </button>
                       </div>
@@ -958,7 +1097,7 @@ export default function CustomerBriefsPage() {
                   </div>
                 )}
 
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row">
                   <Button
                     variant="primary"
                     onClick={handleSubmitResponse}
@@ -967,11 +1106,7 @@ export default function CustomerBriefsPage() {
                   >
                     {submitting ? 'Sending...' : 'Send Response'}
                   </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={handleCloseModal}
-                    className="flex-1"
-                  >
+                  <Button variant="secondary" onClick={handleCloseModal} className="flex-1">
                     Cancel
                   </Button>
                 </div>
@@ -981,28 +1116,38 @@ export default function CustomerBriefsPage() {
         )}
 
         {previewImage && (
-          <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[60] p-4">
-            <div className="relative max-w-4xl max-h-[90vh]">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4">
+            <div className="relative max-h-[90vh] max-w-4xl">
               <img
                 src={previewImage}
                 alt="Preview"
-                className="max-w-full max-h-[90vh] object-contain"
+                className="max-h-[90vh] max-w-full object-contain"
               />
               <button
                 onClick={() => setPreviewImage(null)}
-                className="absolute top-4 right-4 text-white hover:text-gray-300 p-2 bg-black/50 rounded-full"
+                className="absolute right-4 top-4 rounded-full bg-black/50 p-2 text-white hover:text-gray-300"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
               <a
                 href={previewImage}
                 download
-                className="absolute bottom-4 right-4 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm"
+                className="absolute bottom-4 right-4 flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm text-white hover:bg-primary-dark"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
                 </svg>
                 Download
               </a>
@@ -1011,28 +1156,34 @@ export default function CustomerBriefsPage() {
         )}
 
         {previewVideo && (
-          <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[60] p-4">
-            <div className="relative max-w-4xl max-h-[90vh]">
-              <video
-                src={previewVideo}
-                controls
-                className="max-w-full max-h-[90vh]"
-              />
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4">
+            <div className="relative max-h-[90vh] max-w-4xl">
+              <video src={previewVideo} controls className="max-h-[90vh] max-w-full" />
               <button
                 onClick={() => setPreviewVideo(null)}
-                className="absolute top-4 right-4 text-white hover:text-gray-300 p-2 bg-black/50 rounded-full"
+                className="absolute right-4 top-4 rounded-full bg-black/50 p-2 text-white hover:text-gray-300"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
               <a
                 href={previewVideo}
                 download
-                className="absolute bottom-4 right-4 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm"
+                className="absolute bottom-4 right-4 flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm text-white hover:bg-primary-dark"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
                 </svg>
                 Download
               </a>

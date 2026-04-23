@@ -1,5 +1,5 @@
-import { api } from "@/lib/api";
-import { API_PATHS } from "@/lib/constants";
+import { api } from '@/lib/api';
+import { API_PATHS } from '@/lib/constants';
 
 export const userService = {
   getAll: (params) => {
@@ -11,14 +11,11 @@ export const userService = {
 
   getAddress: (userId) => api.get(API_PATHS.USERS.ADDRESS(userId)),
 
-  updateProfile: (userId, data) =>
-    api.put(API_PATHS.USERS.UPDATE_PROFILE(userId), data),
+  updateProfile: (userId, data) => api.put(API_PATHS.USERS.UPDATE_PROFILE(userId), data),
 
   deleteUser: (userId) => api.delete(API_PATHS.USERS.BY_ID(userId)),
 
-  changeRole: (userId, role) =>
-    api.patch(API_PATHS.USERS.ROLE(userId), { role }),
+  changeRole: (userId, role) => api.patch(API_PATHS.USERS.ROLE(userId), { role }),
 
-  toggleActiveness: (userId) =>
-    api.patch(API_PATHS.USERS.ACTIVENESS(userId)),
+  toggleActiveness: (userId) => api.patch(API_PATHS.USERS.ACTIVENESS(userId)),
 };

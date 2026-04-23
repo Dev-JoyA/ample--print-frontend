@@ -36,7 +36,7 @@ export default function NotificationBell() {
       'brief-response': '📬',
       'admin-brief-response': '📬',
       'design-uploaded': '🎨',
-      'designUploaded': '🎨',
+      designUploaded: '🎨',
       'status-update': '🔄',
       'order-status-updated': '🔄',
       'invoice-ready': '💰',
@@ -64,7 +64,7 @@ export default function NotificationBell() {
       'receipt-uploaded': '📎',
       'bank-transfer-approved': '✅',
       'bank-transfer-rejected': '❌',
-      'pending-bank-transfer': '⏳'
+      'pending-bank-transfer': '⏳',
     };
     return iconMap[type] || '🔔';
   };
@@ -77,7 +77,7 @@ export default function NotificationBell() {
       'brief-response': 'text-pink-400',
       'admin-brief-response': 'text-pink-400',
       'design-uploaded': 'text-purple-400',
-      'designUploaded': 'text-purple-400',
+      designUploaded: 'text-purple-400',
       'status-update': 'text-green-400',
       'order-status-updated': 'text-green-400',
       'invoice-ready': 'text-emerald-400',
@@ -105,7 +105,7 @@ export default function NotificationBell() {
       'receipt-uploaded': 'text-blue-400',
       'bank-transfer-approved': 'text-green-400',
       'bank-transfer-rejected': 'text-red-400',
-      'pending-bank-transfer': 'text-yellow-400'
+      'pending-bank-transfer': 'text-yellow-400',
     };
     return colorMap[type] || 'text-gray-400';
   };
@@ -116,7 +116,7 @@ export default function NotificationBell() {
       'new-customer-brief': 'New Customization Request',
       'brief-response': 'Admin Response to Your Brief',
       'admin-brief-response': 'Admin Response to Your Brief',
-      'designUploaded': 'Design Ready for Review',
+      designUploaded: 'Design Ready for Review',
       'design-uploaded': 'Design Ready for Review',
       'order-ready-for-invoice': 'Order Ready for Invoice',
       'brief-deleted': 'Brief Deleted',
@@ -142,14 +142,14 @@ export default function NotificationBell() {
       'receipt-uploaded': 'Receipt Uploaded',
       'bank-transfer-approved': 'Bank Transfer Approved',
       'bank-transfer-rejected': 'Bank Transfer Rejected',
-      'pending-bank-transfer': 'Pending Bank Transfer'
+      'pending-bank-transfer': 'Pending Bank Transfer',
     };
     return titleMap[type] || null;
   };
 
   const getBriefStatus = (notification) => {
     if (!notification || !notification.type) return null;
-    
+
     if (notification.type.includes('brief')) {
       if (notification.data?.hasDesign) {
         return <span className="ml-2 text-xs text-purple-400">🎨 Includes design</span>;
@@ -163,12 +163,12 @@ export default function NotificationBell() {
 
   const handleNotificationClick = (notification) => {
     if (!notification) return;
-    
+
     const notificationId = notification.id || notification._id;
     if (notificationId) {
       markAsRead(notificationId);
     }
-    
+
     setIsOpen(false);
   };
 
@@ -192,7 +192,12 @@ export default function NotificationBell() {
         className="relative rounded-lg p-2 text-gray-300 transition-colors hover:bg-gray-800 hover:text-white"
         aria-label="Notifications"
       >
-        <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className="h-5 w-5 sm:h-6 sm:w-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -200,9 +205,9 @@ export default function NotificationBell() {
             d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
           />
         </svg>
-        
+
         {unreadCount > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white animate-pulse">
+          <span className="absolute -right-1 -top-1 flex h-5 w-5 animate-pulse items-center justify-center rounded-full bg-red-600 text-xs text-white">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -248,12 +253,12 @@ export default function NotificationBell() {
             ) : (
               recentNotifications.map((notification) => {
                 if (!notification) return null;
-                
+
                 const customTitle = getNotificationTitle(notification.type);
                 const briefStatus = getBriefStatus(notification);
                 const icon = getNotificationIcon(notification.type);
                 const colorClass = getNotificationColor(notification.type);
-                
+
                 return (
                   <div
                     key={notification.id || notification._id || Math.random()}
@@ -263,10 +268,12 @@ export default function NotificationBell() {
                     }`}
                   >
                     <div className="flex items-start gap-2 sm:gap-3">
-                      <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-slate-800 sm:h-10 sm:w-10 ${colorClass}`}>
+                      <div
+                        className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-slate-800 sm:h-10 sm:w-10 ${colorClass}`}
+                      >
                         <span className="text-sm sm:text-xl">{icon}</span>
                       </div>
-                      
+
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1">
@@ -279,18 +286,20 @@ export default function NotificationBell() {
                             <div className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary sm:mt-1.5 sm:h-2 sm:w-2"></div>
                           )}
                         </div>
-                        
-                        <p className="mt-1 text-[10px] text-gray-400 line-clamp-2 sm:text-xs">
+
+                        <p className="mt-1 line-clamp-2 text-[10px] text-gray-400 sm:text-xs">
                           {notification.message || 'No message'}
                         </p>
-                        
+
                         <div className="mt-1 flex flex-wrap items-center gap-1 text-[10px] sm:mt-2 sm:gap-2 sm:text-xs">
                           <span className="text-gray-500">
-                            {notification.timestamp 
-                              ? formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })
+                            {notification.timestamp
+                              ? formatDistanceToNow(new Date(notification.timestamp), {
+                                  addSuffix: true,
+                                })
                               : 'recently'}
                           </span>
-                          
+
                           {notification.data?.orderNumber && (
                             <>
                               <span className="text-gray-600">•</span>
@@ -299,15 +308,17 @@ export default function NotificationBell() {
                               </span>
                             </>
                           )}
-                          
-                          {notification.type && notification.type.includes('brief') && notification.data?.productName && (
-                            <>
-                              <span className="text-gray-600">•</span>
-                              <span className="text-pink-400">
-                                {notification.data.productName}
-                              </span>
-                            </>
-                          )}
+
+                          {notification.type &&
+                            notification.type.includes('brief') &&
+                            notification.data?.productName && (
+                              <>
+                                <span className="text-gray-600">•</span>
+                                <span className="text-pink-400">
+                                  {notification.data.productName}
+                                </span>
+                              </>
+                            )}
                         </div>
                       </div>
                     </div>

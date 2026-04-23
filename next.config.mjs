@@ -26,16 +26,16 @@ const nextConfig = {
         pathname: '/api/v1/attachments/download/**',
       },
       {
-            protocol: 'http',
-            hostname: 'localhost',
-            port: '4001',
-            pathname: '/api/v1/attachments/images/**',  
-        },
-        {
-            protocol: 'https',
-            hostname: 'your-production-domain.com',
-            pathname: '/api/v1/attachments/images/**',  
-        },
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '4001',
+        pathname: '/api/v1/attachments/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'your-production-domain.com',
+        pathname: '/api/v1/attachments/images/**',
+      },
       {
         protocol: 'http',
         hostname: 'localhost',

@@ -13,7 +13,7 @@ const OrderCard = ({ order, onClick }) => {
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/20 text-lg sm:h-12 sm:w-12 sm:text-xl">
             📦
           </div>
-          
+
           <div>
             <div className="mb-1 flex flex-wrap items-center gap-2">
               <span className="font-mono text-xs text-primary sm:text-sm">
@@ -28,9 +28,7 @@ const OrderCard = ({ order, onClick }) => {
             <h3 className="line-clamp-1 text-sm font-medium text-white transition group-hover:text-primary sm:text-base">
               {order.productName}
             </h3>
-            <p className="mt-1 text-xs text-gray-400 sm:text-sm">
-              Ordered: {order.orderedDate}
-            </p>
+            <p className="mt-1 text-xs text-gray-400 sm:text-sm">Ordered: {order.orderedDate}</p>
           </div>
         </div>
 

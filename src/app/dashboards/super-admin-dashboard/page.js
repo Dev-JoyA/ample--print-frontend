@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import DashboardLayout from "@/components/layouts/DashboardLayout";
-import SummaryCard from "@/components/cards/SummaryCard";
-import Button from "@/components/ui/Button";
-import Link from "next/link";
-import SEOHead from "@/components/common/SEOHead";
-import { useAuthCheck } from "@/app/lib/auth";
-import { orderService } from "@/services/orderService";
-import { invoiceService } from "@/services/invoiceService";
-import { paymentService } from "@/services/paymentService";
-import { adminService } from "@/services/adminService";
-import { METADATA } from "@/lib/metadata";
+import { useState, useEffect } from 'react';
+import DashboardLayout from '@/components/layouts/DashboardLayout';
+import SummaryCard from '@/components/cards/SummaryCard';
+import Button from '@/components/ui/Button';
+import Link from 'next/link';
+import SEOHead from '@/components/common/SEOHead';
+import { useAuthCheck } from '@/app/lib/auth';
+import { orderService } from '@/services/orderService';
+import { invoiceService } from '@/services/invoiceService';
+import { paymentService } from '@/services/paymentService';
+import { adminService } from '@/services/adminService';
+import { METADATA } from '@/lib/metadata';
 
 export default function SuperAdminDashboard() {
   useAuthCheck();
@@ -24,21 +24,24 @@ export default function SuperAdminDashboard() {
     activeAdmins: 0,
     paidOrders: 0,
     partPaidOrders: 0,
-    overdueInvoices: 0
+    overdueInvoices: 0,
   });
 
   const [recentActivities, setRecentActivities] = useState([]);
   const [pendingVerifications, setPendingVerifications] = useState([]);
   const [recentInvoices, setRecentInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
   const handlePrintReport = () => {
-    const printWindow = window.open("/dashboards/super-admin-dashboard/transactions?print=true", "_blank");
+    const printWindow = window.open(
+      '/dashboards/super-admin-dashboard/transactions?print=true',
+      '_blank'
+    );
     if (printWindow) {
       printWindow.onload = () => {
         printWindow.print();
@@ -49,26 +52,32 @@ export default function SuperAdminDashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      
+
       const ordersResponse = await orderService.getAll({ limit: 100 });
       const orders = ordersResponse?.order || [];
-      
+
       const totalOrders = ordersResponse?.total || orders.length;
-      const paidOrders = orders.filter(o => o.paymentStatus === "Completed").length;
-      const partPaidOrders = orders.filter(o => o.paymentStatus === "PartPayment").length;
-      
+      const paidOrders = orders.filter((o) => o.paymentStatus === 'Completed').length;
+      const partPaidOrders = orders.filter((o) => o.paymentStatus === 'PartPayment').length;
+
       const totalRevenue = orders
-        .filter(o => o.paymentStatus === "Completed")
+        .filter((o) => o.paymentStatus === 'Completed')
         .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
       let pendingInvoices = 0;
       try {
         const ordersReadyForInvoiceResponse = await orderService.getOrdersReadyForInvoice();
-        console.log("Orders ready for invoice:", ordersReadyForInvoiceResponse);
-        
-        if (ordersReadyForInvoiceResponse?.orders && Array.isArray(ordersReadyForInvoiceResponse.orders)) {
+        console.log('Orders ready for invoice:', ordersReadyForInvoiceResponse);
+
+        if (
+          ordersReadyForInvoiceResponse?.orders &&
+          Array.isArray(ordersReadyForInvoiceResponse.orders)
+        ) {
           pendingInvoices = ordersReadyForInvoiceResponse.orders.length;
-        } else if (ordersReadyForInvoiceResponse?.order && Array.isArray(ordersReadyForInvoiceResponse.order)) {
+        } else if (
+          ordersReadyForInvoiceResponse?.order &&
+          Array.isArray(ordersReadyForInvoiceResponse.order)
+        ) {
           pendingInvoices = ordersReadyForInvoiceResponse.order.length;
         } else if (Array.isArray(ordersReadyForInvoiceResponse)) {
           pendingInvoices = ordersReadyForInvoiceResponse.length;
@@ -76,18 +85,19 @@ export default function SuperAdminDashboard() {
           pendingInvoices = ordersReadyForInvoiceResponse.data.orders.length;
         }
       } catch (err) {
-        console.error("Failed to fetch orders ready for invoice:", err);
+        console.error('Failed to fetch orders ready for invoice:', err);
         pendingInvoices = 0;
       }
-      
+
       let overdueInvoices = 0;
       try {
-        const overdueResponse = await invoiceService.getAll({ status: "overdue", limit: 100 });
-        overdueInvoices = overdueResponse?.invoices?.length || 
-                         overdueResponse?.data?.invoices?.length || 
-                         (Array.isArray(overdueResponse) ? overdueResponse.length : 0);
+        const overdueResponse = await invoiceService.getAll({ status: 'overdue', limit: 100 });
+        overdueInvoices =
+          overdueResponse?.invoices?.length ||
+          overdueResponse?.data?.invoices?.length ||
+          (Array.isArray(overdueResponse) ? overdueResponse.length : 0);
       } catch (err) {
-        console.error("Failed to fetch overdue invoices:", err);
+        console.error('Failed to fetch overdue invoices:', err);
         overdueInvoices = 0;
       }
 
@@ -95,8 +105,8 @@ export default function SuperAdminDashboard() {
       let transactions = [];
       try {
         const paymentsResponse = await paymentService.getPendingBankTransfers({ limit: 100 });
-        console.log("Payments response:", paymentsResponse);
-        
+        console.log('Payments response:', paymentsResponse);
+
         if (paymentsResponse?.transactions && Array.isArray(paymentsResponse.transactions)) {
           unverifiedPayments = paymentsResponse.transactions.length;
           transactions = paymentsResponse.transactions;
@@ -108,7 +118,7 @@ export default function SuperAdminDashboard() {
           transactions = paymentsResponse;
         }
       } catch (err) {
-        console.error("Failed to fetch pending payments:", err);
+        console.error('Failed to fetch pending payments:', err);
         unverifiedPayments = 0;
         transactions = [];
       }
@@ -117,12 +127,12 @@ export default function SuperAdminDashboard() {
       try {
         const adminsResponse = await adminService.getAllAdmins();
         if (Array.isArray(adminsResponse)) {
-          activeAdmins = adminsResponse.filter(a => a.isActive).length;
+          activeAdmins = adminsResponse.filter((a) => a.isActive).length;
         } else if (adminsResponse?.data && Array.isArray(adminsResponse.data)) {
-          activeAdmins = adminsResponse.data.filter(a => a.isActive).length;
+          activeAdmins = adminsResponse.data.filter((a) => a.isActive).length;
         }
       } catch (err) {
-        console.error("Failed to fetch admins:", err);
+        console.error('Failed to fetch admins:', err);
         activeAdmins = 0;
       }
 
@@ -137,7 +147,7 @@ export default function SuperAdminDashboard() {
           invoices = invoicesResponse;
         }
       } catch (err) {
-        console.error("Failed to fetch invoices:", err);
+        console.error('Failed to fetch invoices:', err);
         invoices = [];
       }
 
@@ -149,76 +159,79 @@ export default function SuperAdminDashboard() {
         activeAdmins,
         paidOrders,
         partPaidOrders,
-        overdueInvoices
+        overdueInvoices,
       });
 
-      setPendingVerifications(transactions.slice(0, 5).map(t => ({
-        id: t._id,
-        customer: t.userId?.email?.split("@")[0] || t.customerName || "Customer",
-        amount: `₦${(t.amount || 0).toLocaleString()}`,
-        orderId: t.orderNumber ? `#${t.orderNumber}` : `#${t.orderId?.slice(-6) || "N/A"}`,
-        date: t.createdAt ? new Date(t.createdAt).toLocaleDateString() : "N/A"
-      })));
+      setPendingVerifications(
+        transactions.slice(0, 5).map((t) => ({
+          id: t._id,
+          customer: t.userId?.email?.split('@')[0] || t.customerName || 'Customer',
+          amount: `₦${(t.amount || 0).toLocaleString()}`,
+          orderId: t.orderNumber ? `#${t.orderNumber}` : `#${t.orderId?.slice(-6) || 'N/A'}`,
+          date: t.createdAt ? new Date(t.createdAt).toLocaleDateString() : 'N/A',
+        }))
+      );
 
-      setRecentInvoices(invoices.slice(0, 3).map(i => ({
-        id: i._id,
-        number: i.invoiceNumber || `INV-${i._id?.slice(-6)}`,
-        customer: i.orderId?.userId?.email?.split("@")[0] || i.customerName || "Customer",
-        amount: `₦${(i.totalAmount || 0).toLocaleString()}`,
-        status: i.status?.toLowerCase() || "pending"
-      })));
+      setRecentInvoices(
+        invoices.slice(0, 3).map((i) => ({
+          id: i._id,
+          number: i.invoiceNumber || `INV-${i._id?.slice(-6)}`,
+          customer: i.orderId?.userId?.email?.split('@')[0] || i.customerName || 'Customer',
+          amount: `₦${(i.totalAmount || 0).toLocaleString()}`,
+          status: i.status?.toLowerCase() || 'pending',
+        }))
+      );
 
       const activities = [];
-      
-      orders.slice(0, 2).forEach(o => {
+
+      orders.slice(0, 2).forEach((o) => {
         activities.push({
           id: o._id,
-          action: "New order created",
+          action: 'New order created',
           user: o.orderNumber,
-          time: o.createdAt ? new Date(o.createdAt).toLocaleString() : "Recently",
-          status: "info"
+          time: o.createdAt ? new Date(o.createdAt).toLocaleString() : 'Recently',
+          status: 'info',
         });
       });
-      
-      transactions.slice(0, 2).forEach(t => {
+
+      transactions.slice(0, 2).forEach((t) => {
         activities.push({
           id: t._id,
-          action: "Payment received",
-          user: t.orderNumber ? `Order #${t.orderNumber}` : "Bank transfer",
-          time: t.createdAt ? new Date(t.createdAt).toLocaleString() : "Recently",
-          status: "success"
+          action: 'Payment received',
+          user: t.orderNumber ? `Order #${t.orderNumber}` : 'Bank transfer',
+          time: t.createdAt ? new Date(t.createdAt).toLocaleString() : 'Recently',
+          status: 'success',
         });
       });
-      
-      activities.push({ 
-        id: "stats", 
-        action: "Dashboard updated", 
-        user: "System", 
-        time: "Just now", 
-        status: "info" 
-      });
-      
-      setRecentActivities(activities);
 
+      activities.push({
+        id: 'stats',
+        action: 'Dashboard updated',
+        user: 'System',
+        time: 'Just now',
+        status: 'info',
+      });
+
+      setRecentActivities(activities);
     } catch (err) {
-      console.error("Failed to fetch dashboard data:", err);
-      setError("Failed to load dashboard data. Please try again.");
+      console.error('Failed to fetch dashboard data:', err);
+      setError('Failed to load dashboard data. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   const formatCurrency = (amount) => {
-    return `₦${amount?.toLocaleString() || "0"}`;
+    return `₦${amount?.toLocaleString() || '0'}`;
   };
 
   const handleVerifyPayment = async (transactionId) => {
     try {
-      await paymentService.verifyBankTransfer(transactionId, { status: "approve" });
+      await paymentService.verifyBankTransfer(transactionId, { status: 'approve' });
       fetchDashboardData();
     } catch (err) {
-      console.error("Failed to verify payment:", err);
-      alert("Failed to verify payment");
+      console.error('Failed to verify payment:', err);
+      alert('Failed to verify payment');
     }
   };
 
@@ -239,12 +252,16 @@ export default function SuperAdminDashboard() {
         <div className="space-y-8 p-4 sm:p-6 lg:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="mb-2 text-3xl font-bold text-white sm:text-4xl">Super Admin Dashboard</h1>
-              <p className="text-sm text-gray-400">Welcome back! Here's what's happening with your business today.</p>
+              <h1 className="mb-2 text-3xl font-bold text-white sm:text-4xl">
+                Super Admin Dashboard
+              </h1>
+              <p className="text-sm text-gray-400">
+                Welcome back! Here's what's happening with your business today.
+              </p>
             </div>
             <div className="flex gap-3">
-              <Link 
-                href="/dashboards/super-admin-dashboard/transactions?print=true" 
+              <Link
+                href="/dashboards/super-admin-dashboard/transactions?print=true"
                 target="_blank"
                 className="inline-block"
               >
@@ -316,7 +333,12 @@ export default function SuperAdminDashboard() {
                 <h2 className="mb-4 text-xl font-bold text-white">Quick Actions</h2>
                 <div className="space-y-3">
                   <Link href="/dashboards/super-admin-dashboard/admin-management/create-admin">
-                    <Button variant="secondary" size="md" className="w-full justify-start" icon="➕">
+                    <Button
+                      variant="secondary"
+                      size="md"
+                      className="w-full justify-start"
+                      icon="➕"
+                    >
                       Create New Admin
                     </Button>
                   </Link>
@@ -326,17 +348,32 @@ export default function SuperAdminDashboard() {
                     </Button>
                   </Link>
                   <Link href="/dashboards/super-admin-dashboard/discounts">
-                    <Button variant="secondary" size="md" className="w-full justify-start" icon="🏷️">
+                    <Button
+                      variant="secondary"
+                      size="md"
+                      className="w-full justify-start"
+                      icon="🏷️"
+                    >
                       Manage Discounts
                     </Button>
                   </Link>
                   <Link href="/dashboards/super-admin-dashboard/invoices/create">
-                    <Button variant="secondary" size="md" className="w-full justify-start" icon="📄">
+                    <Button
+                      variant="secondary"
+                      size="md"
+                      className="w-full justify-start"
+                      icon="📄"
+                    >
                       Generate Invoice
                     </Button>
                   </Link>
                   <Link href="/dashboards/super-admin-dashboard/shipping-invoices">
-                    <Button variant="secondary" size="md" className="w-full justify-start" icon="🚚">
+                    <Button
+                      variant="secondary"
+                      size="md"
+                      className="w-full justify-start"
+                      icon="🚚"
+                    >
                       Shipping Invoices
                     </Button>
                   </Link>
@@ -371,10 +408,13 @@ export default function SuperAdminDashboard() {
               </div>
             </div>
 
-            <div className="lg:col-span-2 rounded-lg border border-gray-800 bg-slate-900 p-6">
+            <div className="rounded-lg border border-gray-800 bg-slate-900 p-6 lg:col-span-2">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-xl font-bold text-white">Pending Payment Verifications</h2>
-                <Link href="/dashboards/super-admin-dashboard/payment-verification" className="text-sm text-red-500 hover:text-red-400">
+                <Link
+                  href="/dashboards/super-admin-dashboard/payment-verification"
+                  className="text-sm text-red-500 hover:text-red-400"
+                >
                   View All →
                 </Link>
               </div>
@@ -400,7 +440,7 @@ export default function SuperAdminDashboard() {
                           <td className="py-3 text-gray-300">{item.amount}</td>
                           <td className="py-3 text-gray-300">{item.date}</td>
                           <td className="py-3">
-                            <button 
+                            <button
                               onClick={() => handleVerifyPayment(item.id)}
                               className="text-sm font-medium text-red-500 hover:text-red-400"
                             >
@@ -425,14 +465,20 @@ export default function SuperAdminDashboard() {
                 ) : (
                   recentActivities.map((activity) => (
                     <div key={activity.id} className="flex items-start gap-3">
-                      <div className={`mt-2 h-2 w-2 rounded-full ${
-                        activity.status === "success" ? "bg-green-500" :
-                        activity.status === "warning" ? "bg-yellow-500" :
-                        "bg-blue-500"
-                      }`}></div>
+                      <div
+                        className={`mt-2 h-2 w-2 rounded-full ${
+                          activity.status === 'success'
+                            ? 'bg-green-500'
+                            : activity.status === 'warning'
+                              ? 'bg-yellow-500'
+                              : 'bg-blue-500'
+                        }`}
+                      ></div>
                       <div className="flex-1">
                         <p className="text-sm text-white">{activity.action}</p>
-                        <p className="text-xs text-gray-500">{activity.user} • {activity.time}</p>
+                        <p className="text-xs text-gray-500">
+                          {activity.user} • {activity.time}
+                        </p>
                       </div>
                     </div>
                   ))
@@ -443,7 +489,10 @@ export default function SuperAdminDashboard() {
             <div className="rounded-lg border border-gray-800 bg-slate-900 p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-xl font-bold text-white">Recent Invoices</h2>
-                <Link href="/dashboards/super-admin-dashboard/invoices" className="text-sm text-red-500 hover:text-red-400">
+                <Link
+                  href="/dashboards/super-admin-dashboard/invoices"
+                  className="text-sm text-red-500 hover:text-red-400"
+                >
                   View All →
                 </Link>
               </div>
@@ -452,7 +501,10 @@ export default function SuperAdminDashboard() {
                   <p className="py-4 text-center text-gray-400">No recent invoices</p>
                 ) : (
                   recentInvoices.map((invoice) => (
-                    <Link key={invoice.id} href={`/dashboards/super-admin-dashboard/invoices/${invoice.id}`}>
+                    <Link
+                      key={invoice.id}
+                      href={`/dashboards/super-admin-dashboard/invoices/${invoice.id}`}
+                    >
                       <div className="flex cursor-pointer items-center justify-between rounded-lg bg-slate-800 p-3 transition hover:bg-slate-700">
                         <div>
                           <p className="font-medium text-white">{invoice.number}</p>
@@ -460,11 +512,15 @@ export default function SuperAdminDashboard() {
                         </div>
                         <div className="text-right">
                           <p className="font-bold text-white">{invoice.amount}</p>
-                          <span className={`rounded-full px-2 py-1 text-xs ${
-                            invoice.status === "paid" ? "bg-green-900/50 text-green-400" :
-                            invoice.status === "pending" ? "bg-yellow-900/50 text-yellow-400" :
-                            "bg-red-900/50 text-red-400"
-                          }`}>
+                          <span
+                            className={`rounded-full px-2 py-1 text-xs ${
+                              invoice.status === 'paid'
+                                ? 'bg-green-900/50 text-green-400'
+                                : invoice.status === 'pending'
+                                  ? 'bg-yellow-900/50 text-yellow-400'
+                                  : 'bg-red-900/50 text-red-400'
+                            }`}
+                          >
                             {invoice.status}
                           </span>
                         </div>
@@ -480,8 +536,12 @@ export default function SuperAdminDashboard() {
             <Link href="/dashboards/super-admin-dashboard/admin-management">
               <div className="group cursor-pointer rounded-lg border border-purple-800 bg-gradient-to-br from-purple-900/50 to-purple-950/50 p-6 transition hover:border-purple-600">
                 <div className="mb-3 text-4xl">👥</div>
-                <h3 className="text-lg font-bold text-white transition group-hover:text-purple-400">Admin Management</h3>
-                <p className="mt-2 text-sm text-gray-400">Create, activate, or deactivate administrators</p>
+                <h3 className="text-lg font-bold text-white transition group-hover:text-purple-400">
+                  Admin Management
+                </h3>
+                <p className="mt-2 text-sm text-gray-400">
+                  Create, activate, or deactivate administrators
+                </p>
                 <p className="mt-3 text-xs text-purple-400">{stats.activeAdmins} active admins</p>
               </div>
             </Link>
@@ -489,7 +549,9 @@ export default function SuperAdminDashboard() {
             <Link href="/dashboards/super-admin-dashboard/discounts">
               <div className="group cursor-pointer rounded-lg border border-blue-800 bg-gradient-to-br from-blue-900/50 to-blue-950/50 p-6 transition hover:border-blue-600">
                 <div className="mb-3 text-4xl">🏷️</div>
-                <h3 className="text-lg font-bold text-white transition group-hover:text-blue-400">Discounts</h3>
+                <h3 className="text-lg font-bold text-white transition group-hover:text-blue-400">
+                  Discounts
+                </h3>
                 <p className="mt-2 text-sm text-gray-400">Manage promotional codes and discounts</p>
               </div>
             </Link>
@@ -497,7 +559,9 @@ export default function SuperAdminDashboard() {
             <Link href="/dashboards/super-admin-dashboard/invoices">
               <div className="group cursor-pointer rounded-lg border border-green-800 bg-gradient-to-br from-green-900/50 to-green-950/50 p-6 transition hover:border-green-600">
                 <div className="mb-3 text-4xl">📄</div>
-                <h3 className="text-lg font-bold text-white transition group-hover:text-green-400">Invoices</h3>
+                <h3 className="text-lg font-bold text-white transition group-hover:text-green-400">
+                  Invoices
+                </h3>
                 <p className="mt-2 text-sm text-gray-400">View and manage all invoices</p>
                 <p className="mt-3 text-xs text-green-400">{stats.pendingInvoices} pending</p>
               </div>
@@ -506,7 +570,9 @@ export default function SuperAdminDashboard() {
             <Link href="/dashboards/super-admin-dashboard/payment-verification">
               <div className="group cursor-pointer rounded-lg border border-red-800 bg-gradient-to-br from-red-900/50 to-red-950/50 p-6 transition hover:border-red-600">
                 <div className="mb-3 text-4xl">✓</div>
-                <h3 className="text-lg font-bold text-white transition group-hover:text-red-400">Payment Verification</h3>
+                <h3 className="text-lg font-bold text-white transition group-hover:text-red-400">
+                  Payment Verification
+                </h3>
                 <p className="mt-2 text-sm text-gray-400">Verify customer payments</p>
                 <p className="mt-3 text-xs text-red-400">{stats.unverifiedPayments} pending</p>
               </div>

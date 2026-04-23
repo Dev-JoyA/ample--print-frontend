@@ -14,9 +14,9 @@ function CreateProductPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedCollectionId = searchParams.get('collectionId');
-  
+
   useAuthCheck();
-  
+
   const [collections, setCollections] = useState([]);
   const [formData, setFormData] = useState({
     collectionId: preselectedCollectionId || '',
@@ -25,14 +25,14 @@ function CreateProductPageContent() {
     price: '',
     dimension: {
       width: '',
-      height: ''
+      height: '',
     },
     minOrder: '',
     material: '',
     deliveryDay: '',
-    status: 'active'
+    status: 'active',
   });
-  
+
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -44,7 +44,7 @@ function CreateProductPageContent() {
   useEffect(() => {
     fetchCollections();
     return () => {
-      imagePreviews.forEach(preview => URL.revokeObjectURL(preview));
+      imagePreviews.forEach((preview) => URL.revokeObjectURL(preview));
     };
   }, []);
 
@@ -72,15 +72,15 @@ function CreateProductPageContent() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === 'width' || name === 'height') {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         dimension: {
           ...prev.dimension,
-          [name]: value
-        }
+          [name]: value,
+        },
       }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
@@ -101,9 +101,11 @@ function CreateProductPageContent() {
 
   const handleImageChange = (e) => {
     const newFiles = Array.from(e.target.files);
-    
+
     if (imageFiles.length + newFiles.length > 3) {
-      alert(`You can only upload a maximum of 3 images. You already have ${imageFiles.length} image(s).`);
+      alert(
+        `You can only upload a maximum of 3 images. You already have ${imageFiles.length} image(s).`
+      );
       return;
     }
 
@@ -118,9 +120,9 @@ function CreateProductPageContent() {
     const updatedFiles = [...imageFiles, ...newFiles];
     setImageFiles(updatedFiles);
 
-    const newPreviews = newFiles.map(file => URL.createObjectURL(file));
-    setImagePreviews(prev => [...prev, ...newPreviews]);
-    
+    const newPreviews = newFiles.map((file) => URL.createObjectURL(file));
+    setImagePreviews((prev) => [...prev, ...newPreviews]);
+
     setError('');
     e.target.value = '';
   };
@@ -170,30 +172,30 @@ function CreateProductPageContent() {
       setError('');
       setSuccess('');
       setUploadProgress(0);
-      
+
       const productData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
         price: parseFloat(formData.price),
         dimension: {
           width: formData.dimension.width?.trim() || '',
-          height: formData.dimension.height?.trim() || ''
+          height: formData.dimension.height?.trim() || '',
         },
         minOrder: parseInt(formData.minOrder),
         material: formData.material?.trim() || '',
         deliveryDay: formData.deliveryDay?.trim() || '',
-        status: formData.status
+        status: formData.status,
       };
 
       const formDataObj = new FormData();
       formDataObj.append('productData', JSON.stringify(productData));
-      
+
       imageFiles.forEach((file) => {
         formDataObj.append('images', file);
       });
 
       const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
+        setUploadProgress((prev) => {
           if (prev >= 90) {
             clearInterval(progressInterval);
             return 90;
@@ -203,13 +205,13 @@ function CreateProductPageContent() {
       }, 200);
 
       const response = await productService.create(formData.collectionId, formDataObj);
-      
+
       clearInterval(progressInterval);
       setUploadProgress(100);
-      
+
       console.log('Product created:', response);
       setSuccess(`Product "${formData.name}" created successfully!`);
-      
+
       setFormData({
         collectionId: preselectedCollectionId || '',
         name: '',
@@ -219,17 +221,16 @@ function CreateProductPageContent() {
         minOrder: '',
         material: '',
         deliveryDay: '',
-        status: 'active'
+        status: 'active',
       });
-      
-      imagePreviews.forEach(preview => URL.revokeObjectURL(preview));
+
+      imagePreviews.forEach((preview) => URL.revokeObjectURL(preview));
       setImageFiles([]);
       setImagePreviews([]);
-      
+
       setTimeout(() => {
         router.push(`/dashboards/admin-dashboard/collections/${formData.collectionId}/products`);
       }, 2000);
-      
     } catch (err) {
       console.error('Failed to create product:', err);
       setError(err.message || 'Failed to create product');
@@ -244,10 +245,10 @@ function CreateProductPageContent() {
       <>
         <SEOHead {...METADATA.dashboard.admin} />
         <DashboardLayout userRole="admin">
-          <div className="flex justify-center items-center min-h-[60vh]">
+          <div className="flex min-h-[60vh] items-center justify-center">
             <div className="relative text-center">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-              <p className="text-gray-400 mt-4 text-sm sm:text-base">Loading collections...</p>
+              <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-red-600 border-t-transparent sm:h-12 sm:w-12"></div>
+              <p className="mt-4 text-sm text-gray-400 sm:text-base">Loading collections...</p>
             </div>
           </div>
         </DashboardLayout>
@@ -259,43 +260,57 @@ function CreateProductPageContent() {
     <>
       <SEOHead {...METADATA.dashboard.admin} />
       <DashboardLayout userRole="admin">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
           <div className="mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-white">Create New Product</h1>
-            <p className="text-gray-400 text-sm sm:text-base mt-2">Add a new product to your collection</p>
+            <h1 className="text-2xl font-bold text-white sm:text-3xl">Create New Product</h1>
+            <p className="mt-2 text-sm text-gray-400 sm:text-base">
+              Add a new product to your collection
+            </p>
           </div>
 
-          <div className="bg-slate-900 rounded-lg border border-gray-800 p-5 sm:p-6">
+          <div className="rounded-lg border border-gray-800 bg-slate-900 p-5 sm:p-6">
             {success && (
-              <div className="mb-4 p-4 bg-green-900/50 border border-green-700 rounded-lg">
+              <div className="mb-4 rounded-lg border border-green-700 bg-green-900/50 p-4">
                 <div className="flex items-center gap-3">
                   <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg
+                      className="h-5 w-5 text-green-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-green-400">{success}</p>
-                    <p className="text-xs text-green-600/80 mt-1">Redirecting to products list...</p>
+                    <p className="mt-1 text-xs text-green-600/80">
+                      Redirecting to products list...
+                    </p>
                   </div>
                 </div>
               </div>
             )}
 
             {error && (
-              <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-200 text-sm">
+              <div className="mb-4 rounded-lg border border-red-700 bg-red-900/50 p-3 text-sm text-red-200">
                 {error}
               </div>
             )}
 
             {uploadProgress > 0 && uploadProgress < 100 && (
               <div className="mb-4">
-                <div className="flex justify-between text-xs text-gray-400 mb-1">
+                <div className="mb-1 flex justify-between text-xs text-gray-400">
                   <span>Uploading...</span>
                   <span>{uploadProgress}%</span>
                 </div>
-                <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
-                  <div 
+                <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+                  <div
                     className="h-full bg-red-600 transition-all duration-300"
                     style={{ width: `${uploadProgress}%` }}
                   />
@@ -304,37 +319,37 @@ function CreateProductPageContent() {
             )}
 
             <form onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+              <div className="grid grid-cols-1 gap-5 sm:gap-6 md:grid-cols-2">
                 <div className="md:col-span-2">
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                  <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                     Collection <span className="text-red-500">*</span>
                   </label>
                   <select
                     name="collectionId"
                     value={formData.collectionId}
                     onChange={handleChange}
-                    className={`w-full bg-slate-800 border rounded-lg px-3 sm:px-4 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 ${
+                    className={`w-full rounded-lg border bg-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 sm:px-4 ${
                       success ? 'border-green-700' : 'border-gray-700'
                     }`}
                     required
                     disabled={loading || success || collections.length === 0}
                   >
                     <option value="">Select a collection</option>
-                    {collections.map(col => (
+                    {collections.map((col) => (
                       <option key={col._id} value={col._id}>
                         {col.name}
                       </option>
                     ))}
                   </select>
                   {collections.length === 0 && (
-                    <p className="text-xs text-yellow-500 mt-1">
+                    <p className="mt-1 text-xs text-yellow-500">
                       No collections found. Please create a collection first.
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                  <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                     Product Name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -343,7 +358,7 @@ function CreateProductPageContent() {
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="e.g., A5 Flyer"
-                    className={`w-full bg-slate-800 border rounded-lg px-3 sm:px-4 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 ${
+                    className={`w-full rounded-lg border bg-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 sm:px-4 ${
                       success ? 'border-green-700' : 'border-gray-700'
                     }`}
                     required
@@ -352,7 +367,7 @@ function CreateProductPageContent() {
                 </div>
 
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                  <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                     Price (₦) <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -363,7 +378,7 @@ function CreateProductPageContent() {
                     placeholder="0.00"
                     min="0"
                     step="0.01"
-                    className={`w-full bg-slate-800 border rounded-lg px-3 sm:px-4 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 ${
+                    className={`w-full rounded-lg border bg-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 sm:px-4 ${
                       success ? 'border-green-700' : 'border-gray-700'
                     }`}
                     required
@@ -372,7 +387,7 @@ function CreateProductPageContent() {
                 </div>
 
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                  <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                     Width (optional)
                   </label>
                   <input
@@ -381,7 +396,7 @@ function CreateProductPageContent() {
                     value={formData.dimension.width}
                     onChange={handleChange}
                     placeholder="e.g., 100mm"
-                    className={`w-full bg-slate-800 border rounded-lg px-3 sm:px-4 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 ${
+                    className={`w-full rounded-lg border bg-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 sm:px-4 ${
                       success ? 'border-green-700' : 'border-gray-700'
                     }`}
                     disabled={loading || success}
@@ -389,7 +404,7 @@ function CreateProductPageContent() {
                 </div>
 
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                  <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                     Height (optional)
                   </label>
                   <input
@@ -398,7 +413,7 @@ function CreateProductPageContent() {
                     value={formData.dimension.height}
                     onChange={handleChange}
                     placeholder="e.g., 150mm"
-                    className={`w-full bg-slate-800 border rounded-lg px-3 sm:px-4 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 ${
+                    className={`w-full rounded-lg border bg-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 sm:px-4 ${
                       success ? 'border-green-700' : 'border-gray-700'
                     }`}
                     disabled={loading || success}
@@ -406,7 +421,7 @@ function CreateProductPageContent() {
                 </div>
 
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                  <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                     Minimum Order <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -416,7 +431,7 @@ function CreateProductPageContent() {
                     onChange={handleChange}
                     placeholder="100"
                     min="1"
-                    className={`w-full bg-slate-800 border rounded-lg px-3 sm:px-4 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 ${
+                    className={`w-full rounded-lg border bg-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 sm:px-4 ${
                       success ? 'border-green-700' : 'border-gray-700'
                     }`}
                     required
@@ -425,7 +440,7 @@ function CreateProductPageContent() {
                 </div>
 
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                  <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                     Material (optional)
                   </label>
                   <input
@@ -434,7 +449,7 @@ function CreateProductPageContent() {
                     value={formData.material}
                     onChange={handleChange}
                     placeholder="e.g., Glossy paper"
-                    className={`w-full bg-slate-800 border rounded-lg px-3 sm:px-4 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 ${
+                    className={`w-full rounded-lg border bg-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 sm:px-4 ${
                       success ? 'border-green-700' : 'border-gray-700'
                     }`}
                     disabled={loading || success}
@@ -442,7 +457,7 @@ function CreateProductPageContent() {
                 </div>
 
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                  <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                     Delivery Day <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -451,7 +466,7 @@ function CreateProductPageContent() {
                     value={formData.deliveryDay}
                     onChange={handleChange}
                     placeholder="e.g., 3-5 business days"
-                    className={`w-full bg-slate-800 border rounded-lg px-3 sm:px-4 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 ${
+                    className={`w-full rounded-lg border bg-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 sm:px-4 ${
                       success ? 'border-green-700' : 'border-gray-700'
                     }`}
                     required
@@ -460,7 +475,7 @@ function CreateProductPageContent() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                  <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                     Description (optional)
                   </label>
                   <textarea
@@ -469,7 +484,7 @@ function CreateProductPageContent() {
                     onChange={handleChange}
                     rows="4"
                     placeholder="Describe the product..."
-                    className={`w-full bg-slate-800 border rounded-lg px-3 sm:px-4 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 ${
+                    className={`w-full rounded-lg border bg-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 sm:px-4 ${
                       success ? 'border-green-700' : 'border-gray-700'
                     }`}
                     disabled={loading || success}
@@ -477,14 +492,16 @@ function CreateProductPageContent() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                  <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                     Product Images <span className="text-red-500">*</span> (Max 3)
                   </label>
-                  <div className={`border-2 border-dashed rounded-lg p-5 sm:p-6 text-center transition ${
-                    success 
-                      ? 'border-green-700 bg-green-900/20' 
-                      : 'border-gray-700 hover:border-red-600'
-                  }`}>
+                  <div
+                    className={`rounded-lg border-2 border-dashed p-5 text-center transition sm:p-6 ${
+                      success
+                        ? 'border-green-700 bg-green-900/20'
+                        : 'border-gray-700 hover:border-red-600'
+                    }`}
+                  >
                     <input
                       type="file"
                       accept="image/jpeg,image/jpg,image/png,image/webp"
@@ -496,17 +513,29 @@ function CreateProductPageContent() {
                     />
                     <label
                       htmlFor="image-upload"
-                      className={`cursor-pointer inline-flex flex-col items-center ${
-                        imageFiles.length >= 3 ? 'opacity-50 cursor-not-allowed' : ''
+                      className={`inline-flex cursor-pointer flex-col items-center ${
+                        imageFiles.length >= 3 ? 'cursor-not-allowed opacity-50' : ''
                       }`}
                     >
-                      <svg className="w-10 h-10 sm:w-12 sm:h-12 text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      <svg
+                        className="mb-3 h-10 w-10 text-gray-500 sm:h-12 sm:w-12"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
                       </svg>
-                      <span className="text-gray-300 font-medium text-sm">
-                        {imageFiles.length >= 3 ? 'Maximum images reached' : 'Click to upload images'}
+                      <span className="text-sm font-medium text-gray-300">
+                        {imageFiles.length >= 3
+                          ? 'Maximum images reached'
+                          : 'Click to upload images'}
                       </span>
-                      <span className="text-xs text-gray-500 mt-1">
+                      <span className="mt-1 text-xs text-gray-500">
                         {imageFiles.length}/3 images selected • JPEG, PNG, WebP up to 5MB
                       </span>
                     </label>
@@ -515,20 +544,20 @@ function CreateProductPageContent() {
 
                 {imagePreviews.length > 0 && (
                   <div className="md:col-span-2">
-                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-3">
+                    <label className="mb-3 block text-xs font-medium text-gray-300 sm:text-sm">
                       Image Previews ({imagePreviews.length}/3)
                     </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                       {imagePreviews.map((preview, index) => (
-                        <div key={index} className="relative group">
-                          <div className="relative aspect-square rounded-lg overflow-hidden border border-gray-700">
+                        <div key={index} className="group relative">
+                          <div className="relative aspect-square overflow-hidden rounded-lg border border-gray-700">
                             <img
                               src={preview}
                               alt={`Preview ${index + 1}`}
-                              className="w-full h-full object-cover"
+                              className="h-full w-full object-cover"
                             />
                             {index === 0 && (
-                              <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded-full">
+                              <div className="absolute left-2 top-2 rounded-full bg-red-600 px-2 py-1 text-xs text-white">
                                 Main Image
                               </div>
                             )}
@@ -536,15 +565,25 @@ function CreateProductPageContent() {
                               <button
                                 type="button"
                                 onClick={() => removeImage(index)}
-                                className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
+                                className="absolute right-2 top-2 rounded-full bg-red-600 p-1 text-white opacity-0 transition group-hover:opacity-100"
                               >
-                                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                <svg
+                                  className="h-3 w-3 sm:h-4 sm:w-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
                                 </svg>
                               </button>
                             )}
                           </div>
-                          <p className="text-xs text-gray-500 mt-1 text-center truncate">
+                          <p className="mt-1 truncate text-center text-xs text-gray-500">
                             {imageFiles[index]?.name}
                           </p>
                         </div>
@@ -554,13 +593,13 @@ function CreateProductPageContent() {
                 )}
               </div>
 
-              <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6 sm:mt-8 pt-4 border-t border-gray-800">
+              <div className="mt-6 flex flex-col justify-end gap-3 border-t border-gray-800 pt-4 sm:mt-8 sm:flex-row">
                 <Button
                   type="button"
                   variant="secondary"
                   onClick={() => router.back()}
                   disabled={loading || success}
-                  className="w-full sm:w-auto text-sm"
+                  className="w-full text-sm sm:w-auto"
                 >
                   Cancel
                 </Button>
@@ -568,14 +607,14 @@ function CreateProductPageContent() {
                   type="submit"
                   variant="primary"
                   disabled={loading || success || collections.length === 0}
-                  className="w-full sm:w-auto text-sm"
+                  className="w-full text-sm sm:w-auto"
                 >
                   {loading ? 'Creating...' : success ? 'Created!' : 'Create Product'}
                 </Button>
               </div>
 
               {success && (
-                <div className="mt-4 flex flex-col sm:flex-row gap-3 justify-end">
+                <div className="mt-4 flex flex-col justify-end gap-3 sm:flex-row">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -590,7 +629,11 @@ function CreateProductPageContent() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => router.push(`/dashboards/admin-dashboard/collections/${formData.collectionId}/products`)}
+                    onClick={() =>
+                      router.push(
+                        `/dashboards/admin-dashboard/collections/${formData.collectionId}/products`
+                      )
+                    }
                     className="text-sm"
                   >
                     View Products

@@ -40,6 +40,6 @@ export function useCart() {
     cartCount,
     activeOrders,
     loading,
-    refreshCart
+    refreshCart,
   };
 }

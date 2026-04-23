@@ -1,10 +1,14 @@
-import { api } from "@/lib/api";
-import { API_PATHS, API_DEFAULTS } from "@/lib/constants";
+import { api } from '@/lib/api';
+import { API_PATHS, API_DEFAULTS } from '@/lib/constants';
 
 export const productService = {
   // Get all products
   getList: (params = {}) => {
-    const { page = API_DEFAULTS.PAGINATION_PAGE, limit = API_DEFAULTS.PAGINATION_LIMIT, ...rest } = params;
+    const {
+      page = API_DEFAULTS.PAGINATION_PAGE,
+      limit = API_DEFAULTS.PAGINATION_LIMIT,
+      ...rest
+    } = params;
     const q = new URLSearchParams({ page, limit, ...rest }).toString();
     return api.get(q ? `${API_PATHS.PRODUCTS.LIST}?${q}` : API_PATHS.PRODUCTS.LIST);
   },
@@ -28,7 +32,10 @@ export const productService = {
   create: async (collectionId, formData) => {
     try {
       console.log('Creating product in collection:', collectionId);
-      const response = await api.upload(API_PATHS.COLLECTIONS.CREATE_PRODUCT(collectionId), formData);
+      const response = await api.upload(
+        API_PATHS.COLLECTIONS.CREATE_PRODUCT(collectionId),
+        formData
+      );
       return response;
     } catch (error) {
       console.error('Product creation failed:', error);
@@ -37,8 +44,7 @@ export const productService = {
   },
 
   // Update product
-  update: (id, formData) =>
-    api.upload(API_PATHS.PRODUCTS.UPDATE(id), formData),
+  update: (id, formData) => api.upload(API_PATHS.PRODUCTS.UPDATE(id), formData),
 
   // Delete product
   delete: (id) => api.delete(API_PATHS.PRODUCTS.DELETE(id)),
