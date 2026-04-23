@@ -1,12 +1,16 @@
-import { api } from "@/lib/api";
-import { API_PATHS, API_DEFAULTS } from "@/lib/constants";
+import { api } from '@/lib/api';
+import { API_PATHS, API_DEFAULTS } from '@/lib/constants';
 
 export const feedbackService = {
   create: (formData) => api.upload(API_PATHS.FEEDBACK.CREATE, formData),
 
   getMyFeedback: async (params = {}) => {
     try {
-      const { page = API_DEFAULTS.PAGINATION_PAGE, limit = API_DEFAULTS.PAGINATION_LIMIT, status } = params;
+      const {
+        page = API_DEFAULTS.PAGINATION_PAGE,
+        limit = API_DEFAULTS.PAGINATION_LIMIT,
+        status,
+      } = params;
       const queryParams = new URLSearchParams();
       queryParams.append('page', page);
       queryParams.append('limit', limit);
@@ -39,7 +43,9 @@ export const feedbackService = {
       if (params.status) queryParams.append('status', params.status);
       if (params.orderId) queryParams.append('orderId', params.orderId);
       const queryString = queryParams.toString();
-      const endpoint = queryString ? `${API_PATHS.FEEDBACK.ALL}?${queryString}` : API_PATHS.FEEDBACK.ALL;
+      const endpoint = queryString
+        ? `${API_PATHS.FEEDBACK.ALL}?${queryString}`
+        : API_PATHS.FEEDBACK.ALL;
       const response = await api.get(endpoint);
       return response;
     } catch (error) {

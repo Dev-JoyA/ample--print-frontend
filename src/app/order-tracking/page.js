@@ -1,58 +1,58 @@
-"use client";
+'use client';
 
-import { Suspense, useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import DashboardLayout from "@/components/layouts/DashboardLayout";
-import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
-import StatusBadge from "@/components/ui/StatusBadge";
-import OrderCard from "@/components/cards/OrderCard";
-import SEOHead from "@/components/common/SEOHead";
-import { useAuth, useAuthCheck } from "@/app/lib/auth";
-import { orderService } from "@/services/orderService";
-import { METADATA } from "@/lib/metadata";
+import { Suspense, useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import DashboardLayout from '@/components/layouts/DashboardLayout';
+import Input from '@/components/ui/Input';
+import Button from '@/components/ui/Button';
+import StatusBadge from '@/components/ui/StatusBadge';
+import OrderCard from '@/components/cards/OrderCard';
+import SEOHead from '@/components/common/SEOHead';
+import { useAuth, useAuthCheck } from '@/app/lib/auth';
+import { orderService } from '@/services/orderService';
+import { METADATA } from '@/lib/metadata';
 
 const OrderStatus = {
-  Pending: "Pending",
-  OrderReceived: "OrderReceived",
-  FilesUploaded: "FilesUploaded",
-  AwaitingInvoice: "AwaitingInvoice",
-  InvoiceSent: "InvoiceSent",
-  DesignUploaded: "DesignUploaded",
-  UnderReview: "UnderReview",
-  Approved: "Approved",
-  AwaitingPartPayment: "AwaitingPartPayment",
-  PartPaymentMade: "PartPaymentMade",
-  InProduction: "InProduction",
-  Completed: "Completed",
-  AwaitingFinalPayment: "AwaitingFinalPayment",
-  FinalPaid: "FinalPaid",
-  ReadyForShipping: "ReadyForShipping",
-  Shipped: "Shipped",
-  Cancelled: "Cancelled",
-  Delivered: "Delivered"
+  Pending: 'Pending',
+  OrderReceived: 'OrderReceived',
+  FilesUploaded: 'FilesUploaded',
+  AwaitingInvoice: 'AwaitingInvoice',
+  InvoiceSent: 'InvoiceSent',
+  DesignUploaded: 'DesignUploaded',
+  UnderReview: 'UnderReview',
+  Approved: 'Approved',
+  AwaitingPartPayment: 'AwaitingPartPayment',
+  PartPaymentMade: 'PartPaymentMade',
+  InProduction: 'InProduction',
+  Completed: 'Completed',
+  AwaitingFinalPayment: 'AwaitingFinalPayment',
+  FinalPaid: 'FinalPaid',
+  ReadyForShipping: 'ReadyForShipping',
+  Shipped: 'Shipped',
+  Cancelled: 'Cancelled',
+  Delivered: 'Delivered',
 };
 
 const StatusDisplayNames = {
-  Pending: "Order Pending",
-  OrderReceived: "Order Received",
-  FilesUploaded: "Brief/Files Uploaded",
-  AwaitingInvoice: "Awaiting Invoice",
-  InvoiceSent: "Invoice Sent",
-  DesignUploaded: "Design Uploaded",
-  UnderReview: "Under Review",
-  Approved: "Design Approved",
-  AwaitingPartPayment: "Awaiting Part Payment",
-  PartPaymentMade: "Part Payment Made",
-  InProduction: "In Production",
-  Completed: "Production Completed",
-  AwaitingFinalPayment: "Awaiting Final Payment",
-  FinalPaid: "Final Payment Made",
-  ReadyForShipping: "Ready For Shipping",
-  Shipped: "Shipped",
-  Cancelled: "Cancelled",
-  Delivered: "Delivered"
+  Pending: 'Order Pending',
+  OrderReceived: 'Order Received',
+  FilesUploaded: 'Brief/Files Uploaded',
+  AwaitingInvoice: 'Awaiting Invoice',
+  InvoiceSent: 'Invoice Sent',
+  DesignUploaded: 'Design Uploaded',
+  UnderReview: 'Under Review',
+  Approved: 'Design Approved',
+  AwaitingPartPayment: 'Awaiting Part Payment',
+  PartPaymentMade: 'Part Payment Made',
+  InProduction: 'In Production',
+  Completed: 'Production Completed',
+  AwaitingFinalPayment: 'Awaiting Final Payment',
+  FinalPaid: 'Final Payment Made',
+  ReadyForShipping: 'Ready For Shipping',
+  Shipped: 'Shipped',
+  Cancelled: 'Cancelled',
+  Delivered: 'Delivered',
 };
 
 const StatusFlowOrder = [
@@ -73,82 +73,76 @@ const StatusFlowOrder = [
   OrderStatus.ReadyForShipping,
   OrderStatus.Shipped,
   OrderStatus.Delivered,
-  OrderStatus.Cancelled
+  OrderStatus.Cancelled,
 ];
 
 const getStatusPhases = (order) => {
   const basePhases = [
     {
-      name: "Order Placement",
+      name: 'Order Placement',
       statuses: [OrderStatus.Pending, OrderStatus.OrderReceived],
-      icon: "📋",
-      color: "blue"
+      icon: '📋',
+      color: 'blue',
     },
     {
-      name: "Brief & Invoice",
+      name: 'Brief & Invoice',
       statuses: [OrderStatus.FilesUploaded, OrderStatus.AwaitingInvoice, OrderStatus.InvoiceSent],
-      icon: "📄",
-      color: "purple"
-    }
+      icon: '📄',
+      color: 'purple',
+    },
   ];
 
   const paymentPhase = {
-    name: order?.requiredPaymentType === "part" ? "Initial Deposit" : "Payment",
-    icon: "💰",
-    color: order?.requiredPaymentType === "part" ? "yellow" : "blue",
-    statuses: []
+    name: order?.requiredPaymentType === 'part' ? 'Initial Deposit' : 'Payment',
+    icon: '💰',
+    color: order?.requiredPaymentType === 'part' ? 'yellow' : 'blue',
+    statuses: [],
   };
 
   const finalPaymentPhase = {
-    name: "Final Payment",
-    icon: "💳",
-    color: "green",
-    statuses: []
+    name: 'Final Payment',
+    icon: '💳',
+    color: 'green',
+    statuses: [],
   };
 
-  if (order?.requiredPaymentType === "part") {
-    paymentPhase.statuses = [
-      OrderStatus.AwaitingPartPayment,
-      OrderStatus.PartPaymentMade
-    ];
-    paymentPhase.description = "Pay deposit to start design work";
+  if (order?.requiredPaymentType === 'part') {
+    paymentPhase.statuses = [OrderStatus.AwaitingPartPayment, OrderStatus.PartPaymentMade];
+    paymentPhase.description = 'Pay deposit to start design work';
 
-    finalPaymentPhase.statuses = [
-      OrderStatus.AwaitingFinalPayment,
-      OrderStatus.FinalPaid
-    ];
-    finalPaymentPhase.description = "Pay remaining balance after production";
-  } else if (order?.requiredPaymentType === "full") {
+    finalPaymentPhase.statuses = [OrderStatus.AwaitingFinalPayment, OrderStatus.FinalPaid];
+    finalPaymentPhase.description = 'Pay remaining balance after production';
+  } else if (order?.requiredPaymentType === 'full') {
     paymentPhase.statuses = [OrderStatus.InvoiceSent];
-    paymentPhase.description = "Full payment required";
+    paymentPhase.description = 'Full payment required';
   }
 
   const designPhase = {
-    name: "Design & Approval",
+    name: 'Design & Approval',
     statuses: [OrderStatus.DesignUploaded, OrderStatus.UnderReview, OrderStatus.Approved],
-    icon: "🎨",
-    color: "indigo"
+    icon: '🎨',
+    color: 'indigo',
   };
 
   const productionPhase = {
-    name: "Production",
+    name: 'Production',
     statuses: [OrderStatus.InProduction, OrderStatus.Completed],
-    icon: "⚙️",
-    color: "yellow"
+    icon: '⚙️',
+    color: 'yellow',
   };
 
   const shippingPhase = {
-    name: "Shipping & Delivery",
+    name: 'Shipping & Delivery',
     statuses: [OrderStatus.ReadyForShipping, OrderStatus.Shipped, OrderStatus.Delivered],
-    icon: "🚚",
-    color: "orange"
+    icon: '🚚',
+    color: 'orange',
   };
 
   const cancelledPhase = {
-    name: "Cancelled",
+    name: 'Cancelled',
     statuses: [OrderStatus.Cancelled],
-    icon: "❌",
-    color: "red"
+    icon: '❌',
+    color: 'red',
   };
 
   const phases = [...basePhases];
@@ -176,14 +170,14 @@ function OrderTrackingPageContent() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   useAuthCheck();
 
-  const [orderNumber, setOrderNumber] = useState(searchParams.get("order") || "");
+  const [orderNumber, setOrderNumber] = useState(searchParams.get('order') || '');
   const [trackedOrder, setTrackedOrder] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [searchAttempted, setSearchAttempted] = useState(false);
 
   useEffect(() => {
-    const orderParam = searchParams.get("order");
+    const orderParam = searchParams.get('order');
     if (orderParam) {
       setOrderNumber(orderParam);
       handleTrack(orderParam);
@@ -193,7 +187,7 @@ function OrderTrackingPageContent() {
   const formatOrderNumber = (input) => {
     let formatted = input.trim();
 
-    if (formatted.toUpperCase().startsWith("ORD-")) {
+    if (formatted.toUpperCase().startsWith('ORD-')) {
       const numberPart = formatted.substring(4);
       return `ORD-${numberPart}`;
     }
@@ -207,7 +201,7 @@ function OrderTrackingPageContent() {
 
   const handleTrack = async (orderNum = orderNumber) => {
     if (!orderNum.trim()) {
-      setError("Please enter an order number");
+      setError('Please enter an order number');
       return;
     }
 
@@ -217,33 +211,33 @@ function OrderTrackingPageContent() {
 
     try {
       setLoading(true);
-      setError("");
+      setError('');
       setTrackedOrder(null);
 
-      console.log("🔍 Searching for order:", searchTerm);
+      console.log('🔍 Searching for order:', searchTerm);
 
       try {
         const response = await orderService.searchByOrderNumber(searchTerm);
         const orderData = response?.order || response?.data || response;
 
         if (orderData) {
-          console.log("✅ Order found via search:", orderData);
+          console.log('✅ Order found via search:', orderData);
           setTrackedOrder(orderData);
           return;
         }
       } catch (searchErr) {
-        console.log("❌ Search endpoint failed:", searchErr);
+        console.log('❌ Search endpoint failed:', searchErr);
 
         if (searchErr.status === 404) {
-          console.log("Order not found via search, trying my-orders...");
+          console.log('Order not found via search, trying my-orders...');
         } else if (searchErr.status === 401 || searchErr.status === 403) {
-          console.log("Authorization error, falling back to my-orders");
+          console.log('Authorization error, falling back to my-orders');
         } else {
-          console.log("Other error, falling back to my-orders");
+          console.log('Other error, falling back to my-orders');
         }
       }
 
-      console.log("📋 Fetching user orders as fallback...");
+      console.log('📋 Fetching user orders as fallback...');
       const myOrdersResponse = await orderService.getMyOrders({ limit: 50 });
 
       let orders = [];
@@ -258,7 +252,7 @@ function OrderTrackingPageContent() {
       console.log(`📊 Found ${orders.length} orders for user`);
 
       if (orders.length === 0) {
-        setError("You have no orders yet.");
+        setError('You have no orders yet.');
         return;
       }
 
@@ -275,29 +269,29 @@ function OrderTrackingPageContent() {
         foundOrder = orders.find((o) => o.orderNumber?.toLowerCase().includes(searchLower));
       }
 
-      if (!foundOrder && searchTerm.includes("-")) {
+      if (!foundOrder && searchTerm.includes('-')) {
         foundOrder = orders.find((o) =>
-          o.orderNumber?.toLowerCase().includes(searchLower.split("-").join(""))
+          o.orderNumber?.toLowerCase().includes(searchLower.split('-').join(''))
         );
       }
 
       if (foundOrder) {
-        console.log("✅ Order found via my-orders:", foundOrder);
+        console.log('✅ Order found via my-orders:', foundOrder);
         setTrackedOrder(foundOrder);
       } else {
-        setError("Order not found. Please check the order number and try again.");
+        setError('Order not found. Please check the order number and try again.');
       }
     } catch (err) {
-      console.error("❌ Failed to track order:", err);
+      console.error('❌ Failed to track order:', err);
 
       if (err.userMessage) {
         setError(err.userMessage);
-      } else if (err.message?.includes("Network") || err.message?.includes("Failed to fetch")) {
-        setError("Network error. Please check your connection and try again.");
-      } else if (err.message?.includes("401") || err.message?.includes("Unauthorized")) {
-        setError("Please sign in to track your order.");
+      } else if (err.message?.includes('Network') || err.message?.includes('Failed to fetch')) {
+        setError('Network error. Please check your connection and try again.');
+      } else if (err.message?.includes('401') || err.message?.includes('Unauthorized')) {
+        setError('Please sign in to track your order.');
       } else {
-        setError("An unexpected error occurred. Please try again later.");
+        setError('An unexpected error occurred. Please try again later.');
       }
     } finally {
       setLoading(false);
@@ -305,16 +299,16 @@ function OrderTrackingPageContent() {
   };
 
   const handleRetry = () => {
-    setError("");
+    setError('');
     handleTrack();
   };
 
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
-    if (imagePath.startsWith("http")) return imagePath;
+    if (imagePath.startsWith('http')) return imagePath;
     let filename = imagePath;
-    if (imagePath.includes("/")) {
-      filename = imagePath.split("/").pop();
+    if (imagePath.includes('/')) {
+      filename = imagePath.split('/').pop();
     }
     return `http://localhost:4001/api/v1/attachments/download/${filename}`;
   };
@@ -325,35 +319,35 @@ function OrderTrackingPageContent() {
   };
 
   const getPaymentStatusMessage = () => {
-    if (!trackedOrder) return "";
+    if (!trackedOrder) return '';
 
-    if (trackedOrder.paymentStatus === "Completed") {
-      return "Payment completed successfully";
+    if (trackedOrder.paymentStatus === 'Completed') {
+      return 'Payment completed successfully';
     }
 
-    if (trackedOrder.requiredPaymentType === "part") {
-      if (trackedOrder.paymentStatus === "PartPayment") {
+    if (trackedOrder.requiredPaymentType === 'part') {
+      if (trackedOrder.paymentStatus === 'PartPayment') {
         return `Part payment received: ₦${trackedOrder.amountPaid?.toLocaleString()} (Deposit: ₦${trackedOrder.requiredDeposit?.toLocaleString()})`;
       }
-      if (trackedOrder.paymentStatus === "Pending") {
+      if (trackedOrder.paymentStatus === 'Pending') {
         return `Awaiting part payment - Deposit required: ₦${trackedOrder.requiredDeposit?.toLocaleString()}`;
       }
-      if (trackedOrder.paymentStatus === "Completed") {
-        return "Full payment completed";
+      if (trackedOrder.paymentStatus === 'Completed') {
+        return 'Full payment completed';
       }
     }
 
-    if (trackedOrder.requiredPaymentType === "full") {
-      if (trackedOrder.paymentStatus === "Pending") {
+    if (trackedOrder.requiredPaymentType === 'full') {
+      if (trackedOrder.paymentStatus === 'Pending') {
         return `Awaiting full payment: ₦${trackedOrder.totalAmount?.toLocaleString()}`;
       }
-      if (trackedOrder.paymentStatus === "Completed") {
-        return "Full payment received";
+      if (trackedOrder.paymentStatus === 'Completed') {
+        return 'Full payment received';
       }
     }
 
     if (!trackedOrder.invoiceId) {
-      return "Invoice not yet generated";
+      return 'Invoice not yet generated';
     }
 
     return `Payment status: ${trackedOrder.paymentStatus}`;
@@ -394,11 +388,21 @@ function OrderTrackingPageContent() {
                   placeholder="Enter order number (e.g., ORD-2026-001 )"
                   value={orderNumber}
                   onChange={(e) => setOrderNumber(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleTrack()}
+                  onKeyPress={(e) => e.key === 'Enter' && handleTrack()}
                   className="w-full"
                   icon={
-                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    <svg
+                      className="h-5 w-5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
                     </svg>
                   }
                 />
@@ -412,7 +416,7 @@ function OrderTrackingPageContent() {
                 disabled={loading}
                 className="sm:w-auto"
               >
-                {loading ? "Tracking..." : "Track Order"}
+                {loading ? 'Tracking...' : 'Track Order'}
               </Button>
             </div>
 
@@ -420,8 +424,18 @@ function OrderTrackingPageContent() {
               <div className="mt-4 rounded-lg border border-red-800 bg-red-900/20 p-4">
                 <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
                   <p className="flex items-center gap-2 text-sm text-red-400">
-                    <svg className="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg
+                      className="h-5 w-5 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                     {error}
                   </p>
@@ -442,19 +456,19 @@ function OrderTrackingPageContent() {
                 order={{
                   id: trackedOrder._id,
                   orderNumber: trackedOrder.orderNumber,
-                  productName: trackedOrder.items?.[0]?.productName || "Multiple Items",
+                  productName: trackedOrder.items?.[0]?.productName || 'Multiple Items',
                   productImage: getImageUrl(trackedOrder.items?.[0]?.productId?.images?.[0]),
                   orderedDate: new Date(trackedOrder.createdAt)
-                    .toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "2-digit",
-                      day: "2-digit"
+                    .toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
                     })
-                    .replace(/\//g, "-"),
+                    .replace(/\//g, '-'),
                   totalAmount: trackedOrder.totalAmount,
                   status: trackedOrder.status,
                   itemsCount: trackedOrder.items?.length || 1,
-                  paymentStatus: trackedOrder.paymentStatus
+                  paymentStatus: trackedOrder.paymentStatus,
                 }}
                 onClick={() => router.push(`/orders/${trackedOrder._id}`)}
               />
@@ -476,26 +490,38 @@ function OrderTrackingPageContent() {
                   {trackedOrder.invoiceId && trackedOrder.requiredPaymentType && (
                     <div
                       className={`mb-6 rounded-lg p-4 ${
-                        trackedOrder.requiredPaymentType === "part"
-                          ? "border border-yellow-800 bg-yellow-900/20"
-                          : "border border-blue-800 bg-blue-900/20"
+                        trackedOrder.requiredPaymentType === 'part'
+                          ? 'border border-yellow-800 bg-yellow-900/20'
+                          : 'border border-blue-800 bg-blue-900/20'
                       }`}
                     >
                       <p
                         className={`flex items-center gap-2 text-sm ${
-                          trackedOrder.requiredPaymentType === "part" ? "text-yellow-400" : "text-blue-400"
+                          trackedOrder.requiredPaymentType === 'part'
+                            ? 'text-yellow-400'
+                            : 'text-blue-400'
                         }`}
                       >
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
                         </svg>
                         {getPaymentStatusMessage()}
-                        {trackedOrder.requiredPaymentType === "part" && (
+                        {trackedOrder.requiredPaymentType === 'part' && (
                           <span className="rounded-full bg-yellow-900/30 px-2 py-0.5 text-xs">
                             Part Payment Plan
                           </span>
                         )}
-                        {trackedOrder.requiredPaymentType === "full" && (
+                        {trackedOrder.requiredPaymentType === 'full' && (
                           <span className="rounded-full bg-blue-900/30 px-2 py-0.5 text-xs">
                             Full Payment
                           </span>
@@ -506,7 +532,7 @@ function OrderTrackingPageContent() {
 
                   <div className="space-y-8">
                     {getStatusPhases(trackedOrder).map((phase, phaseIndex) => {
-                      if (phase.name === "Cancelled" && !isCancelled) return null;
+                      if (phase.name === 'Cancelled' && !isCancelled) return null;
                       if (phase.statuses.length === 0) return null;
 
                       const currentStatusInPhase = phase.statuses.find(
@@ -526,7 +552,7 @@ function OrderTrackingPageContent() {
                               className={`flex h-10 w-10 items-center justify-center rounded-xl ${
                                 isPhaseCompleted || isPhaseActive
                                   ? `bg-${phase.color}-900/30`
-                                  : "bg-gray-800"
+                                  : 'bg-gray-800'
                               }`}
                             >
                               <span className="text-xl">{phase.icon}</span>
@@ -534,7 +560,7 @@ function OrderTrackingPageContent() {
                             <div>
                               <h3
                                 className={`font-semibold ${
-                                  isPhaseCompleted || isPhaseActive ? "text-white" : "text-gray-500"
+                                  isPhaseCompleted || isPhaseActive ? 'text-white' : 'text-gray-500'
                                 }`}
                               >
                                 {phase.name}
@@ -557,7 +583,8 @@ function OrderTrackingPageContent() {
 
                           <div className="ml-13 space-y-4 border-l-2 border-gray-800 pl-4">
                             {phase.statuses.map((status) => {
-                              const isCompleted = StatusFlowOrder.indexOf(status) < getCurrentStepIndex();
+                              const isCompleted =
+                                StatusFlowOrder.indexOf(status) < getCurrentStepIndex();
                               const isCurrent = status === trackedOrder.status;
 
                               return (
@@ -566,10 +593,10 @@ function OrderTrackingPageContent() {
                                     <div
                                       className={`h-4 w-4 rounded-full ${
                                         isCompleted
-                                          ? "bg-green-500"
+                                          ? 'bg-green-500'
                                           : isCurrent
-                                          ? "animate-pulse bg-red-500"
-                                          : "bg-gray-700"
+                                            ? 'animate-pulse bg-red-500'
+                                            : 'bg-gray-700'
                                       }`}
                                     ></div>
                                   </div>
@@ -578,7 +605,7 @@ function OrderTrackingPageContent() {
                                     <div className="mb-1 flex flex-wrap items-center gap-2">
                                       <p
                                         className={`text-sm font-medium ${
-                                          isCompleted || isCurrent ? "text-white" : "text-gray-500"
+                                          isCompleted || isCurrent ? 'text-white' : 'text-gray-500'
                                         }`}
                                       >
                                         {StatusDisplayNames[status]}
@@ -590,8 +617,18 @@ function OrderTrackingPageContent() {
                                       )}
                                       {isCompleted && (
                                         <span className="flex items-center gap-1 text-xs text-green-500">
-                                          <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                          <svg
+                                            className="h-3 w-3"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              strokeWidth={2}
+                                              d="M5 13l4 4L19 7"
+                                            />
                                           </svg>
                                           Done
                                         </span>
@@ -601,40 +638,67 @@ function OrderTrackingPageContent() {
                                     {isCurrent && (
                                       <div className="mt-2 text-sm text-gray-400">
                                         {status === OrderStatus.AwaitingPartPayment && (
-                                          <p>Awaiting initial deposit of ₦{trackedOrder.requiredDeposit?.toLocaleString()}</p>
+                                          <p>
+                                            Awaiting initial deposit of ₦
+                                            {trackedOrder.requiredDeposit?.toLocaleString()}
+                                          </p>
                                         )}
                                         {status === OrderStatus.PartPaymentMade && (
                                           <p>Deposit received. Design work will begin soon.</p>
                                         )}
                                         {status === OrderStatus.DesignUploaded && (
-                                          <p>Your design has been uploaded and is ready for your review.</p>
+                                          <p>
+                                            Your design has been uploaded and is ready for your
+                                            review.
+                                          </p>
                                         )}
                                         {status === OrderStatus.UnderReview && (
-                                          <p>Please review the design and provide feedback or approve.</p>
+                                          <p>
+                                            Please review the design and provide feedback or
+                                            approve.
+                                          </p>
                                         )}
                                         {status === OrderStatus.Approved && (
-                                          <p>Design approved! Your order will now proceed to production.</p>
+                                          <p>
+                                            Design approved! Your order will now proceed to
+                                            production.
+                                          </p>
                                         )}
                                         {status === OrderStatus.InProduction && (
                                           <p>Your order is currently being printed/produced.</p>
                                         )}
                                         {status === OrderStatus.Completed && (
-                                          <p>Production is complete! Final payment is now required for shipping.</p>
+                                          <p>
+                                            Production is complete! Final payment is now required
+                                            for shipping.
+                                          </p>
                                         )}
                                         {status === OrderStatus.AwaitingFinalPayment && (
-                                          <p>Awaiting final payment of ₦{trackedOrder.remainingBalance?.toLocaleString()} before shipping</p>
+                                          <p>
+                                            Awaiting final payment of ₦
+                                            {trackedOrder.remainingBalance?.toLocaleString()} before
+                                            shipping
+                                          </p>
                                         )}
                                         {status === OrderStatus.FinalPaid && (
-                                          <p>Final payment received. Your order will be prepared for shipping.</p>
+                                          <p>
+                                            Final payment received. Your order will be prepared for
+                                            shipping.
+                                          </p>
                                         )}
                                         {status === OrderStatus.ReadyForShipping && (
                                           <p>Your order is packed and ready to be shipped.</p>
                                         )}
                                         {status === OrderStatus.Shipped && (
-                                          <p>Your order has been shipped and is on its way to you.</p>
+                                          <p>
+                                            Your order has been shipped and is on its way to you.
+                                          </p>
                                         )}
                                         {status === OrderStatus.Delivered && (
-                                          <p>Your order has been delivered. Thank you for your business!</p>
+                                          <p>
+                                            Your order has been delivered. Thank you for your
+                                            business!
+                                          </p>
                                         )}
                                       </div>
                                     )}
@@ -654,8 +718,18 @@ function OrderTrackingPageContent() {
                 <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-6 backdrop-blur-sm">
                   <div className="mb-4 flex items-center gap-3">
                     <div className="rounded-lg bg-blue-900/30 p-2">
-                      <svg className="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                      <svg
+                        className="h-5 w-5 text-blue-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+                        />
                       </svg>
                     </div>
                     <h3 className="font-semibold text-white">Payment Status</h3>
@@ -669,12 +743,12 @@ function OrderTrackingPageContent() {
                   <div className="mt-3 text-sm text-gray-400">
                     Total: ₦{trackedOrder.totalAmount?.toLocaleString()}
                   </div>
-                  {trackedOrder.requiredPaymentType === "part" && trackedOrder.requiredDeposit && (
+                  {trackedOrder.requiredPaymentType === 'part' && trackedOrder.requiredDeposit && (
                     <div className="mt-3 rounded-lg bg-yellow-900/20 p-2 text-xs text-yellow-400">
                       Required Deposit: ₦{trackedOrder.requiredDeposit.toLocaleString()}
                     </div>
                   )}
-                  {trackedOrder.remainingBalance > 0 && trackedOrder.status === "Completed" && (
+                  {trackedOrder.remainingBalance > 0 && trackedOrder.status === 'Completed' && (
                     <div className="mt-3 rounded-lg bg-orange-900/20 p-2 text-xs text-orange-400">
                       Final Payment Due: ₦{trackedOrder.remainingBalance.toLocaleString()}
                     </div>
@@ -684,14 +758,24 @@ function OrderTrackingPageContent() {
                 <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-6 backdrop-blur-sm">
                   <div className="mb-4 flex items-center gap-3">
                     <div className="rounded-lg bg-green-900/30 p-2">
-                      <svg className="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                      <svg
+                        className="h-5 w-5 text-green-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+                        />
                       </svg>
                     </div>
                     <h3 className="font-semibold text-white">Shipping Status</h3>
                   </div>
                   <StatusBadge
-                    status={trackedOrder.shippingId ? "Ready for Shipping" : "Pending"}
+                    status={trackedOrder.shippingId ? 'Ready for Shipping' : 'Pending'}
                     type="order"
                   />
                   {trackedOrder.shippingId && (
@@ -702,12 +786,12 @@ function OrderTrackingPageContent() {
                       View Shipping Details →
                     </button>
                   )}
-                  {trackedOrder.status === "Completed" && (
+                  {trackedOrder.status === 'Completed' && (
                     <p className="mt-3 text-xs text-green-400">
-                      Production complete.{" "}
+                      Production complete.{' '}
                       {trackedOrder.remainingBalance > 0
-                        ? "Final payment required before shipping."
-                        : "Ready for shipping."}
+                        ? 'Final payment required before shipping.'
+                        : 'Ready for shipping.'}
                     </p>
                   )}
                 </div>
@@ -717,8 +801,18 @@ function OrderTrackingPageContent() {
                 <Link href={`/orders/${trackedOrder._id}`}>
                   <Button variant="secondary" className="gap-2">
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
                     </svg>
                     View Full Details
                   </Button>
@@ -726,7 +820,12 @@ function OrderTrackingPageContent() {
                 <Link href="/order-history">
                   <Button variant="ghost" className="gap-2">
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14v-6a4 4 0 00-4-4h-1" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14v-6a4 4 0 00-4-4h-1"
+                      />
                     </svg>
                     All Orders
                   </Button>
@@ -738,10 +837,12 @@ function OrderTrackingPageContent() {
           {!trackedOrder && !loading && !error && !searchAttempted && (
             <div className="rounded-xl border border-gray-800 bg-slate-900/30 py-16 text-center">
               <div className="mb-4 text-6xl">🔍</div>
-              <p className="mb-2 text-lg text-gray-400">Enter an order number to track your order</p>
+              <p className="mb-2 text-lg text-gray-400">
+                Enter an order number to track your order
+              </p>
               <p className="mx-auto max-w-md text-sm text-gray-500">
-                You can find your order number in your order confirmation email or in your order history.
-                Format examples: ORD-2026-001 or 82097b5f-bbb0-4999-950d-3b155f484f85
+                You can find your order number in your order confirmation email or in your order
+                history. Format examples: ORD-2026-001 or 82097b5f-bbb0-4999-950d-3b155f484f85
               </p>
             </div>
           )}
@@ -756,8 +857,8 @@ function OrderTrackingPageContent() {
               </p>
               <button
                 onClick={() => {
-                  setOrderNumber("");
-                  setError("");
+                  setOrderNumber('');
+                  setError('');
                   setSearchAttempted(false);
                 }}
                 className="mt-4 text-sm text-red-400 hover:text-red-300"

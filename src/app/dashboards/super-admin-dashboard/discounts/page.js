@@ -1,23 +1,23 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import DashboardLayout from "@/components/layouts/DashboardLayout";
-import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
-import SEOHead from "@/components/common/SEOHead";
-import { discountService } from "@/services/discountService";
-import { METADATA } from "@/lib/metadata";
+import { useState, useEffect } from 'react';
+import DashboardLayout from '@/components/layouts/DashboardLayout';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import SEOHead from '@/components/common/SEOHead';
+import { discountService } from '@/services/discountService';
+import { METADATA } from '@/lib/metadata';
 
 export default function DiscountManagementPage() {
   const [discounts, setDiscounts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   const [newDiscount, setNewDiscount] = useState({
-    code: "",
+    code: '',
     value: 0,
-    type: "percentage",
-    active: true
+    type: 'percentage',
+    active: true,
   });
 
   useEffect(() => {
@@ -30,8 +30,8 @@ export default function DiscountManagementPage() {
       const response = await discountService.getAll();
       setDiscounts(response?.discounts || []);
     } catch (err) {
-      console.error("Failed to fetch discounts:", err);
-      setError("Failed to load discounts");
+      console.error('Failed to fetch discounts:', err);
+      setError('Failed to load discounts');
     } finally {
       setLoading(false);
     }
@@ -41,15 +41,15 @@ export default function DiscountManagementPage() {
     try {
       await discountService.create(newDiscount);
       setNewDiscount({
-        code: "",
+        code: '',
         value: 0,
-        type: "percentage",
-        active: true
+        type: 'percentage',
+        active: true,
       });
       fetchDiscounts();
     } catch (err) {
-      console.error("Failed to create discount:", err);
-      alert("Failed to create discount");
+      console.error('Failed to create discount:', err);
+      alert('Failed to create discount');
     }
   };
 
@@ -58,8 +58,8 @@ export default function DiscountManagementPage() {
       await discountService.toggleActive(discountId);
       fetchDiscounts();
     } catch (err) {
-      console.error("Failed to toggle discount:", err);
-      alert("Failed to update discount");
+      console.error('Failed to toggle discount:', err);
+      alert('Failed to update discount');
     }
   };
 
@@ -96,7 +96,9 @@ export default function DiscountManagementPage() {
                 className="[&_input]:bg-slate-800"
                 label="Discount Code"
                 value={newDiscount.code}
-                onChange={(e) => setNewDiscount({ ...newDiscount, code: e.target.value.toUpperCase() })}
+                onChange={(e) =>
+                  setNewDiscount({ ...newDiscount, code: e.target.value.toUpperCase() })
+                }
                 placeholder="e.g., WELCOME10"
               />
               <div>
@@ -112,13 +114,15 @@ export default function DiscountManagementPage() {
                   <option value="fixed">Fixed Amount (₦)</option>
                 </select>
               </div>
-              {newDiscount.type === "percentage" ? (
+              {newDiscount.type === 'percentage' ? (
                 <Input
                   className="[&_input]:bg-slate-800"
                   label="Percentage (%)"
                   type="number"
                   value={newDiscount.value}
-                  onChange={(e) => setNewDiscount({ ...newDiscount, value: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    setNewDiscount({ ...newDiscount, value: parseFloat(e.target.value) || 0 })
+                  }
                   placeholder="e.g., 10"
                 />
               ) : (
@@ -127,7 +131,9 @@ export default function DiscountManagementPage() {
                   label="Amount (₦)"
                   type="number"
                   value={newDiscount.value}
-                  onChange={(e) => setNewDiscount({ ...newDiscount, value: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    setNewDiscount({ ...newDiscount, value: parseFloat(e.target.value) || 0 })
+                  }
                   placeholder="e.g., 5000"
                 />
               )}
@@ -149,25 +155,30 @@ export default function DiscountManagementPage() {
             ) : (
               <div className="space-y-4">
                 {discounts.map((discount) => (
-                  <div key={discount._id} className="flex flex-col gap-4 rounded-lg bg-dark p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div
+                    key={discount._id}
+                    className="flex flex-col gap-4 rounded-lg bg-dark p-4 sm:flex-row sm:items-center sm:justify-between"
+                  >
                     <div>
                       <p className="font-semibold text-white">{discount.code}</p>
                       <p className="text-sm text-gray-400">
-                        {discount.type === "percentage" 
-                          ? `${discount.value}% off` 
+                        {discount.type === 'percentage'
+                          ? `${discount.value}% off`
                           : `₦${discount.value.toLocaleString()} off`}
                       </p>
                     </div>
                     <div className="flex items-center justify-between gap-4 sm:justify-end">
-                      <span className={`text-sm ${discount.active ? "text-green-400" : "text-gray-400"}`}>
-                        {discount.active ? "Active" : "Inactive"}
+                      <span
+                        className={`text-sm ${discount.active ? 'text-green-400' : 'text-gray-400'}`}
+                      >
+                        {discount.active ? 'Active' : 'Inactive'}
                       </span>
                       <Button
-                        variant={discount.active ? "danger" : "primary"}
+                        variant={discount.active ? 'danger' : 'primary'}
                         size="sm"
                         onClick={() => toggleDiscount(discount._id)}
                       >
-                        {discount.active ? "Deactivate" : "Activate"}
+                        {discount.active ? 'Deactivate' : 'Activate'}
                       </Button>
                     </div>
                   </div>

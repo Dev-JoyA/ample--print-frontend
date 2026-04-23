@@ -26,7 +26,7 @@ function PaymentVerifyPageContent() {
   const verifyPayment = async () => {
     try {
       const ref = reference || trxref;
-      
+
       if (!ref) {
         setError('No payment reference found');
         setVerifying(false);
@@ -34,12 +34,12 @@ function PaymentVerifyPageContent() {
       }
 
       console.log('Verifying payment with reference:', ref);
-      
+
       const response = await paymentService.verifyPaystack(ref);
       console.log('Verification response:', response);
-      
+
       const transactionData = response?.data || response;
-      
+
       if (transactionData?.transactionStatus === 'completed') {
         setSuccess(true);
         setTransaction(transactionData);
@@ -48,7 +48,6 @@ function PaymentVerifyPageContent() {
       } else {
         setError('Payment verification failed. Please contact support.');
       }
-      
     } catch (err) {
       console.error('Payment verification failed:', err);
       setError(err.message || 'Failed to verify payment');
@@ -86,7 +85,9 @@ function PaymentVerifyPageContent() {
             <div className="text-center">
               <div className="mx-auto mb-6 h-16 w-16 animate-spin rounded-full border-4 border-primary border-t-transparent sm:h-20 sm:w-20"></div>
               <h2 className="mb-2 text-xl font-bold text-white sm:text-2xl">Verifying Payment</h2>
-              <p className="text-sm text-gray-400 sm:text-base">Please wait while we confirm your payment...</p>
+              <p className="text-sm text-gray-400 sm:text-base">
+                Please wait while we confirm your payment...
+              </p>
             </div>
           </div>
         </DashboardLayout>
@@ -97,8 +98,10 @@ function PaymentVerifyPageContent() {
   return (
     <>
       <SEOHead
-        title={success ? "Payment Successful" : "Payment Failed"}
-        description={success ? "Your payment has been confirmed successfully" : "Payment verification failed"}
+        title={success ? 'Payment Successful' : 'Payment Failed'}
+        description={
+          success ? 'Your payment has been confirmed successfully' : 'Payment verification failed'
+        }
         robots="noindex, nofollow"
       />
       <DashboardLayout userRole="customer">
@@ -106,27 +109,41 @@ function PaymentVerifyPageContent() {
           {success ? (
             <div className="rounded-xl border border-gray-800 bg-[#0A0A0A] p-6 text-center sm:p-8">
               <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/20 sm:h-20 sm:w-20">
-                <svg className="h-8 w-8 text-green-500 sm:h-10 sm:w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <svg
+                  className="h-8 w-8 text-green-500 sm:h-10 sm:w-10"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               </div>
-              
-              <h2 className="mb-2 text-2xl font-bold text-white sm:text-3xl">Payment Successful!</h2>
+
+              <h2 className="mb-2 text-2xl font-bold text-white sm:text-3xl">
+                Payment Successful!
+              </h2>
               <p className="mb-6 text-sm text-gray-400 sm:mb-8 sm:text-base">
                 Your payment has been confirmed. Your order is now in production.
               </p>
-              
+
               {transaction && (
                 <div className="mb-6 rounded-lg bg-[#0F0F0F] p-4 text-left sm:mb-8">
-                  <div className="flex flex-wrap justify-between gap-2 mb-2">
+                  <div className="mb-2 flex flex-wrap justify-between gap-2">
                     <span className="text-sm text-gray-400 sm:text-base">Amount:</span>
                     <span className="text-sm font-bold text-white sm:text-base">
                       ₦{transaction.transactionAmount?.toLocaleString()}
                     </span>
                   </div>
-                  <div className="flex flex-wrap justify-between gap-2 mb-2">
+                  <div className="mb-2 flex flex-wrap justify-between gap-2">
                     <span className="text-sm text-gray-400 sm:text-base">Reference:</span>
-                    <span className="font-mono text-xs text-white break-all sm:text-sm">{transaction.transactionId}</span>
+                    <span className="break-all font-mono text-xs text-white sm:text-sm">
+                      {transaction.transactionId}
+                    </span>
                   </div>
                   <div className="flex flex-wrap justify-between gap-2">
                     <span className="text-sm text-gray-400 sm:text-base">Date:</span>
@@ -136,20 +153,12 @@ function PaymentVerifyPageContent() {
                   </div>
                 </div>
               )}
-              
+
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-center sm:gap-4">
-                <Button
-                  variant="primary"
-                  onClick={handleViewInvoice}
-                  className="w-full sm:w-auto"
-                >
+                <Button variant="primary" onClick={handleViewInvoice} className="w-full sm:w-auto">
                   View Invoice
                 </Button>
-                <Button
-                  variant="secondary"
-                  onClick={handleViewOrder}
-                  className="w-full sm:w-auto"
-                >
+                <Button variant="secondary" onClick={handleViewOrder} className="w-full sm:w-auto">
                   Track Order
                 </Button>
               </div>
@@ -157,16 +166,26 @@ function PaymentVerifyPageContent() {
           ) : (
             <div className="rounded-xl border border-gray-800 bg-[#0A0A0A] p-6 text-center sm:p-8">
               <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-500/20 sm:h-20 sm:w-20">
-                <svg className="h-8 w-8 text-red-500 sm:h-10 sm:w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="h-8 w-8 text-red-500 sm:h-10 sm:w-10"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </div>
-              
+
               <h2 className="mb-2 text-2xl font-bold text-white sm:text-3xl">Payment Failed</h2>
               <p className="mb-6 text-sm text-gray-400 sm:mb-8 sm:text-base">
                 {error || 'We could not verify your payment. Please try again or contact support.'}
               </p>
-              
+
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-center sm:gap-4">
                 <Button
                   variant="primary"

@@ -58,7 +58,9 @@ ample--print-frontend/
 ## Component Architecture
 
 ### UI Components (`src/components/ui/`)
+
 Reusable base components used throughout the application:
+
 - **Sidebar**: Navigation sidebar with role-based menu items
 - **Header**: Top header with search bar and user controls
 - **SearchBar**: Search input component
@@ -69,7 +71,9 @@ Reusable base components used throughout the application:
 - **StatusBadge**: Status indicator badge
 
 ### Card Components (`src/components/cards/`)
+
 Specialized card components for displaying data:
+
 - **ProductCard**: Displays product information
 - **OrderCard**: Displays order information
 - **InvoiceCard**: Displays invoice information
@@ -77,12 +81,15 @@ Specialized card components for displaying data:
 - **CollectionCard**: Displays collection information
 
 ### Layout Components (`src/components/layouts/`)
+
 Layout wrappers for pages:
+
 - **DashboardLayout**: Layout for dashboard pages with sidebar and header
 
 ## Page Routes
 
 ### Customer Pages
+
 - `/` - Landing page
 - `/collections` - Collections list
 - `/collections/[id]/products` - Products in a collection
@@ -99,12 +106,14 @@ Layout wrappers for pages:
 - `/dashboard` - Customer dashboard
 
 ### Admin Pages
+
 - `/admin-dashboard` - Admin dashboard
 - `/admin/orders` - Orders management
 - `/admin/customer-briefs` - Customer briefs
 - `/admin/design-upload` - Design upload
 
 ### Super Admin Pages
+
 - `/super-admin-dashboard` - Super admin dashboard
 - `/super-admin/invoices` - Invoice creation
 - `/super-admin/shipping-invoices` - Shipping invoice creation
@@ -114,6 +123,7 @@ Layout wrappers for pages:
 ## Styling
 
 The project uses **Tailwind CSS 3** with a custom design system:
+
 - Primary color: Red (#EF4444)
 - Dark theme: Dark gray/black backgrounds
 - Status colors: Blue, Yellow, Green, Red
@@ -122,6 +132,7 @@ The project uses **Tailwind CSS 3** with a custom design system:
 ## State Management
 
 Currently using React hooks (`useState`, `useEffect`) for local state. For production, consider:
+
 - Context API for global state
 - Zustand or Redux for complex state management
 - React Query for server state

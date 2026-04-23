@@ -22,20 +22,20 @@ This guide walks through testing **all backend–frontend integration flows** in
 
 ## Test Order Overview
 
-| # | Flow              | Role(s)     | Frontend route / action                    |
-|---|-------------------|------------|--------------------------------------------|
-| 1 | Super-admin sign-up | (public) | `/auth/sign-up` (super-admin path)          |
-| 2 | Sign-in           | SuperAdmin | `/auth/sign-in`                             |
-| 3 | Create admin      | SuperAdmin | Create admin, then (optional) sign in as admin |
-| 4 | Customer sign-up  | (public)   | `/auth/sign-up` (customer)                  |
-| 5 | Customer sign-in  | Customer   | `/auth/sign-in`                             |
-| 6 | Forgot password   | (public)   | `/auth/forgot-password`                     |
-| 7 | Deactivate/activate admin | SuperAdmin | Admin management pages              |
-| 8 | Collections & products | Any   | Collections list → products → product detail |
-| 9 | Orders            | Customer / Admin | Create order, my orders, order detail   |
-| 10| Design            | Admin / Customer | Design upload, list, approve            |
-| 11| Feedback          | Customer / Admin | Create feedback, respond, list         |
-| 12| Customer briefs   | Customer / Admin | Submit brief, admin respond, list      |
+| #   | Flow                      | Role(s)          | Frontend route / action                        |
+| --- | ------------------------- | ---------------- | ---------------------------------------------- |
+| 1   | Super-admin sign-up       | (public)         | `/auth/sign-up` (super-admin path)             |
+| 2   | Sign-in                   | SuperAdmin       | `/auth/sign-in`                                |
+| 3   | Create admin              | SuperAdmin       | Create admin, then (optional) sign in as admin |
+| 4   | Customer sign-up          | (public)         | `/auth/sign-up` (customer)                     |
+| 5   | Customer sign-in          | Customer         | `/auth/sign-in`                                |
+| 6   | Forgot password           | (public)         | `/auth/forgot-password`                        |
+| 7   | Deactivate/activate admin | SuperAdmin       | Admin management pages                         |
+| 8   | Collections & products    | Any              | Collections list → products → product detail   |
+| 9   | Orders                    | Customer / Admin | Create order, my orders, order detail          |
+| 10  | Design                    | Admin / Customer | Design upload, list, approve                   |
+| 11  | Feedback                  | Customer / Admin | Create feedback, respond, list                 |
+| 12  | Customer briefs           | Customer / Admin | Submit brief, admin respond, list              |
 
 ---
 

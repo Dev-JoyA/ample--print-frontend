@@ -1,25 +1,23 @@
-import { redirect } from "next/navigation";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { COOKIE_NAMES } from "../../lib/constants";
+import { redirect } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { COOKIE_NAMES } from '../../lib/constants';
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:4001/api/v1";
-const VERIFY_PATH = "/auth/verify-token";
-const REFRESH_PATH = "/auth/refresh-token";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4001/api/v1';
+const VERIFY_PATH = '/auth/verify-token';
+const REFRESH_PATH = '/auth/refresh-token';
 
-const secure =
-  typeof process !== "undefined" && process.env.NODE_ENV === "production";
+const secure = typeof process !== 'undefined' && process.env.NODE_ENV === 'production';
 
 /**
  * Server-side: protect a route by verifying the token cookie. Redirects to sign-in if invalid.
  */
 export async function protectRoute() {
-  const { cookies } = await import("next/headers");
+  const { cookies } = await import('next/headers');
   const token = cookies().get(COOKIE_NAMES.TOKEN)?.value;
 
   if (!token) {
-    redirect("/auth/sign-in");
+    redirect('/auth/sign-in');
   }
 
   try {
@@ -28,14 +26,14 @@ export async function protectRoute() {
     });
 
     if (!res.ok) {
-      throw new Error("Invalid token");
+      throw new Error('Invalid token');
     }
-    
+
     const data = await res.json();
     return data;
   } catch (error) {
-    console.error("Protect route error:", error?.message);
-    redirect("/auth/sign-in");
+    console.error('Protect route error:', error?.message);
+    redirect('/auth/sign-in');
   }
 }
 
@@ -67,10 +65,10 @@ export function useAuthCheck(options = {}) {
 
         // Actually verify the token with the backend
         const res = await fetch(`${API_BASE_URL}${VERIFY_PATH}`, {
-          method: "GET",
-          headers: { 
+          method: 'GET',
+          headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
+            'Content-Type': 'application/json',
           },
         });
 
@@ -79,23 +77,22 @@ export function useAuthCheck(options = {}) {
         }
 
         const data = await res.json();
-        
+
         // Extract user info from response
         const userData = data.user || data.data?.user || data;
         setUser(userData);
         setIsValid(true);
-        
+
         if (onSuccess) {
           onSuccess(userData);
         }
-        
       } catch (error) {
-        console.error("Authentication error:", error?.message);
-        
+        console.error('Authentication error:', error?.message);
+
         // Clear cookies on verification failure
-        document.cookie = `${COOKIE_NAMES.TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${secure ? "secure;" : ""} sameSite=strict`;
-        document.cookie = `${COOKIE_NAMES.REFRESH_TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${secure ? "secure;" : ""} sameSite=strict`;
-        
+        document.cookie = `${COOKIE_NAMES.TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${secure ? 'secure;' : ''} sameSite=strict`;
+        document.cookie = `${COOKIE_NAMES.REFRESH_TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${secure ? 'secure;' : ''} sameSite=strict`;
+
         if (onError) {
           onError(error);
         } else {
@@ -127,7 +124,7 @@ export function useAuth() {
       try {
         const token = document.cookie
           .split('; ')
-          .find(row => row.startsWith(`${COOKIE_NAMES.TOKEN}=`))
+          .find((row) => row.startsWith(`${COOKIE_NAMES.TOKEN}=`))
           ?.split('=')[1];
 
         if (token) {
@@ -168,7 +165,7 @@ export function useAuth() {
 export function useProtectedRoute(options = {}) {
   const authCheck = useAuthCheck(options);
   const auth = useAuth();
-  
+
   return {
     ...authCheck,
     ...auth,
@@ -182,52 +179,52 @@ export function useProtectedRoute(options = {}) {
  */
 export async function refreshToken() {
   const refreshTokenValue =
-    typeof document !== "undefined"
+    typeof document !== 'undefined'
       ? document.cookie
-          .split("; ")
+          .split('; ')
           .find((row) => row.startsWith(`${COOKIE_NAMES.REFRESH_TOKEN}=`))
-          ?.split("=")[1]
+          ?.split('=')[1]
       : null;
 
   if (!refreshTokenValue) {
-    if (typeof window !== "undefined") {
-      document.cookie = `${COOKIE_NAMES.TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${secure ? "secure;" : ""} sameSite=strict`;
-      document.cookie = `${COOKIE_NAMES.REFRESH_TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${secure ? "secure;" : ""} sameSite=strict`;
-      window.location.href = "/auth/sign-in";
+    if (typeof window !== 'undefined') {
+      document.cookie = `${COOKIE_NAMES.TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${secure ? 'secure;' : ''} sameSite=strict`;
+      document.cookie = `${COOKIE_NAMES.REFRESH_TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${secure ? 'secure;' : ''} sameSite=strict`;
+      window.location.href = '/auth/sign-in';
     }
     return false;
   }
 
   try {
     const response = await fetch(`${API_BASE_URL}${REFRESH_PATH}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ refreshToken: refreshTokenValue }),
     });
 
     if (!response.ok) {
-      throw new Error("Failed to refresh token");
+      throw new Error('Failed to refresh token');
     }
 
     const data = await response.json();
     const newToken = data.token ?? data.accessToken;
     const newRefresh = data.refreshToken;
 
-    if (typeof document !== "undefined" && newToken) {
-      document.cookie = `${COOKIE_NAMES.TOKEN}=${encodeURIComponent(newToken)}; path=/; max-age=3600; ${secure ? "secure;" : ""} sameSite=strict`;
+    if (typeof document !== 'undefined' && newToken) {
+      document.cookie = `${COOKIE_NAMES.TOKEN}=${encodeURIComponent(newToken)}; path=/; max-age=3600; ${secure ? 'secure;' : ''} sameSite=strict`;
       if (newRefresh) {
-        document.cookie = `${COOKIE_NAMES.REFRESH_TOKEN}=${encodeURIComponent(newRefresh)}; path=/; max-age=604800; ${secure ? "secure;" : ""} sameSite=strict`;
+        document.cookie = `${COOKIE_NAMES.REFRESH_TOKEN}=${encodeURIComponent(newRefresh)}; path=/; max-age=604800; ${secure ? 'secure;' : ''} sameSite=strict`;
       }
     }
 
     return true;
   } catch (error) {
-    console.error("Refresh token error:", error?.message);
-    if (typeof document !== "undefined") {
-      document.cookie = `${COOKIE_NAMES.TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${secure ? "secure;" : ""} sameSite=strict`;
-      document.cookie = `${COOKIE_NAMES.REFRESH_TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${secure ? "secure;" : ""} sameSite=strict`;
-      window.location.href = "/auth/sign-in";
+    console.error('Refresh token error:', error?.message);
+    if (typeof document !== 'undefined') {
+      document.cookie = `${COOKIE_NAMES.TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${secure ? 'secure;' : ''} sameSite=strict`;
+      document.cookie = `${COOKIE_NAMES.REFRESH_TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${secure ? 'secure;' : ''} sameSite=strict`;
+      window.location.href = '/auth/sign-in';
     }
     return false;
   }
@@ -237,13 +234,13 @@ export async function refreshToken() {
  * Set auth cookies (token and optionally refreshToken). Use after sign-in/sign-up.
  */
 export function setAuthCookies(token, refreshToken) {
-  if (typeof document === "undefined") return;
-  
-  const tokenOpts = `path=/; max-age=3600; ${secure ? "secure;" : ""} sameSite=strict`;
+  if (typeof document === 'undefined') return;
+
+  const tokenOpts = `path=/; max-age=3600; ${secure ? 'secure;' : ''} sameSite=strict`;
   document.cookie = `${COOKIE_NAMES.TOKEN}=${encodeURIComponent(token)}; ${tokenOpts}`;
-  
+
   if (refreshToken) {
-    const refreshOpts = `path=/; max-age=604800; ${secure ? "secure;" : ""} sameSite=strict`;
+    const refreshOpts = `path=/; max-age=604800; ${secure ? 'secure;' : ''} sameSite=strict`;
     document.cookie = `${COOKIE_NAMES.REFRESH_TOKEN}=${encodeURIComponent(refreshToken)}; ${refreshOpts}`;
   }
 }
@@ -252,10 +249,10 @@ export function setAuthCookies(token, refreshToken) {
  * Clear auth cookies (logout)
  */
 export function clearAuthCookies() {
-  if (typeof document === "undefined") return;
-  
-  document.cookie = `${COOKIE_NAMES.TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${secure ? "secure;" : ""} sameSite=strict`;
-  document.cookie = `${COOKIE_NAMES.REFRESH_TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${secure ? "secure;" : ""} sameSite=strict`;
+  if (typeof document === 'undefined') return;
+
+  document.cookie = `${COOKIE_NAMES.TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${secure ? 'secure;' : ''} sameSite=strict`;
+  document.cookie = `${COOKIE_NAMES.REFRESH_TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${secure ? 'secure;' : ''} sameSite=strict`;
 }
 
 /**
@@ -265,11 +262,11 @@ export function getUserRole() {
   try {
     const token = document.cookie
       .split('; ')
-      .find(row => row.startsWith(`${COOKIE_NAMES.TOKEN}=`))
+      .find((row) => row.startsWith(`${COOKIE_NAMES.TOKEN}=`))
       ?.split('=')[1];
-    
+
     if (!token) return null;
-    
+
     const decoded = JSON.parse(atob(token.split('.')[1]));
     return decoded?.role || null;
   } catch (e) {
@@ -284,11 +281,11 @@ export function getUserRole() {
 export function hasRole(requiredRole) {
   const userRole = getUserRole();
   if (!userRole) return false;
-  
+
   // Handle array of roles
   if (Array.isArray(requiredRole)) {
     return requiredRole.includes(userRole);
   }
-  
+
   return userRole === requiredRole;
 }

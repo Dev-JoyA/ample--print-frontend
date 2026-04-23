@@ -15,7 +15,7 @@ const ProductCard = ({ product, onClick }) => {
     deliveryDay,
     material,
     status,
-    collectionId
+    collectionId,
   } = product;
 
   const [imgError, setImgError] = useState(false);
@@ -24,7 +24,7 @@ const ProductCard = ({ product, onClick }) => {
   useEffect(() => {
     // Get the primary image
     const primaryImage = image || (images && images[0]) || null;
-    
+
     if (primaryImage) {
       let filename = primaryImage;
       if (primaryImage.includes('/')) {
@@ -67,8 +67,18 @@ const ProductCard = ({ product, onClick }) => {
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-gray-500">
-            <svg className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <svg
+              className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
             </svg>
           </div>
         )}
@@ -76,8 +86,18 @@ const ProductCard = ({ product, onClick }) => {
 
       <div className="space-y-2 p-3 sm:space-y-3 sm:p-4">
         <div className="flex items-center gap-1 text-xs text-gray-300 sm:gap-2">
-          <svg className="h-3 w-3 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="h-3 w-3 sm:h-4 sm:w-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <span className="text-xs">{formatDeliveryTime(deliveryDay)}</span>
         </div>
@@ -98,10 +118,17 @@ const ProductCard = ({ product, onClick }) => {
         <div className="flex items-center justify-between border-t border-dark-lighter pt-2">
           <div>
             <p className="text-xs font-bold text-red-600">STARTING AT</p>
-            <p className="text-base font-bold text-white sm:text-lg">₦{price?.toLocaleString() || '0.00'}</p>
+            <p className="text-base font-bold text-white sm:text-lg">
+              ₦{price?.toLocaleString() || '0.00'}
+            </p>
           </div>
           <button className="flex h-8 w-8 items-center justify-center rounded-full bg-dark transition-colors hover:bg-primary sm:h-10 sm:w-10">
-            <svg className="h-4 w-4 text-gray-400 group-hover:text-white sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="h-4 w-4 text-gray-400 group-hover:text-white sm:h-5 sm:w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>

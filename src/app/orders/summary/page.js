@@ -15,9 +15,9 @@ import { METADATA, getOrderMetadata } from '@/lib/metadata';
 function OrderSummaryPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   useAuthCheck();
-  
+
   const orderId = searchParams.get('orderId');
 
   const [loading, setLoading] = useState(true);
@@ -38,10 +38,10 @@ function OrderSummaryPageContent() {
   const fetchOrderData = async () => {
     try {
       setLoading(true);
-      
+
       const orderResponse = await orderService.getById(orderId);
       console.log('Order response:', orderResponse);
-      
+
       const orderData = orderResponse?.order || orderResponse?.data || orderResponse;
       setOrder(orderData);
 
@@ -49,10 +49,13 @@ function OrderSummaryPageContent() {
         const briefPromises = orderData.items.map(async (item) => {
           const productId = item.productId._id || item.productId;
           try {
-            const briefResponse = await customerBriefService.getByOrderAndProduct(orderId, productId);
+            const briefResponse = await customerBriefService.getByOrderAndProduct(
+              orderId,
+              productId
+            );
             return {
               productId,
-              brief: briefResponse?.data || briefResponse
+              brief: briefResponse?.data || briefResponse,
             };
           } catch (err) {
             console.log(`No brief found for product ${productId}`);
@@ -61,14 +64,15 @@ function OrderSummaryPageContent() {
         });
 
         const briefResults = await Promise.all(briefPromises);
-        const briefMap = briefResults.filter(b => b !== null).reduce((acc, curr) => {
-          acc[curr.productId] = curr.brief;
-          return acc;
-        }, {});
-        
+        const briefMap = briefResults
+          .filter((b) => b !== null)
+          .reduce((acc, curr) => {
+            acc[curr.productId] = curr.brief;
+            return acc;
+          }, {});
+
         setBriefs(briefMap);
       }
-
     } catch (err) {
       console.error('Failed to fetch order:', err);
       setError('Failed to load order summary');
@@ -98,7 +102,7 @@ function OrderSummaryPageContent() {
       month: 'long',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
@@ -160,12 +164,26 @@ function OrderSummaryPageContent() {
           <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
             <div className="mb-6 text-center sm:mb-8">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-600/20 sm:h-20 sm:w-20">
-                <svg className="h-8 w-8 text-green-400 sm:h-10 sm:w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <svg
+                  className="h-8 w-8 text-green-400 sm:h-10 sm:w-10"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               </div>
-              <h1 className="text-2xl font-bold text-white sm:text-3xl sm:text-4xl">Order Confirmed!</h1>
-              <p className="mt-1 text-sm text-gray-400 sm:mt-2 sm:text-base">Thank you for your order. We'll start working on it right away.</p>
+              <h1 className="text-2xl font-bold text-white sm:text-3xl sm:text-4xl">
+                Order Confirmed!
+              </h1>
+              <p className="mt-1 text-sm text-gray-400 sm:mt-2 sm:text-base">
+                Thank you for your order. We'll start working on it right away.
+              </p>
             </div>
 
             <div className="mb-6 overflow-hidden rounded-2xl border border-gray-800 bg-slate-900/50 backdrop-blur-sm">
@@ -173,7 +191,9 @@ function OrderSummaryPageContent() {
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="mb-1 text-xs text-gray-400 sm:text-sm">Order Number</p>
-                    <p className="font-mono text-base font-semibold text-white sm:text-xl">{order.orderNumber}</p>
+                    <p className="font-mono text-base font-semibold text-white sm:text-xl">
+                      {order.orderNumber}
+                    </p>
                   </div>
                   <div className="text-left sm:text-right">
                     <p className="mb-1 text-xs text-gray-400 sm:text-sm">Order Date</p>
@@ -188,24 +208,43 @@ function OrderSummaryPageContent() {
                   {order.items?.map((item, index) => {
                     const productId = item.productId._id || item.productId;
                     const brief = briefs[productId];
-                    
+
                     return (
-                      <div key={index} className="flex flex-col gap-3 rounded-xl bg-slate-800/30 p-3 sm:flex-row sm:items-center sm:gap-4 sm:p-4">
+                      <div
+                        key={index}
+                        className="flex flex-col gap-3 rounded-xl bg-slate-800/30 p-3 sm:flex-row sm:items-center sm:gap-4 sm:p-4"
+                      >
                         <div className="flex-1">
                           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                            <h3 className="text-sm font-medium text-white sm:text-base">{item.productName}</h3>
-                            <p className="text-sm font-semibold text-primary sm:text-base">{formatCurrency(item.price * item.quantity)}</p>
+                            <h3 className="text-sm font-medium text-white sm:text-base">
+                              {item.productName}
+                            </h3>
+                            <p className="text-sm font-semibold text-primary sm:text-base">
+                              {formatCurrency(item.price * item.quantity)}
+                            </p>
                           </div>
                           <div className="flex flex-wrap items-center gap-2 text-xs sm:gap-3 sm:text-sm">
                             <span className="text-gray-400">Qty: {item.quantity}</span>
                             <span className="h-1 w-1 rounded-full bg-gray-600"></span>
-                            <span className="text-gray-400">Unit Price: {formatCurrency(item.price)}</span>
+                            <span className="text-gray-400">
+                              Unit Price: {formatCurrency(item.price)}
+                            </span>
                             {brief && (
                               <>
                                 <span className="h-1 w-1 rounded-full bg-gray-600"></span>
                                 <span className="inline-flex items-center gap-1 text-green-400">
-                                  <svg className="h-3 w-3 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  <svg
+                                    className="h-3 w-3 sm:h-4 sm:w-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M5 13l4 4L19 7"
+                                    />
                                   </svg>
                                   Brief Submitted
                                 </span>
@@ -219,17 +258,25 @@ function OrderSummaryPageContent() {
                 </div>
 
                 <div className="mt-6 border-t border-gray-800 pt-4 sm:mt-6 sm:pt-6">
-                  <div className="flex flex-wrap justify-between items-center gap-2">
-                    <span className="text-sm text-gray-400 sm:text-base">Subtotal ({totalItems} items)</span>
-                    <span className="text-sm font-semibold text-white sm:text-base">{formatCurrency(order.totalAmount)}</span>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-sm text-gray-400 sm:text-base">
+                      Subtotal ({totalItems} items)
+                    </span>
+                    <span className="text-sm font-semibold text-white sm:text-base">
+                      {formatCurrency(order.totalAmount)}
+                    </span>
                   </div>
-                  <div className="mt-2 flex flex-wrap justify-between items-center gap-2">
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                     <span className="text-sm text-gray-400 sm:text-base">Amount Paid</span>
-                    <span className="text-sm font-semibold text-green-400 sm:text-base">{formatCurrency(order.amountPaid)}</span>
+                    <span className="text-sm font-semibold text-green-400 sm:text-base">
+                      {formatCurrency(order.amountPaid)}
+                    </span>
                   </div>
-                  <div className="mt-3 flex flex-wrap justify-between items-center gap-2 border-t border-gray-700 pt-3">
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-gray-700 pt-3">
                     <span className="text-base font-medium text-white sm:text-lg">Total</span>
-                    <span className="text-lg font-bold text-primary sm:text-xl">{formatCurrency(order.totalAmount)}</span>
+                    <span className="text-lg font-bold text-primary sm:text-xl">
+                      {formatCurrency(order.totalAmount)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -242,9 +289,24 @@ function OrderSummaryPageContent() {
                 onClick={() => router.push(`/orders/${orderId}`)}
                 className="gap-2"
               >
-                <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                <svg
+                  className="h-4 w-4 sm:h-5 sm:w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
                 </svg>
                 View Order Details
               </Button>
@@ -254,9 +316,24 @@ function OrderSummaryPageContent() {
                 onClick={() => router.push(`/collections/all/products`)}
                 className="gap-2"
               >
-                <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                <svg
+                  className="h-4 w-4 sm:h-5 sm:w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
                 </svg>
                 Add to order
               </Button>
@@ -266,8 +343,18 @@ function OrderSummaryPageContent() {
                 onClick={() => router.push('/order-history')}
                 className="gap-2"
               >
-                <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14v-6a4 4 0 00-4-4h-1" />
+                <svg
+                  className="h-4 w-4 sm:h-5 sm:w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14v-6a4 4 0 00-4-4h-1"
+                  />
                 </svg>
                 View All Orders
               </Button>

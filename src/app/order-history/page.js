@@ -1,57 +1,57 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import DashboardLayout from "@/components/layouts/DashboardLayout";
-import OrderCard from "@/components/cards/OrderCard";
-import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
-import SEOHead from "@/components/common/SEOHead";
-import { orderService } from "@/services/orderService";
-import { useAuth, useAuthCheck } from "@/app/lib/auth";
-import { METADATA } from "@/lib/metadata";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import DashboardLayout from '@/components/layouts/DashboardLayout';
+import OrderCard from '@/components/cards/OrderCard';
+import Input from '@/components/ui/Input';
+import Button from '@/components/ui/Button';
+import SEOHead from '@/components/common/SEOHead';
+import { orderService } from '@/services/orderService';
+import { useAuth, useAuthCheck } from '@/app/lib/auth';
+import { METADATA } from '@/lib/metadata';
 
 const OrderStatus = {
-  Pending: "Pending",
-  OrderReceived: "OrderReceived",
-  FilesUploaded: "FilesUploaded",
-  AwaitingInvoice: "AwaitingInvoice",
-  InvoiceSent: "InvoiceSent",
-  DesignUploaded: "DesignUploaded",
-  UnderReview: "UnderReview",
-  Approved: "Approved",
-  AwaitingPartPayment: "AwaitingPartPayment",
-  PartPaymentMade: "PartPaymentMade",
-  InProduction: "InProduction",
-  Completed: "Completed",
-  AwaitingFinalPayment: "AwaitingFinalPayment",
-  FinalPaid: "FinalPaid",
-  ReadyForShipping: "ReadyForShipping",
-  Shipped: "Shipped",
-  Cancelled: "Cancelled",
-  Delivered: "Delivered"
+  Pending: 'Pending',
+  OrderReceived: 'OrderReceived',
+  FilesUploaded: 'FilesUploaded',
+  AwaitingInvoice: 'AwaitingInvoice',
+  InvoiceSent: 'InvoiceSent',
+  DesignUploaded: 'DesignUploaded',
+  UnderReview: 'UnderReview',
+  Approved: 'Approved',
+  AwaitingPartPayment: 'AwaitingPartPayment',
+  PartPaymentMade: 'PartPaymentMade',
+  InProduction: 'InProduction',
+  Completed: 'Completed',
+  AwaitingFinalPayment: 'AwaitingFinalPayment',
+  FinalPaid: 'FinalPaid',
+  ReadyForShipping: 'ReadyForShipping',
+  Shipped: 'Shipped',
+  Cancelled: 'Cancelled',
+  Delivered: 'Delivered',
 };
 
 const StatusDisplayNames = {
-  Pending: "Pending",
-  OrderReceived: "Order Received",
-  FilesUploaded: "Files Uploaded",
-  AwaitingInvoice: "Awaiting Invoice",
-  InvoiceSent: "Invoice Sent",
-  DesignUploaded: "Design Uploaded",
-  UnderReview: "Under Review",
-  Approved: "Approved",
-  AwaitingPartPayment: "Awaiting Part Payment",
-  PartPaymentMade: "Part Payment Made",
-  InProduction: "In Production",
-  Completed: "Completed",
-  AwaitingFinalPayment: "Awaiting Final Payment",
-  FinalPaid: "Final Paid",
-  ReadyForShipping: "Ready For Shipping",
-  Shipped: "Shipped",
-  Cancelled: "Cancelled",
-  Delivered: "Delivered"
+  Pending: 'Pending',
+  OrderReceived: 'Order Received',
+  FilesUploaded: 'Files Uploaded',
+  AwaitingInvoice: 'Awaiting Invoice',
+  InvoiceSent: 'Invoice Sent',
+  DesignUploaded: 'Design Uploaded',
+  UnderReview: 'Under Review',
+  Approved: 'Approved',
+  AwaitingPartPayment: 'Awaiting Part Payment',
+  PartPaymentMade: 'Part Payment Made',
+  InProduction: 'In Production',
+  Completed: 'Completed',
+  AwaitingFinalPayment: 'Awaiting Final Payment',
+  FinalPaid: 'Final Paid',
+  ReadyForShipping: 'Ready For Shipping',
+  Shipped: 'Shipped',
+  Cancelled: 'Cancelled',
+  Delivered: 'Delivered',
 };
 
 export default function OrderHistoryPage() {
@@ -61,9 +61,9 @@ export default function OrderHistoryPage() {
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
+  const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalOrders, setTotalOrders] = useState(0);
@@ -75,7 +75,7 @@ export default function OrderHistoryPage() {
     delivered: 0,
     inProduction: 0,
     pending: 0,
-    paymentDue: 0
+    paymentDue: 0,
   });
 
   useEffect(() => {
@@ -103,27 +103,27 @@ export default function OrderHistoryPage() {
   }, [searchTerm, authLoading, isAuthenticated]);
 
   useEffect(() => {
-    if (!authLoading && isAuthenticated && filterStatus !== "stats-click") {
+    if (!authLoading && isAuthenticated && filterStatus !== 'stats-click') {
       fetchOrders();
     }
   }, [filterStatus, currentPage, authLoading, isAuthenticated]);
 
   const handleStatsClick = (filterType) => {
     switch (filterType) {
-      case "delivered":
-        setFilterStatus("Delivered");
+      case 'delivered':
+        setFilterStatus('Delivered');
         break;
-      case "inProduction":
-        setFilterStatus("InProduction");
+      case 'inProduction':
+        setFilterStatus('InProduction');
         break;
-      case "pending":
-        setFilterStatus("pending");
+      case 'pending':
+        setFilterStatus('pending');
         break;
-      case "paymentDue":
-        setFilterStatus("paymentDue");
+      case 'paymentDue':
+        setFilterStatus('paymentDue');
         break;
       default:
-        setFilterStatus("all");
+        setFilterStatus('all');
     }
     setCurrentPage(1);
   };
@@ -142,13 +142,13 @@ export default function OrderHistoryPage() {
       }
 
       const total = allOrders.length;
-      const delivered = allOrders.filter((o) => o.status === "Delivered").length;
-      const inProduction = allOrders.filter((o) => o.status === "InProduction").length;
+      const delivered = allOrders.filter((o) => o.status === 'Delivered').length;
+      const inProduction = allOrders.filter((o) => o.status === 'InProduction').length;
       const pending = allOrders.filter((o) =>
-        ["Pending", "OrderReceived", "FilesUploaded"].includes(o.status)
+        ['Pending', 'OrderReceived', 'FilesUploaded'].includes(o.status)
       ).length;
       const paymentDue = allOrders.filter((o) =>
-        ["InvoiceSent", "AwaitingPartPayment", "AwaitingFinalPayment"].includes(o.status)
+        ['InvoiceSent', 'AwaitingPartPayment', 'AwaitingFinalPayment'].includes(o.status)
       ).length;
 
       setStats({
@@ -156,10 +156,10 @@ export default function OrderHistoryPage() {
         delivered,
         inProduction,
         pending,
-        paymentDue
+        paymentDue,
       });
     } catch (err) {
-      console.error("Failed to fetch order counts:", err);
+      console.error('Failed to fetch order counts:', err);
     }
   };
 
@@ -174,12 +174,12 @@ export default function OrderHistoryPage() {
 
       const params = {
         page: currentPage,
-        limit: 10
+        limit: 10,
       };
 
-      if (filterStatus === "pending" || filterStatus === "paymentDue") {
+      if (filterStatus === 'pending' || filterStatus === 'paymentDue') {
         params.limit = 100;
-      } else if (filterStatus !== "all" && filterStatus !== "stats-click") {
+      } else if (filterStatus !== 'all' && filterStatus !== 'stats-click') {
         params.status = filterStatus;
       }
 
@@ -187,10 +187,10 @@ export default function OrderHistoryPage() {
         params.search = searchTerm.trim();
       }
 
-      console.log("Fetching orders with params:", params);
+      console.log('Fetching orders with params:', params);
 
       const response = await orderService.getMyOrders(params);
-      console.log("Orders response:", response);
+      console.log('Orders response:', response);
 
       let ordersData = [];
       let total = 0;
@@ -212,14 +212,14 @@ export default function OrderHistoryPage() {
       let filteredOrders = ordersData;
       let filteredTotal = total;
 
-      if (filterStatus === "pending") {
+      if (filterStatus === 'pending') {
         filteredOrders = ordersData.filter((o) =>
-          ["Pending", "OrderReceived", "FilesUploaded"].includes(o.status)
+          ['Pending', 'OrderReceived', 'FilesUploaded'].includes(o.status)
         );
         filteredTotal = filteredOrders.length;
-      } else if (filterStatus === "paymentDue") {
+      } else if (filterStatus === 'paymentDue') {
         filteredOrders = ordersData.filter((o) =>
-          ["InvoiceSent", "AwaitingPartPayment", "AwaitingFinalPayment"].includes(o.status)
+          ['InvoiceSent', 'AwaitingPartPayment', 'AwaitingFinalPayment'].includes(o.status)
         );
         filteredTotal = filteredOrders.length;
       }
@@ -227,15 +227,15 @@ export default function OrderHistoryPage() {
       setOrders(filteredOrders);
       setTotalOrders(filteredTotal);
       setTotalPages(Math.ceil(filteredTotal / (params.limit || 10)) || 1);
-      setError("");
+      setError('');
 
       await fetchAllOrderCounts();
     } catch (err) {
-      console.error("Failed to fetch orders:", err);
+      console.error('Failed to fetch orders:', err);
       if (err.status === 401) {
-        console.log("Unauthorized, will redirect to login");
+        console.log('Unauthorized, will redirect to login');
       } else {
-        setError("Failed to load order history");
+        setError('Failed to load order history');
       }
     } finally {
       setLoading(false);
@@ -243,28 +243,30 @@ export default function OrderHistoryPage() {
   };
 
   const handleDeleteOrder = async (orderId, orderStatus) => {
-    const canDelete = ["Pending", "FilesUploaded"].includes(orderStatus);
-    
+    const canDelete = ['Pending', 'FilesUploaded'].includes(orderStatus);
+
     if (!canDelete) {
-      alert("This order cannot be deleted because it has already been processed.");
+      alert('This order cannot be deleted because it has already been processed.');
       return;
     }
 
-    const confirmed = confirm("Are you sure you want to delete this order? This action cannot be undone.");
-    
+    const confirmed = confirm(
+      'Are you sure you want to delete this order? This action cannot be undone.'
+    );
+
     if (!confirmed) return;
 
     try {
       setDeletingOrderId(orderId);
       await orderService.delete(orderId);
-      
+
       await fetchOrders();
       await fetchAllOrderCounts();
-      
-    //   alert("Order deleted successfully.");
+
+      //   alert("Order deleted successfully.");
     } catch (err) {
-      console.error("Failed to delete order:", err);
-      alert(err.message || "Failed to delete order. Please try again.");
+      console.error('Failed to delete order:', err);
+      alert(err.message || 'Failed to delete order. Please try again.');
     } finally {
       setDeletingOrderId(null);
     }
@@ -281,17 +283,17 @@ export default function OrderHistoryPage() {
 
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
-    if (imagePath.startsWith("http")) return imagePath;
+    if (imagePath.startsWith('http')) return imagePath;
     let filename = imagePath;
-    if (imagePath.includes("/")) {
-      filename = imagePath.split("/").pop();
+    if (imagePath.includes('/')) {
+      filename = imagePath.split('/').pop();
     }
     return `http://localhost:4001/api/v1/attachments/download/${filename}`;
   };
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (authLoading) {
@@ -337,7 +339,12 @@ export default function OrderHistoryPage() {
             <Link href="/collections/all/products">
               <Button variant="primary" className="gap-2">
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
                 </svg>
                 New Order
               </Button>
@@ -346,9 +353,11 @@ export default function OrderHistoryPage() {
 
           <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
             <div
-              onClick={() => setFilterStatus("all")}
+              onClick={() => setFilterStatus('all')}
               className={`cursor-pointer rounded-xl border p-4 transition-all hover:border-blue-500 ${
-                filterStatus === "all" ? "border-blue-500 bg-blue-900/20" : "border-gray-800 bg-slate-900/50 backdrop-blur-sm"
+                filterStatus === 'all'
+                  ? 'border-blue-500 bg-blue-900/20'
+                  : 'border-gray-800 bg-slate-900/50 backdrop-blur-sm'
               }`}
             >
               <p className="mb-1 text-sm text-gray-400">Total Orders</p>
@@ -356,9 +365,11 @@ export default function OrderHistoryPage() {
             </div>
 
             <div
-              onClick={() => handleStatsClick("delivered")}
+              onClick={() => handleStatsClick('delivered')}
               className={`cursor-pointer rounded-xl border p-4 transition-all hover:border-green-500 ${
-                filterStatus === "Delivered" ? "border-green-500 bg-green-900/20" : "border-gray-800 bg-slate-900/50 backdrop-blur-sm"
+                filterStatus === 'Delivered'
+                  ? 'border-green-500 bg-green-900/20'
+                  : 'border-gray-800 bg-slate-900/50 backdrop-blur-sm'
               }`}
             >
               <p className="mb-1 text-sm text-gray-400">Delivered</p>
@@ -366,9 +377,11 @@ export default function OrderHistoryPage() {
             </div>
 
             <div
-              onClick={() => handleStatsClick("inProduction")}
+              onClick={() => handleStatsClick('inProduction')}
               className={`cursor-pointer rounded-xl border p-4 transition-all hover:border-purple-500 ${
-                filterStatus === "InProduction" ? "border-purple-500 bg-purple-900/20" : "border-gray-800 bg-slate-900/50 backdrop-blur-sm"
+                filterStatus === 'InProduction'
+                  ? 'border-purple-500 bg-purple-900/20'
+                  : 'border-gray-800 bg-slate-900/50 backdrop-blur-sm'
               }`}
             >
               <p className="mb-1 text-sm text-gray-400">In Production</p>
@@ -376,9 +389,11 @@ export default function OrderHistoryPage() {
             </div>
 
             <div
-              onClick={() => handleStatsClick("pending")}
+              onClick={() => handleStatsClick('pending')}
               className={`cursor-pointer rounded-xl border p-4 transition-all hover:border-yellow-500 ${
-                filterStatus === "pending" ? "border-yellow-500 bg-yellow-900/20" : "border-gray-800 bg-slate-900/50 backdrop-blur-sm"
+                filterStatus === 'pending'
+                  ? 'border-yellow-500 bg-yellow-900/20'
+                  : 'border-gray-800 bg-slate-900/50 backdrop-blur-sm'
               }`}
             >
               <p className="mb-1 text-sm text-gray-400">Pending</p>
@@ -386,9 +401,11 @@ export default function OrderHistoryPage() {
             </div>
 
             <div
-              onClick={() => handleStatsClick("paymentDue")}
+              onClick={() => handleStatsClick('paymentDue')}
               className={`cursor-pointer rounded-xl border p-4 transition-all hover:border-orange-500 ${
-                filterStatus === "paymentDue" ? "border-orange-500 bg-orange-900/20" : "border-gray-800 bg-slate-900/50 backdrop-blur-sm"
+                filterStatus === 'paymentDue'
+                  ? 'border-orange-500 bg-orange-900/20'
+                  : 'border-gray-800 bg-slate-900/50 backdrop-blur-sm'
               }`}
             >
               <p className="mb-1 text-sm text-gray-400">Payment Due</p>
@@ -404,8 +421,18 @@ export default function OrderHistoryPage() {
                 onChange={handleSearchChange}
                 className="w-full"
                 icon={
-                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
                   </svg>
                 }
               />
@@ -426,7 +453,7 @@ export default function OrderHistoryPage() {
             </select>
           </div>
 
-          {(searchTerm || filterStatus !== "all") && (
+          {(searchTerm || filterStatus !== 'all') && (
             <div className="mb-4 flex items-center gap-2 text-sm">
               <span className="text-gray-400">Active filters:</span>
               {searchTerm && (
@@ -434,21 +461,21 @@ export default function OrderHistoryPage() {
                   Search: "{searchTerm}"
                 </span>
               )}
-              {filterStatus !== "all" && (
+              {filterStatus !== 'all' && (
                 <span className="rounded-full border border-red-800 bg-red-900/30 px-2 py-1 text-xs text-red-400">
-                  {filterStatus === "pending"
-                    ? "Pending (New Orders)"
-                    : filterStatus === "paymentDue"
-                    ? "Payment Due"
-                    : filterStatus === "InProduction"
-                    ? "In Production"
-                    : StatusDisplayNames[filterStatus] || filterStatus}
+                  {filterStatus === 'pending'
+                    ? 'Pending (New Orders)'
+                    : filterStatus === 'paymentDue'
+                      ? 'Payment Due'
+                      : filterStatus === 'InProduction'
+                        ? 'In Production'
+                        : StatusDisplayNames[filterStatus] || filterStatus}
                 </span>
               )}
               <button
                 onClick={() => {
-                  setSearchTerm("");
-                  setFilterStatus("all");
+                  setSearchTerm('');
+                  setFilterStatus('all');
                   setCurrentPage(1);
                 }}
                 className="text-xs text-gray-400 underline hover:text-white"
@@ -472,34 +499,34 @@ export default function OrderHistoryPage() {
 
           {orders.length > 0 ? (
             <div className="space-y-4">
-              {(searchTerm || filterStatus !== "all") && (
+              {(searchTerm || filterStatus !== 'all') && (
                 <div className="mb-4 rounded-lg border border-red-800/30 bg-red-900/10 p-4">
                   <p className="text-gray-300">
                     Found <span className="font-bold text-red-400">{orders.length}</span> orders
                     {searchTerm && (
                       <span>
-                        {" "}
+                        {' '}
                         matching "<span className="font-medium text-red-400">{searchTerm}</span>"
                       </span>
                     )}
-                    {filterStatus !== "all" && (
+                    {filterStatus !== 'all' && (
                       <span>
-                        {" "}
-                        with filter{" "}
+                        {' '}
+                        with filter{' '}
                         <span className="font-medium text-red-400">
-                          {filterStatus === "pending"
-                            ? "Pending (New Orders)"
-                            : filterStatus === "paymentDue"
-                            ? "Payment Due"
-                            : filterStatus === "InProduction"
-                            ? "In Production"
-                            : StatusDisplayNames[filterStatus] || filterStatus}
+                          {filterStatus === 'pending'
+                            ? 'Pending (New Orders)'
+                            : filterStatus === 'paymentDue'
+                              ? 'Payment Due'
+                              : filterStatus === 'InProduction'
+                                ? 'In Production'
+                                : StatusDisplayNames[filterStatus] || filterStatus}
                         </span>
                       </span>
                     )}
                     {totalOrders > orders.length && (
                       <span>
-                        {" "}
+                        {' '}
                         (showing page {currentPage} of {totalPages})
                       </span>
                     )}
@@ -508,29 +535,34 @@ export default function OrderHistoryPage() {
               )}
 
               {orders.map((order) => {
-                const canReorder = ["Shipped", "Cancelled", "Delivered", "Completed"].includes(order.status);
-                const canDelete = ["Pending", "FilesUploaded"].includes(order.status);
+                const canReorder = ['Shipped', 'Cancelled', 'Delivered', 'Completed'].includes(
+                  order.status
+                );
+                const canDelete = ['Pending', 'FilesUploaded'].includes(order.status);
                 const isDeleting = deletingOrderId === order._id;
-                
+
                 return (
                   <div key={order._id} className="relative">
                     <OrderCard
                       order={{
                         id: order._id,
                         orderNumber: order.orderNumber,
-                        productName: order.items?.[0]?.productName || "Multiple Items",
-                        productImage: getImageUrl(order.items?.[0]?.productId?.images?.[0] || order.items?.[0]?.productSnapshot?.image),
+                        productName: order.items?.[0]?.productName || 'Multiple Items',
+                        productImage: getImageUrl(
+                          order.items?.[0]?.productId?.images?.[0] ||
+                            order.items?.[0]?.productSnapshot?.image
+                        ),
                         orderedDate: new Date(order.createdAt)
-                          .toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "2-digit",
-                            day: "2-digit"
+                          .toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
                           })
-                          .replace(/\//g, "-"),
+                          .replace(/\//g, '-'),
                         totalAmount: order.totalAmount,
                         status: order.status,
                         itemsCount: order.items?.length || 1,
-                        paymentStatus: order.paymentStatus
+                        paymentStatus: order.paymentStatus,
                       }}
                       onClick={() => router.push(`/orders/${order._id}`)}
                     />
@@ -557,7 +589,7 @@ export default function OrderHistoryPage() {
                             handleDeleteOrder(order._id, order.status);
                           }}
                         >
-                          {isDeleting ? "Deleting..." : "Delete Order"}
+                          {isDeleting ? 'Deleting...' : 'Delete Order'}
                         </Button>
                       )}
                     </div>
@@ -570,11 +602,11 @@ export default function OrderHistoryPage() {
               <div className="mb-4 text-6xl">📦</div>
               <p className="mb-2 text-lg text-gray-400">No orders found</p>
               <p className="mb-6 text-sm text-gray-500">
-                {searchTerm || filterStatus !== "all"
-                  ? `No orders matching your ${searchTerm ? "search" : "filter"} criteria`
-                  : "Start by creating your first order"}
+                {searchTerm || filterStatus !== 'all'
+                  ? `No orders matching your ${searchTerm ? 'search' : 'filter'} criteria`
+                  : 'Start by creating your first order'}
               </p>
-              {!searchTerm && filterStatus === "all" && (
+              {!searchTerm && filterStatus === 'all' && (
                 <Link href="/collections/all/products">
                   <Button variant="primary">Browse Products</Button>
                 </Link>
@@ -589,8 +621,8 @@ export default function OrderHistoryPage() {
                 disabled={currentPage === 1}
                 className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
                   currentPage === 1
-                    ? "cursor-not-allowed text-gray-600"
-                    : "text-white hover:bg-slate-800"
+                    ? 'cursor-not-allowed text-gray-600'
+                    : 'text-white hover:bg-slate-800'
                 }`}
               >
                 ← Previous
@@ -609,8 +641,8 @@ export default function OrderHistoryPage() {
                         onClick={() => handlePageChange(pageNum)}
                         className={`h-10 w-10 rounded-lg text-sm font-medium transition ${
                           currentPage === pageNum
-                            ? "bg-red-600 text-white"
-                            : "text-gray-400 hover:bg-slate-800"
+                            ? 'bg-red-600 text-white'
+                            : 'text-gray-400 hover:bg-slate-800'
                         }`}
                       >
                         {pageNum}
@@ -626,8 +658,8 @@ export default function OrderHistoryPage() {
                 disabled={currentPage === totalPages}
                 className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
                   currentPage === totalPages
-                    ? "cursor-not-allowed text-gray-600"
-                    : "text-white hover:bg-slate-800"
+                    ? 'cursor-not-allowed text-gray-600'
+                    : 'text-white hover:bg-slate-800'
                 }`}
               >
                 Next →

@@ -74,15 +74,17 @@ export default function CustomerBriefPage() {
 
       mediaRecorderRef.current.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-        const audioFile = new File([audioBlob], `voice_briefing_${Date.now()}.wav`, { type: 'audio/wav' });
+        const audioFile = new File([audioBlob], `voice_briefing_${Date.now()}.wav`, {
+          type: 'audio/wav',
+        });
         handleInputChange('voiceBriefing', audioFile);
-        
-        stream.getTracks().forEach(track => track.stop());
+
+        stream.getTracks().forEach((track) => track.stop());
       };
 
       mediaRecorderRef.current.start();
       setIsRecording(true);
-      
+
       timerRef.current = setInterval(() => {
         setRecordingTime((prev) => prev + 0.1);
       }, 100);
@@ -154,15 +156,27 @@ export default function CustomerBriefPage() {
             onClick={() => router.back()}
             className="mb-4 flex items-center gap-2 text-gray-400 transition-colors hover:text-white sm:mb-6"
           >
-            <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg
+              className="h-4 w-4 sm:h-5 sm:w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
             Back to Studio
           </button>
 
           <div className="mb-6 sm:mb-8">
             <h1 className="text-2xl font-bold text-white sm:text-3xl">Project Briefing</h1>
-            <p className="mt-1 text-sm text-gray-400 sm:mt-2 sm:text-base">Provide details for our designers to create exactly what you need.</p>
+            <p className="mt-1 text-sm text-gray-400 sm:mt-2 sm:text-base">
+              Provide details for our designers to create exactly what you need.
+            </p>
             {product && (
               <p className="mt-2 text-sm text-primary sm:mt-3">Product: {product.name}</p>
             )}
@@ -170,7 +184,9 @@ export default function CustomerBriefPage() {
 
           <div className="space-y-6 sm:space-y-8">
             <section>
-              <h2 className="mb-3 text-xl font-semibold text-white sm:mb-4 sm:text-2xl">Design Instructions</h2>
+              <h2 className="mb-3 text-xl font-semibold text-white sm:mb-4 sm:text-2xl">
+                Design Instructions
+              </h2>
               <Textarea
                 className="bg-slate-900"
                 placeholder={`Describe your visions here... e.g., "Modern minimalistic look with a focus on our brand's primary red accent ..."`}
@@ -181,11 +197,13 @@ export default function CustomerBriefPage() {
             </section>
 
             <section>
-              <h2 className="mb-3 text-xl font-semibold text-white sm:mb-4 sm:text-2xl">Voice Briefing</h2>
+              <h2 className="mb-3 text-xl font-semibold text-white sm:mb-4 sm:text-2xl">
+                Voice Briefing
+              </h2>
               <div className="relative rounded-xl border border-gray-700 bg-slate-900 p-6 sm:p-8">
                 <div className="absolute left-0 right-0 top-3 flex items-center justify-between px-4 sm:top-4 sm:px-6">
                   <h2 className="text-xs font-bold sm:text-sm">AUDIO INTERFACE</h2>
-                  <p className="font-semibold text-primary text-sm sm:text-base">
+                  <p className="text-sm font-semibold text-primary sm:text-base">
                     {formatRecordingTime(recordingTime)}
                   </p>
                 </div>
@@ -198,7 +216,11 @@ export default function CustomerBriefPage() {
                         : 'bg-primary hover:bg-primary-dark'
                     }`}
                   >
-                    <svg className="h-8 w-8 text-white sm:h-10 sm:w-10" fill="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className="h-8 w-8 text-white sm:h-10 sm:w-10"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
                       <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
                     </svg>
@@ -207,7 +229,7 @@ export default function CustomerBriefPage() {
               </div>
               {formData.voiceBriefing && (
                 <div className="mt-3 flex items-center justify-between rounded-lg border border-gray-700 bg-slate-800 p-3">
-                  <span className="text-xs text-gray-300 truncate sm:text-sm">
+                  <span className="truncate text-xs text-gray-300 sm:text-sm">
                     {formData.voiceBriefing.name}
                   </span>
                   <button
@@ -221,7 +243,9 @@ export default function CustomerBriefPage() {
             </section>
 
             <section>
-              <h2 className="mb-3 text-xl font-semibold text-white sm:mb-4 sm:text-2xl">Asset Uploads</h2>
+              <h2 className="mb-3 text-xl font-semibold text-white sm:mb-4 sm:text-2xl">
+                Asset Uploads
+              </h2>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                 <div className="cursor-pointer rounded-lg border-2 border-dashed border-dark-lighter p-4 text-center transition-colors hover:border-primary sm:p-6">
                   <input
@@ -233,10 +257,22 @@ export default function CustomerBriefPage() {
                     id="logo-upload"
                   />
                   <label htmlFor="logo-upload" className="cursor-pointer">
-                    <svg className="mx-auto mb-2 h-10 w-10 text-gray-400 sm:mb-3 sm:h-12 sm:w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    <svg
+                      className="mx-auto mb-2 h-10 w-10 text-gray-400 sm:mb-3 sm:h-12 sm:w-12"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                      />
                     </svg>
-                    <p className="text-sm font-medium text-white sm:text-base">Add Logos or Imagery</p>
+                    <p className="text-sm font-medium text-white sm:text-base">
+                      Add Logos or Imagery
+                    </p>
                     <p className="text-xs text-gray-400">SVG, PNG, JPG, PDF UP TO 50MB</p>
                   </label>
                 </div>
@@ -250,10 +286,22 @@ export default function CustomerBriefPage() {
                     id="imagery-upload"
                   />
                   <label htmlFor="imagery-upload" className="cursor-pointer">
-                    <svg className="mx-auto mb-2 h-10 w-10 text-gray-400 sm:mb-3 sm:h-12 sm:w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    <svg
+                      className="mx-auto mb-2 h-10 w-10 text-gray-400 sm:mb-3 sm:h-12 sm:w-12"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                      />
                     </svg>
-                    <p className="text-sm font-medium text-white sm:text-base">No Assets Attached</p>
+                    <p className="text-sm font-medium text-white sm:text-base">
+                      No Assets Attached
+                    </p>
                     <p className="text-xs text-gray-400">Upload additional image</p>
                   </label>
                 </div>
@@ -264,8 +312,13 @@ export default function CustomerBriefPage() {
                   <p className="mb-2 text-sm text-gray-400">Logos ({formData.logos.length})</p>
                   <div className="space-y-2">
                     {formData.logos.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between rounded-lg border border-gray-700 bg-slate-800 p-3">
-                        <span className="text-xs text-gray-300 truncate sm:text-sm">{file.name}</span>
+                      <div
+                        key={index}
+                        className="flex items-center justify-between rounded-lg border border-gray-700 bg-slate-800 p-3"
+                      >
+                        <span className="truncate text-xs text-gray-300 sm:text-sm">
+                          {file.name}
+                        </span>
                         <button
                           onClick={() => removeFile('logos', index)}
                           className="text-xs text-red-400 hover:text-red-300 sm:text-sm"
@@ -283,8 +336,13 @@ export default function CustomerBriefPage() {
                   <p className="mb-2 text-sm text-gray-400">Imagery ({formData.imagery.length})</p>
                   <div className="space-y-2">
                     {formData.imagery.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between rounded-lg border border-gray-700 bg-slate-800 p-3">
-                        <span className="text-xs text-gray-300 truncate sm:text-sm">{file.name}</span>
+                      <div
+                        key={index}
+                        className="flex items-center justify-between rounded-lg border border-gray-700 bg-slate-800 p-3"
+                      >
+                        <span className="truncate text-xs text-gray-300 sm:text-sm">
+                          {file.name}
+                        </span>
                         <button
                           onClick={() => removeFile('imagery', index)}
                           className="text-xs text-red-400 hover:text-red-300 sm:text-sm"
@@ -298,8 +356,18 @@ export default function CustomerBriefPage() {
               )}
 
               <div className="mt-3 flex items-center gap-2 text-xs text-gray-400 sm:mt-4 sm:text-sm">
-                <svg className="h-3 w-3 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="h-3 w-3 sm:h-4 sm:w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 <span>5 DAYS LEAD TIME</span>
               </div>
@@ -313,11 +381,7 @@ export default function CustomerBriefPage() {
               >
                 Save Draft
               </Button>
-              <Button
-                variant="primary"
-                onClick={handleSubmit}
-                className="flex-1"
-              >
+              <Button variant="primary" onClick={handleSubmit} className="flex-1">
                 Continue to Order
               </Button>
             </div>

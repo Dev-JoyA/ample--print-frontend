@@ -7,9 +7,9 @@
 @tailwind utilities;
 
 :root {
-  --font-carlito: "Carlito", "Inter", sans-serif;
+  --font-carlito: 'Carlito', 'Inter', sans-serif;
   --background: #020618;
-  --foreground: #FFFFFF;
+  --foreground: #ffffff;
 }
 
 body {

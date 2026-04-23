@@ -35,7 +35,7 @@ export default function CollectionsPage() {
     try {
       setLoading(true);
       const response = await collectionService.getAll({ limit: 100 });
-      
+
       let collectionsData = [];
       if (response?.collections && Array.isArray(response.collections)) {
         collectionsData = response.collections;
@@ -72,7 +72,7 @@ export default function CollectionsPage() {
               name: collection.name,
               description: `Premium ${collection.name.toLowerCase()} for your business needs`,
               image: thumbnail,
-              productCount: products.length
+              productCount: products.length,
             };
           } catch (err) {
             console.error(`Failed to fetch products for collection ${collection._id}:`, err);
@@ -81,7 +81,7 @@ export default function CollectionsPage() {
               name: collection.name,
               description: `Premium ${collection.name.toLowerCase()} for your business needs`,
               image: null,
-              productCount: 0
+              productCount: 0,
             };
           }
         })
@@ -99,9 +99,7 @@ export default function CollectionsPage() {
   const PublicLayout = ({ children }) => (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
       <Header showSearch={true} />
-      <main className="py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
-        {children}
-      </main>
+      <main className="px-4 py-8 sm:px-6 sm:py-12 lg:px-8">{children}</main>
       <Footer />
     </div>
   );
@@ -120,7 +118,10 @@ export default function CollectionsPage() {
           <div className="mb-4 h-4 w-72 animate-pulse rounded-lg bg-slate-800 sm:mb-6 sm:h-5"></div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="overflow-hidden rounded-lg border border-dark-lighter bg-slate-900">
+              <div
+                key={i}
+                className="overflow-hidden rounded-lg border border-dark-lighter bg-slate-900"
+              >
                 <div className="h-40 animate-pulse bg-slate-800 sm:h-48"></div>
                 <div className="space-y-2 p-3 sm:p-4">
                   <div className="h-5 w-3/4 animate-pulse rounded bg-slate-800 sm:h-6"></div>
@@ -137,9 +138,7 @@ export default function CollectionsPage() {
 
     const Content = <LoadingSkeleton />;
     return isAuthenticated ? (
-      <DashboardLayout userRole="customer">
-        {Content}
-      </DashboardLayout>
+      <DashboardLayout userRole="customer">{Content}</DashboardLayout>
     ) : (
       <PublicLayout>{Content}</PublicLayout>
     );
@@ -149,11 +148,23 @@ export default function CollectionsPage() {
     const ErrorContent = (
       <div className="mx-auto max-w-7xl px-4 py-12 text-center sm:py-16">
         <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-red-600/20 sm:mb-6 sm:h-20 sm:w-20">
-          <svg className="h-8 w-8 text-red-400 sm:h-10 sm:w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="h-8 w-8 text-red-400 sm:h-10 sm:w-10"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         </div>
-        <h2 className="mb-2 text-xl font-bold text-white sm:mb-3 sm:text-2xl">Oops! Something went wrong</h2>
+        <h2 className="mb-2 text-xl font-bold text-white sm:mb-3 sm:text-2xl">
+          Oops! Something went wrong
+        </h2>
         <p className="mx-auto mb-4 max-w-md text-sm text-gray-400 sm:mb-6 sm:text-base">{error}</p>
         <Button onClick={fetchCollections} variant="primary" size="md">
           Try Again
@@ -162,9 +173,7 @@ export default function CollectionsPage() {
     );
 
     return isAuthenticated ? (
-      <DashboardLayout userRole="customer">
-        {ErrorContent}
-      </DashboardLayout>
+      <DashboardLayout userRole="customer">{ErrorContent}</DashboardLayout>
     ) : (
       <PublicLayout>{ErrorContent}</PublicLayout>
     );
@@ -176,13 +185,14 @@ export default function CollectionsPage() {
         <div className="mb-3 inline-block rounded-full bg-primary/20 px-3 py-1 text-xs font-semibold text-primary sm:mb-4">
           CREATIVE PRINT MARKETPLACE
         </div>
-        <h1 className="mb-3 text-3xl font-bold text-white leading-tight sm:mb-4 sm:text-4xl md:text-5xl lg:text-6xl">
+        <h1 className="mb-3 text-3xl font-bold leading-tight text-white sm:mb-4 sm:text-4xl md:text-5xl lg:text-6xl">
           Start building your <span className="text-primary">physical</span> brand kit.
         </h1>
         <p className="mb-6 max-w-2xl text-base text-gray-400 sm:mb-8 sm:text-lg">
-          From foundational Brand Essentials to elite Large Format signage. Experience the highest standard of industrial printing precision.
+          From foundational Brand Essentials to elite Large Format signage. Experience the highest
+          standard of industrial printing precision.
         </p>
-        
+
         <div className="flex flex-wrap gap-3 sm:gap-4">
           <Link href="/collections/all/products">
             <Button variant="primary" size="md" icon="→" iconPosition="right">
@@ -202,8 +212,12 @@ export default function CollectionsPage() {
       <div className="mb-12 sm:mb-16">
         <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="mb-1 text-2xl font-bold text-white sm:mb-2 sm:text-3xl">Essential Solutions</h2>
-            <p className="text-sm text-gray-400 sm:text-base">The foundations of a professional corporate identity.</p>
+            <h2 className="mb-1 text-2xl font-bold text-white sm:mb-2 sm:text-3xl">
+              Essential Solutions
+            </h2>
+            <p className="text-sm text-gray-400 sm:text-base">
+              The foundations of a professional corporate identity.
+            </p>
           </div>
         </div>
 
@@ -211,23 +225,25 @@ export default function CollectionsPage() {
           <div className="rounded-xl border border-gray-800 bg-slate-900/30 py-12 text-center sm:py-16">
             <div className="mb-4 text-5xl sm:text-6xl">📦</div>
             <h3 className="mb-2 text-lg font-semibold text-white sm:text-xl">No Collections Yet</h3>
-            <p className="text-sm text-gray-400 sm:text-base">Check back soon for new collections!</p>
+            <p className="text-sm text-gray-400 sm:text-base">
+              Check back soon for new collections!
+            </p>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
               {collections.map((collection) => (
-                <Link 
-                  key={collection.id} 
+                <Link
+                  key={collection.id}
                   href={`/collections/${collection.id}/products`}
                   className="group transform transition-all duration-300 hover:-translate-y-1"
                 >
                   <div className="h-full overflow-hidden rounded-lg border border-dark-lighter bg-slate-900 transition-all hover:border-primary/50">
                     <div className="relative h-40 overflow-hidden bg-slate-950 sm:h-56">
                       {collection.image ? (
-                        // <img 
-                        //   src={collection.image} 
-                        //   alt={collection.name} 
+                        // <img
+                        //   src={collection.image}
+                        //   alt={collection.name}
                         //   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                         //   onError={(e) => {
                         //     console.error('Image failed to load:', collection.image);
@@ -235,22 +251,32 @@ export default function CollectionsPage() {
                         //     e.target.src = '/images/placeholder.png';
                         //   }}
                         // />
-                        <img 
-                            src={`${collection.image}?t=${Date.now()}`} 
-                            alt={collection.name} 
-                            crossOrigin="anonymous"
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                            onLoad={() => console.log('Image loaded successfully:', collection.name)}
-                            onError={(e) => {
-                                console.error('Image failed to load:', collection.image);
-                                e.target.onerror = null;
-                                e.target.src = '/images/placeholder.png';
-                            }}
-                            />
+                        <img
+                          src={`${collection.image}?t=${Date.now()}`}
+                          alt={collection.name}
+                          crossOrigin="anonymous"
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          onLoad={() => console.log('Image loaded successfully:', collection.name)}
+                          onError={(e) => {
+                            console.error('Image failed to load:', collection.image);
+                            e.target.onerror = null;
+                            e.target.src = '/images/placeholder.png';
+                          }}
+                        />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-gray-600">
-                          <svg className="h-12 w-12 sm:h-20 sm:w-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          <svg
+                            className="h-12 w-12 sm:h-20 sm:w-20"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
                           </svg>
                         </div>
                       )}
@@ -263,9 +289,19 @@ export default function CollectionsPage() {
                         {collection.name}
                       </h3>
                       <span className="inline-flex items-center gap-1 text-xs font-medium text-primary transition-all group-hover:gap-2 sm:text-sm">
-                        EXPLORE COLLECTION 
-                        <svg className="h-3 w-3 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        EXPLORE COLLECTION
+                        <svg
+                          className="h-3 w-3 sm:h-4 sm:w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
                         </svg>
                       </span>
                     </div>
@@ -275,8 +311,8 @@ export default function CollectionsPage() {
             </div>
 
             <div className="mt-6 text-center sm:hidden">
-              <Link 
-                href="/collections/all/products" 
+              <Link
+                href="/collections/all/products"
                 className="text-sm font-medium text-primary hover:text-primary-light"
               >
                 VIEW ALL COLLECTIONS →
@@ -287,38 +323,70 @@ export default function CollectionsPage() {
       </div>
 
       <div className="mb-12 rounded-xl border border-dark-lighter bg-gradient-to-br from-slate-900 to-slate-950 p-6 sm:mb-16 sm:rounded-2xl sm:p-8 md:p-12">
-        <h2 className="mb-8 text-center text-2xl font-bold text-white sm:mb-12 sm:text-3xl">How It Works</h2>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 sm:gap-8">
+        <h2 className="mb-8 text-center text-2xl font-bold text-white sm:mb-12 sm:text-3xl">
+          How It Works
+        </h2>
+        <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-3">
           {[
-            { 
-              step: 1, 
-              title: 'Choose Product', 
+            {
+              step: 1,
+              title: 'Choose Product',
               desc: 'Select from our library of premium products.',
               icon: (
-                <svg className="h-6 w-6 sm:h-8 sm:w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                <svg
+                  className="h-6 w-6 sm:h-8 sm:w-8"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                  />
                 </svg>
-              )
+              ),
             },
-            { 
-              step: 2, 
-              title: 'Voice Your Needs', 
+            {
+              step: 2,
+              title: 'Voice Your Needs',
               desc: 'Customize your product to meet your need, upload logo, record an audio brief or upload any other items to help us understand your vision. Our designers will take it from there.',
               icon: (
-                <svg className="h-6 w-6 sm:h-8 sm:w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                <svg
+                  className="h-6 w-6 sm:h-8 sm:w-8"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                  />
                 </svg>
-              )
+              ),
             },
-            { 
-              step: 3, 
-              title: 'Review & Print', 
+            {
+              step: 3,
+              title: 'Review & Print',
               desc: 'Approve designs in 24h and watch your production move to delivery.',
               icon: (
-                <svg className="h-6 w-6 sm:h-8 sm:w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="h-6 w-6 sm:h-8 sm:w-8"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
-              )
+              ),
             },
           ].map((item) => (
             <div key={item.step} className="text-center">
@@ -327,16 +395,21 @@ export default function CollectionsPage() {
                 <div className="absolute inset-0 animate-ping rounded-full bg-primary/20"></div>
               </div>
               <h3 className="mb-2 text-base font-semibold text-white sm:text-xl">{item.title}</h3>
-              <p className="mx-auto max-w-xs text-xs text-gray-400 sm:text-sm md:text-base">{item.desc}</p>
+              <p className="mx-auto max-w-xs text-xs text-gray-400 sm:text-sm md:text-base">
+                {item.desc}
+              </p>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="rounded-xl bg-gradient-to-r from-primary/20 to-purple-600/20 p-6 text-center border border-primary/30 sm:rounded-2xl sm:p-8 md:p-12">
-        <h2 className="mb-3 text-2xl font-bold text-white sm:mb-4 sm:text-3xl">Ready to Start Your Project?</h2>
+      <div className="rounded-xl border border-primary/30 bg-gradient-to-r from-primary/20 to-purple-600/20 p-6 text-center sm:rounded-2xl sm:p-8 md:p-12">
+        <h2 className="mb-3 text-2xl font-bold text-white sm:mb-4 sm:text-3xl">
+          Ready to Start Your Project?
+        </h2>
         <p className="mx-auto mb-4 max-w-2xl text-sm text-gray-300 sm:mb-6 sm:text-base">
-          Join thousands of businesses that trust us with their printing needs. Get started today and bring your ideas to life.
+          Join thousands of businesses that trust us with their printing needs. Get started today
+          and bring your ideas to life.
         </p>
         <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
           <Link href="/collections/all/products">
@@ -360,9 +433,7 @@ export default function CollectionsPage() {
     <>
       <SEOHead {...METADATA.collections} />
       {isAuthenticated ? (
-        <DashboardLayout userRole="customer">
-          {MainContent}
-        </DashboardLayout>
+        <DashboardLayout userRole="customer">{MainContent}</DashboardLayout>
       ) : (
         <PublicLayout>{MainContent}</PublicLayout>
       )}

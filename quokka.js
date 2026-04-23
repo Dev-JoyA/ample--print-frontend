@@ -43,28 +43,27 @@
 //   console.log("Cannot fetch:", error);
 // }
 
-
 export async function fetchRequest(request) {
-  const url = "http://localhost:4001/contents/products";
+  const url = 'http://localhost:4001/contents/products';
   const options = {
-    method: "GET",
+    method: 'GET',
     headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer my-token", // optional
-    }
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer my-token', // optional
+    },
     // body: JSON.stringify({}) // for POST/PUT
   };
 
-  console.log("Outgoing Request:");
-  console.log("URL:", url);
-  console.log("Options:", options);
+  console.log('Outgoing Request:');
+  console.log('URL:', url);
+  console.log('Options:', options);
 
   const response = await fetch(url, options);
   const data = await response.json();
-  console.log(data, "Data fetched successfully from request");
+  console.log(data, 'Data fetched successfully from request');
   console.log(response);
 }
 
 fetchRequest()
-  .then(() => console.log("Fetch request completed"))
-  .catch((error) => console.error("Error in fetch request:", error));
+  .then(() => console.log('Fetch request completed'))
+  .catch((error) => console.error('Error in fetch request:', error));

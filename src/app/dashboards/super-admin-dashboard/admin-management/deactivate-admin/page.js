@@ -1,35 +1,35 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import DashboardLayout from "@/components/layouts/DashboardLayout";
-import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
-import SEOHead from "@/components/common/SEOHead";
-import { authService } from "@/services/authService";
-import { METADATA } from "@/lib/metadata";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import DashboardLayout from '@/components/layouts/DashboardLayout';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import SEOHead from '@/components/common/SEOHead';
+import { authService } from '@/services/authService';
+import { METADATA } from '@/lib/metadata';
 
 const Page = () => {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleClick = async () => {
-    const confirmation = confirm("Are you sure you want to deactivate this admin?");
+    const confirmation = confirm('Are you sure you want to deactivate this admin?');
     if (!confirmation) return;
     setLoading(true);
-    setMessage("");
-    setError("");
+    setMessage('');
+    setError('');
     try {
       await authService.deactivateAdmin({ email });
-      setMessage("Admin deactivated successfully");
+      setMessage('Admin deactivated successfully');
       setTimeout(() => {
-        router.push("/dashboards/super-admin-dashboard/admin-management");
+        router.push('/dashboards/super-admin-dashboard/admin-management');
       }, 1500);
     } catch (err) {
-      setError(err?.data?.error ?? err?.message ?? "Failed to deactivate");
+      setError(err?.data?.error ?? err?.message ?? 'Failed to deactivate');
     } finally {
       setLoading(false);
     }
@@ -47,7 +47,12 @@ const Page = () => {
                 className="mb-4 flex items-center gap-2 text-gray-400 transition-colors hover:text-white"
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
                 </svg>
                 Back
               </button>
@@ -89,7 +94,7 @@ const Page = () => {
                   className="w-full"
                   variant="danger"
                 >
-                  {loading ? "Deactivating..." : "Deactivate Admin"}
+                  {loading ? 'Deactivating...' : 'Deactivate Admin'}
                 </Button>
               </div>
 

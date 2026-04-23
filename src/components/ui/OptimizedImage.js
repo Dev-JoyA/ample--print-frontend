@@ -67,7 +67,10 @@ const OptimizedImage = ({
   const finalHeight = height || 100;
 
   return (
-    <div className={`relative overflow-hidden bg-slate-800 ${className}`} style={{ width: finalWidth, height: finalHeight }}>
+    <div
+      className={`relative overflow-hidden bg-slate-800 ${className}`}
+      style={{ width: finalWidth, height: finalHeight }}
+    >
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>

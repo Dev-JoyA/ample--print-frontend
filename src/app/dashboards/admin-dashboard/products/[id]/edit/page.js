@@ -23,7 +23,7 @@ export default function EditProductPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
+
   const [formData, setFormData] = useState({
     collectionId: '',
     name: '',
@@ -31,12 +31,12 @@ export default function EditProductPage() {
     price: '',
     dimension: {
       width: '',
-      height: ''
+      height: '',
     },
     minOrder: '',
     material: '',
     deliveryDay: '',
-    status: 'active'
+    status: 'active',
   });
 
   const [originalProduct, setOriginalProduct] = useState(null);
@@ -53,7 +53,7 @@ export default function EditProductPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
+
       const collectionsRes = await collectionService.getAll({ limit: 100 });
       let collectionsData = [];
       if (collectionsRes?.collections && Array.isArray(collectionsRes.collections)) {
@@ -65,7 +65,7 @@ export default function EditProductPage() {
 
       const productRes = await productService.getById(productId);
       console.log('Product response:', productRes);
-      
+
       const productData = productRes?.product || productRes?.data || productRes;
       setOriginalProduct(productData);
 
@@ -76,19 +76,18 @@ export default function EditProductPage() {
         price: productData.price?.toString() || '',
         dimension: {
           width: productData.dimension?.width || '',
-          height: productData.dimension?.height || ''
+          height: productData.dimension?.height || '',
         },
         minOrder: productData.minOrder?.toString() || '',
         material: productData.material || '',
         deliveryDay: productData.deliveryDay || '',
-        status: productData.status || 'active'
+        status: productData.status || 'active',
       });
 
       const images = [];
       if (productData.image) images.push(productData.image);
       if (productData.images?.length) images.push(...productData.images);
       setExistingImages(images);
-
     } catch (err) {
       console.error('Failed to fetch data:', err);
       setError('Failed to load product details');
@@ -99,17 +98,17 @@ export default function EditProductPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name === 'width' || name === 'height') {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         dimension: {
           ...prev.dimension,
-          [name]: value
-        }
+          [name]: value,
+        },
       }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
@@ -130,7 +129,7 @@ export default function EditProductPage() {
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    
+
     if (existingImages.length + imageFiles.length + files.length > 10) {
       alert('Maximum 10 images total allowed');
       return;
@@ -144,34 +143,34 @@ export default function EditProductPage() {
       }
     }
 
-    setImageFiles(prev => [...prev, ...files]);
+    setImageFiles((prev) => [...prev, ...files]);
 
-    const newPreviews = files.map(file => URL.createObjectURL(file));
-    setImagePreviews(prev => [...prev, ...newPreviews]);
+    const newPreviews = files.map((file) => URL.createObjectURL(file));
+    setImagePreviews((prev) => [...prev, ...newPreviews]);
     setError('');
   };
 
   const removeNewImage = (index) => {
     const newFiles = [...imageFiles];
     const newPreviews = [...imagePreviews];
-    
+
     URL.revokeObjectURL(newPreviews[index]);
-    
+
     newFiles.splice(index, 1);
     newPreviews.splice(index, 1);
-    
+
     setImageFiles(newFiles);
     setImagePreviews(newPreviews);
   };
 
   const removeExistingImage = (index) => {
-    setImagesToRemove(prev => [...prev, existingImages[index]]);
-    setExistingImages(prev => prev.filter((_, i) => i !== index));
+    setImagesToRemove((prev) => [...prev, existingImages[index]]);
+    setExistingImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const restoreImage = (image) => {
-    setImagesToRemove(prev => prev.filter(img => img !== image));
-    setExistingImages(prev => [...prev, image]);
+    setImagesToRemove((prev) => prev.filter((img) => img !== image));
+    setExistingImages((prev) => [...prev, image]);
   };
 
   const validateForm = () => {
@@ -179,29 +178,32 @@ export default function EditProductPage() {
       setError('Please select a collection');
       return false;
     }
-    
+
     if (!formData.name.trim()) {
       setError('Product name is required');
       return false;
     }
-    
+
     if (!formData.price || parseFloat(formData.price) <= 0) {
       setError('Please enter a valid price');
       return false;
     }
-    
+
     if (!formData.minOrder || parseInt(formData.minOrder) < 1) {
       setError('Minimum order quantity must be at least 1');
       return false;
     }
-    
+
     return true;
   };
 
   const hasChanges = () => {
     if (!originalProduct) return false;
 
-    if (formData.collectionId !== (originalProduct.collectionId?._id || originalProduct.collectionId)) return true;
+    if (
+      formData.collectionId !== (originalProduct.collectionId?._id || originalProduct.collectionId)
+    )
+      return true;
     if (formData.name !== originalProduct.name) return true;
     if (formData.description !== originalProduct.description) return true;
     if (parseFloat(formData.price) !== originalProduct.price) return true;
@@ -219,7 +221,7 @@ export default function EditProductPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
     if (!hasChanges()) {
       setError('No changes made to product');
@@ -230,25 +232,25 @@ export default function EditProductPage() {
       setSaving(true);
       setError('');
       setSuccess('');
-      
+
       const productData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
         price: parseFloat(formData.price),
         dimension: {
           width: formData.dimension.width?.trim() || '',
-          height: formData.dimension.height?.trim() || ''
+          height: formData.dimension.height?.trim() || '',
         },
         minOrder: parseInt(formData.minOrder),
         material: formData.material?.trim() || '',
         deliveryDay: formData.deliveryDay?.trim() || '',
         status: formData.status,
-        collectionId: formData.collectionId
+        collectionId: formData.collectionId,
       };
 
       const formDataObj = new FormData();
       formDataObj.append('productData', JSON.stringify(productData));
-      
+
       imageFiles.forEach((file) => {
         formDataObj.append('images', file);
       });
@@ -260,13 +262,12 @@ export default function EditProductPage() {
       console.log('Updating product:', productId);
       const response = await productService.update(productId, formDataObj);
       console.log('Product updated:', response);
-      
+
       setSuccess('Product updated successfully!');
-      
+
       setTimeout(() => {
         router.push(`/dashboards/admin-dashboard/products/${productId}`);
       }, 1500);
-
     } catch (err) {
       console.error('Failed to update product:', err);
       setError(err.message || 'Failed to update product');
@@ -287,10 +288,10 @@ export default function EditProductPage() {
       <>
         <SEOHead {...METADATA.dashboard.admin} />
         <DashboardLayout userRole="admin">
-          <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="flex min-h-[60vh] items-center justify-center">
             <div className="relative text-center">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-              <p className="text-gray-400 mt-4 text-sm sm:text-base">Loading product...</p>
+              <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-red-600 border-t-transparent sm:h-12 sm:w-12"></div>
+              <p className="mt-4 text-sm text-gray-400 sm:text-base">Loading product...</p>
             </div>
           </div>
         </DashboardLayout>
@@ -303,8 +304,8 @@ export default function EditProductPage() {
       <SEOHead {...METADATA.dashboard.admin} />
       <DashboardLayout userRole="admin">
         <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-            <nav className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-400 mb-6 flex-wrap">
+          <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+            <nav className="mb-6 flex flex-wrap items-center gap-1 text-xs text-gray-400 sm:gap-2 sm:text-sm">
               <Link href="/dashboards/admin-dashboard" className="hover:text-red-400">
                 Dashboard
               </Link>
@@ -313,25 +314,37 @@ export default function EditProductPage() {
                 Collections
               </Link>
               <span>›</span>
-              <Link href={`/dashboards/admin-dashboard/collections/${formData.collectionId}/products`} className="hover:text-red-400">
+              <Link
+                href={`/dashboards/admin-dashboard/collections/${formData.collectionId}/products`}
+                className="hover:text-red-400"
+              >
                 Products
               </Link>
               <span>›</span>
-              <Link href={`/dashboards/admin-dashboard/products/${productId}`} className="hover:text-red-400">
-                {originalProduct?.name?.length > 20 ? `${originalProduct.name.substring(0, 20)}...` : originalProduct?.name}
+              <Link
+                href={`/dashboards/admin-dashboard/products/${productId}`}
+                className="hover:text-red-400"
+              >
+                {originalProduct?.name?.length > 20
+                  ? `${originalProduct.name.substring(0, 20)}...`
+                  : originalProduct?.name}
               </Link>
               <span>›</span>
               <span className="text-white">Edit</span>
             </nav>
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">Edit Product</h1>
-                <p className="text-gray-400 text-sm sm:text-base mt-1">Update product information</p>
+                <h1 className="text-2xl font-bold text-white sm:text-3xl">Edit Product</h1>
+                <p className="mt-1 text-sm text-gray-400 sm:text-base">
+                  Update product information
+                </p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Link href={`/dashboards/admin-dashboard/products/${productId}`}>
-                  <Button variant="secondary" className="text-sm">Cancel</Button>
+                  <Button variant="secondary" className="text-sm">
+                    Cancel
+                  </Button>
                 </Link>
                 <Button
                   variant="primary"
@@ -345,22 +358,22 @@ export default function EditProductPage() {
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-200 text-sm">
+              <div className="mb-4 rounded-lg border border-red-700 bg-red-900/50 p-3 text-sm text-red-200">
                 {error}
               </div>
             )}
-            
+
             {success && (
-              <div className="mb-4 p-3 bg-green-900/50 border border-green-700 rounded-lg text-green-200 text-sm">
+              <div className="mb-4 rounded-lg border border-green-700 bg-green-900/50 p-3 text-sm text-green-200">
                 {success}
               </div>
             )}
 
-            <div className="border-b border-gray-800 mb-6">
+            <div className="mb-6 border-b border-gray-800">
               <nav className="flex gap-4 sm:gap-6">
                 <button
                   onClick={() => setActiveTab('basic')}
-                  className={`pb-4 px-1 font-medium text-xs sm:text-sm border-b-2 transition ${
+                  className={`border-b-2 px-1 pb-4 text-xs font-medium transition sm:text-sm ${
                     activeTab === 'basic'
                       ? 'border-red-500 text-white'
                       : 'border-transparent text-gray-400 hover:text-gray-300'
@@ -370,7 +383,7 @@ export default function EditProductPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab('images')}
-                  className={`pb-4 px-1 font-medium text-xs sm:text-sm border-b-2 transition ${
+                  className={`border-b-2 px-1 pb-4 text-xs font-medium transition sm:text-sm ${
                     activeTab === 'images'
                       ? 'border-red-500 text-white'
                       : 'border-transparent text-gray-400 hover:text-gray-300'
@@ -383,21 +396,21 @@ export default function EditProductPage() {
 
             <form onSubmit={handleSubmit}>
               {activeTab === 'basic' && (
-                <div className="bg-slate-900 rounded-xl border border-gray-800 p-5 sm:p-6 space-y-5 sm:space-y-6">
+                <div className="space-y-5 rounded-xl border border-gray-800 bg-slate-900 p-5 sm:space-y-6 sm:p-6">
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                    <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                       Collection <span className="text-red-500">*</span>
                     </label>
                     <select
                       name="collectionId"
                       value={formData.collectionId}
                       onChange={handleChange}
-                      className="w-full bg-slate-800 border border-gray-700 rounded-lg px-3 sm:px-4 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
+                      className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 sm:px-4"
                       required
                       disabled={saving}
                     >
                       <option value="">Select a collection</option>
-                      {collections.map(col => (
+                      {collections.map((col) => (
                         <option key={col._id} value={col._id}>
                           {col.name}
                         </option>
@@ -406,7 +419,7 @@ export default function EditProductPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                    <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                       Product Name <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -415,15 +428,15 @@ export default function EditProductPage() {
                       value={formData.name}
                       onChange={handleChange}
                       placeholder="e.g., A5 Flyer"
-                      className="w-full bg-slate-800 border border-gray-700 rounded-lg px-3 sm:px-4 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
+                      className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 sm:px-4"
                       required
                       disabled={saving}
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                      <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                         Price (₦) <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -434,14 +447,14 @@ export default function EditProductPage() {
                         placeholder="0.00"
                         min="0"
                         step="0.01"
-                        className="w-full bg-slate-800 border border-gray-700 rounded-lg px-3 sm:px-4 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
+                        className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 sm:px-4"
                         required
                         disabled={saving}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                      <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                         Minimum Order <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -451,7 +464,7 @@ export default function EditProductPage() {
                         onChange={handleChange}
                         placeholder="100"
                         min="1"
-                        className="w-full bg-slate-800 border border-gray-700 rounded-lg px-3 sm:px-4 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
+                        className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 sm:px-4"
                         required
                         disabled={saving}
                       />
@@ -459,7 +472,7 @@ export default function EditProductPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                    <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                       Dimensions (optional)
                     </label>
                     <div className="grid grid-cols-2 gap-4">
@@ -469,7 +482,7 @@ export default function EditProductPage() {
                         value={formData.dimension.width}
                         onChange={handleChange}
                         placeholder="Width (e.g., 100mm)"
-                        className="w-full bg-slate-800 border border-gray-700 rounded-lg px-3 sm:px-4 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
+                        className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 sm:px-4"
                         disabled={saving}
                       />
                       <input
@@ -478,15 +491,15 @@ export default function EditProductPage() {
                         value={formData.dimension.height}
                         onChange={handleChange}
                         placeholder="Height (e.g., 150mm)"
-                        className="w-full bg-slate-800 border border-gray-700 rounded-lg px-3 sm:px-4 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
+                        className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 sm:px-4"
                         disabled={saving}
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                      <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                         Material (optional)
                       </label>
                       <input
@@ -495,13 +508,13 @@ export default function EditProductPage() {
                         value={formData.material}
                         onChange={handleChange}
                         placeholder="e.g., Glossy paper"
-                        className="w-full bg-slate-800 border border-gray-700 rounded-lg px-3 sm:px-4 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
+                        className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 sm:px-4"
                         disabled={saving}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                      <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                         Delivery Time (optional)
                       </label>
                       <input
@@ -510,21 +523,21 @@ export default function EditProductPage() {
                         value={formData.deliveryDay}
                         onChange={handleChange}
                         placeholder="e.g., 3-5 business days"
-                        className="w-full bg-slate-800 border border-gray-700 rounded-lg px-3 sm:px-4 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
+                        className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 sm:px-4"
                         disabled={saving}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                    <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                       Status
                     </label>
                     <select
                       name="status"
                       value={formData.status}
                       onChange={handleChange}
-                      className="w-full bg-slate-800 border border-gray-700 rounded-lg px-3 sm:px-4 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
+                      className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 sm:px-4"
                       disabled={saving}
                     >
                       <option value="active">Active</option>
@@ -533,7 +546,7 @@ export default function EditProductPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                    <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                       Description (optional)
                     </label>
                     <textarea
@@ -542,7 +555,7 @@ export default function EditProductPage() {
                       onChange={handleChange}
                       rows="4"
                       placeholder="Describe the product..."
-                      className="w-full bg-slate-800 border border-gray-700 rounded-lg px-3 sm:px-4 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
+                      className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 sm:px-4"
                       disabled={saving}
                     />
                   </div>
@@ -550,12 +563,12 @@ export default function EditProductPage() {
               )}
 
               {activeTab === 'images' && (
-                <div className="bg-slate-900 rounded-xl border border-gray-800 p-5 sm:p-6 space-y-5 sm:space-y-6">
+                <div className="space-y-5 rounded-xl border border-gray-800 bg-slate-900 p-5 sm:space-y-6 sm:p-6">
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                    <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                       Add New Images
                     </label>
-                    <div className="border-2 border-dashed border-gray-700 rounded-lg p-4 sm:p-6 text-center hover:border-red-600 transition">
+                    <div className="rounded-lg border-2 border-dashed border-gray-700 p-4 text-center transition hover:border-red-600 sm:p-6">
                       <input
                         type="file"
                         accept="image/jpeg,image/jpg,image/png,image/webp"
@@ -567,40 +580,66 @@ export default function EditProductPage() {
                       />
                       <label
                         htmlFor="image-upload"
-                        className={`cursor-pointer inline-flex flex-col items-center ${
-                          existingImages.length + imageFiles.length >= 10 ? 'opacity-50 cursor-not-allowed' : ''
+                        className={`inline-flex cursor-pointer flex-col items-center ${
+                          existingImages.length + imageFiles.length >= 10
+                            ? 'cursor-not-allowed opacity-50'
+                            : ''
                         }`}
                       >
-                        <svg className="w-10 h-10 sm:w-12 sm:h-12 text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        <svg
+                          className="mb-3 h-10 w-10 text-gray-500 sm:h-12 sm:w-12"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
                         </svg>
-                        <span className="text-gray-300 font-medium text-sm">Click to upload images</span>
-                        <span className="text-xs text-gray-500 mt-1">JPEG, PNG, WebP up to 5MB each</span>
+                        <span className="text-sm font-medium text-gray-300">
+                          Click to upload images
+                        </span>
+                        <span className="mt-1 text-xs text-gray-500">
+                          JPEG, PNG, WebP up to 5MB each
+                        </span>
                       </label>
                     </div>
                   </div>
 
                   {existingImages.length > 0 && (
                     <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-3">
+                      <label className="mb-3 block text-xs font-medium text-gray-300 sm:text-sm">
                         Current Images
                       </label>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">
                         {existingImages.map((img, index) => (
-                          <div key={index} className="relative group">
-                            <div className="relative aspect-square rounded-lg overflow-hidden border border-gray-700">
+                          <div key={index} className="group relative">
+                            <div className="relative aspect-square overflow-hidden rounded-lg border border-gray-700">
                               <img
                                 src={getImageUrl(img)}
                                 alt={`Product ${index + 1}`}
-                                className="w-full h-full object-cover"
+                                className="h-full w-full object-cover"
                               />
                               <button
                                 type="button"
                                 onClick={() => removeExistingImage(index)}
-                                className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
+                                className="absolute right-2 top-2 rounded-full bg-red-600 p-1 text-white opacity-0 transition group-hover:opacity-100"
                               >
-                                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                <svg
+                                  className="h-3 w-3 sm:h-4 sm:w-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
                                 </svg>
                               </button>
                             </div>
@@ -612,29 +651,39 @@ export default function EditProductPage() {
 
                   {imagePreviews.length > 0 && (
                     <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-3">
+                      <label className="mb-3 block text-xs font-medium text-gray-300 sm:text-sm">
                         New Images to Upload
                       </label>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">
                         {imagePreviews.map((preview, index) => (
-                          <div key={index} className="relative group">
-                            <div className="relative aspect-square rounded-lg overflow-hidden border border-gray-700">
+                          <div key={index} className="group relative">
+                            <div className="relative aspect-square overflow-hidden rounded-lg border border-gray-700">
                               <img
                                 src={preview}
                                 alt={`New ${index + 1}`}
-                                className="w-full h-full object-cover"
+                                className="h-full w-full object-cover"
                               />
                               <button
                                 type="button"
                                 onClick={() => removeNewImage(index)}
-                                className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
+                                className="absolute right-2 top-2 rounded-full bg-red-600 p-1 text-white opacity-0 transition group-hover:opacity-100"
                               >
-                                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                <svg
+                                  className="h-3 w-3 sm:h-4 sm:w-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
                                 </svg>
                               </button>
                             </div>
-                            <p className="text-xs text-gray-500 mt-1 truncate">
+                            <p className="mt-1 truncate text-xs text-gray-500">
                               {imageFiles[index]?.name}
                             </p>
                           </div>
@@ -644,19 +693,34 @@ export default function EditProductPage() {
                   )}
 
                   {imagesToRemove.length > 0 && (
-                    <div className="bg-red-900/20 border border-red-800 rounded-lg p-4">
-                      <h4 className="text-xs sm:text-sm font-medium text-red-400 mb-2">Images to Remove</h4>
+                    <div className="rounded-lg border border-red-800 bg-red-900/20 p-4">
+                      <h4 className="mb-2 text-xs font-medium text-red-400 sm:text-sm">
+                        Images to Remove
+                      </h4>
                       <div className="flex flex-wrap gap-2">
                         {imagesToRemove.map((img, index) => (
-                          <div key={index} className="flex items-center gap-2 bg-red-900/30 px-2 sm:px-3 py-1 rounded-full">
+                          <div
+                            key={index}
+                            className="flex items-center gap-2 rounded-full bg-red-900/30 px-2 py-1 sm:px-3"
+                          >
                             <span className="text-xs text-red-300">Image {index + 1}</span>
                             <button
                               type="button"
                               onClick={() => restoreImage(img)}
                               className="text-red-400 hover:text-red-300"
                             >
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              <svg
+                                className="h-3 w-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
                               </svg>
                             </button>
                           </div>
@@ -667,9 +731,13 @@ export default function EditProductPage() {
                 </div>
               )}
 
-              <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6 pt-4 border-t border-gray-800">
+              <div className="mt-6 flex flex-col justify-end gap-3 border-t border-gray-800 pt-4 sm:flex-row">
                 <Link href={`/dashboards/admin-dashboard/products/${productId}`}>
-                  <Button variant="secondary" disabled={saving} className="w-full sm:w-auto text-sm">
+                  <Button
+                    variant="secondary"
+                    disabled={saving}
+                    className="w-full text-sm sm:w-auto"
+                  >
                     Cancel
                   </Button>
                 </Link>
@@ -677,7 +745,7 @@ export default function EditProductPage() {
                   type="submit"
                   variant="primary"
                   disabled={saving || !hasChanges()}
-                  className="w-full sm:w-auto text-sm"
+                  className="w-full text-sm sm:w-auto"
                 >
                   {saving ? 'Saving...' : 'Save Changes'}
                 </Button>

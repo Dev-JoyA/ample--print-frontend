@@ -33,7 +33,7 @@ export default function EditCollectionPage() {
       setLoading(true);
       const response = await collectionService.getById(collectionId);
       console.log('Collection response:', response);
-      
+
       const collectionData = response?.collection || response?.data || response;
       setCollection(collectionData);
       setName(collectionData?.name || '');
@@ -47,7 +47,7 @@ export default function EditCollectionPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!name.trim()) {
       setError('Collection name is required');
       return;
@@ -57,12 +57,12 @@ export default function EditCollectionPage() {
       setSaving(true);
       setError('');
       setSuccess('');
-      
+
       const response = await collectionService.update(collectionId, { name: name.trim() });
       console.log('Collection updated:', response);
-      
+
       setSuccess('Collection updated successfully!');
-      
+
       setTimeout(() => {
         router.push(`/dashboards/admin-dashboard/collections/${collectionId}`);
       }, 1500);
@@ -78,10 +78,10 @@ export default function EditCollectionPage() {
     return (
       <DashboardLayout userRole="admin">
         <SEOHead {...METADATA.dashboard.admin} />
-        <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex min-h-[60vh] items-center justify-center">
           <div className="relative">
-            <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-gray-400 mt-4">Loading collection...</p>
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-red-600 border-t-transparent"></div>
+            <p className="mt-4 text-gray-400">Loading collection...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -92,49 +92,57 @@ export default function EditCollectionPage() {
     <DashboardLayout userRole="admin">
       <SEOHead {...METADATA.dashboard.admin} />
       <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-          <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-400 mb-4 sm:mb-6 flex-wrap">
-            <Link href="/dashboards/admin-dashboard" className="hover:text-red-400 transition">
+        <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+          <nav className="mb-4 flex flex-wrap items-center gap-2 text-xs text-gray-400 sm:mb-6 sm:text-sm">
+            <Link href="/dashboards/admin-dashboard" className="transition hover:text-red-400">
               Dashboard
             </Link>
             <span>›</span>
-            <Link href="/dashboards/admin-dashboard/collections" className="hover:text-red-400 transition">
+            <Link
+              href="/dashboards/admin-dashboard/collections"
+              className="transition hover:text-red-400"
+            >
               Collections
             </Link>
             <span>›</span>
-            <Link href={`/dashboards/admin-dashboard/collections/${collectionId}`} className="hover:text-red-400 transition truncate max-w-[120px] sm:max-w-[200px]">
+            <Link
+              href={`/dashboards/admin-dashboard/collections/${collectionId}`}
+              className="max-w-[120px] truncate transition hover:text-red-400 sm:max-w-[200px]"
+            >
               {collection?.name}
             </Link>
             <span>›</span>
             <span className="text-white">Edit</span>
           </nav>
 
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-white">Edit Collection</h1>
-              <p className="text-gray-400 text-sm sm:text-base mt-1">Update collection name</p>
+              <h1 className="text-2xl font-bold text-white sm:text-3xl">Edit Collection</h1>
+              <p className="mt-1 text-sm text-gray-400 sm:text-base">Update collection name</p>
             </div>
             <Link href={`/dashboards/admin-dashboard/collections/${collectionId}`}>
-              <Button variant="secondary" className="w-full sm:w-auto">Cancel</Button>
+              <Button variant="secondary" className="w-full sm:w-auto">
+                Cancel
+              </Button>
             </Link>
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-200 text-sm">
+            <div className="mb-4 rounded-lg border border-red-700 bg-red-900/50 p-3 text-sm text-red-200">
               {error}
             </div>
           )}
-          
+
           {success && (
-            <div className="mb-4 p-3 bg-green-900/50 border border-green-700 rounded-lg text-green-200 text-sm">
+            <div className="mb-4 rounded-lg border border-green-700 bg-green-900/50 p-3 text-sm text-green-200">
               {success}
             </div>
           )}
 
-          <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-4 sm:p-6">
+          <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-4 backdrop-blur-sm sm:p-6">
             <form onSubmit={handleSubmit}>
               <div className="mb-6">
-                <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
+                <label htmlFor="name" className="mb-2 block text-sm font-medium text-gray-300">
                   Collection Name
                 </label>
                 <input
@@ -143,19 +151,27 @@ export default function EditCollectionPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g., Flyers, Business Cards, Posters"
-                  className="w-full bg-slate-800 border border-gray-700 rounded-lg px-4 py-2.5 sm:py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600"
+                  className="w-full rounded-lg border border-gray-700 bg-slate-800 px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 sm:py-3"
                   disabled={saving}
                   required
                   autoFocus
                 />
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="mt-2 text-xs text-gray-500">
                   This name will be displayed to customers browsing your products
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center gap-3">
-                <Link href={`/dashboards/admin-dashboard/collections/${collectionId}`} className="w-full sm:w-auto">
-                  <Button variant="secondary" type="button" disabled={saving} className="w-full sm:w-auto">
+              <div className="flex flex-col items-center gap-3 sm:flex-row">
+                <Link
+                  href={`/dashboards/admin-dashboard/collections/${collectionId}`}
+                  className="w-full sm:w-auto"
+                >
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    disabled={saving}
+                    className="w-full sm:w-auto"
+                  >
                     Cancel
                   </Button>
                 </Link>
@@ -171,23 +187,29 @@ export default function EditCollectionPage() {
             </form>
           </div>
 
-          <div className="mt-6 bg-slate-900/30 rounded-lg border border-gray-800 p-4">
-            <h3 className="text-sm font-medium text-gray-400 mb-2">Collection Information</h3>
+          <div className="mt-6 rounded-lg border border-gray-800 bg-slate-900/30 p-4">
+            <h3 className="mb-2 text-sm font-medium text-gray-400">Collection Information</h3>
             <div className="space-y-2 text-sm">
-              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+              <div className="flex flex-col gap-1 sm:flex-row sm:justify-between sm:gap-0">
                 <span className="text-gray-500">Collection ID</span>
-                <span className="text-gray-300 font-mono text-xs sm:text-sm break-all">{collectionId}</span>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
-                <span className="text-gray-500">Created</span>
-                <span className="text-gray-300">
-                  {collection?.createdAt ? new Date(collection.createdAt).toLocaleDateString() : 'N/A'}
+                <span className="break-all font-mono text-xs text-gray-300 sm:text-sm">
+                  {collectionId}
                 </span>
               </div>
-              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+              <div className="flex flex-col gap-1 sm:flex-row sm:justify-between sm:gap-0">
+                <span className="text-gray-500">Created</span>
+                <span className="text-gray-300">
+                  {collection?.createdAt
+                    ? new Date(collection.createdAt).toLocaleDateString()
+                    : 'N/A'}
+                </span>
+              </div>
+              <div className="flex flex-col gap-1 sm:flex-row sm:justify-between sm:gap-0">
                 <span className="text-gray-500">Last Updated</span>
                 <span className="text-gray-300">
-                  {collection?.updatedAt ? new Date(collection.updatedAt).toLocaleDateString() : 'N/A'}
+                  {collection?.updatedAt
+                    ? new Date(collection.updatedAt).toLocaleDateString()
+                    : 'N/A'}
                 </span>
               </div>
             </div>

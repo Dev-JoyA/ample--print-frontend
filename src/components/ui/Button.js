@@ -10,12 +10,14 @@ const Button = ({
   iconPosition = 'right',
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark disabled:opacity-50 disabled:cursor-not-allowed';
-  
+  const baseStyles =
+    'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark disabled:opacity-50 disabled:cursor-not-allowed';
+
   const variants = {
     primary: 'bg-primary text-white hover:bg-primary-dark focus:ring-primary',
     secondary: 'bg-slate-950 text-white hover:bg-dark-lighter focus:ring-dark-light',
-    outline: 'border-2 border-primary text-primary hover:bg-primary hover:text-white focus:ring-primary',
+    outline:
+      'border-2 border-primary text-primary hover:bg-primary hover:text-white focus:ring-primary',
     ghost: 'text-gray-300 hover:bg-dark-light hover:text-white',
     danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-600',
     explore: 'text-red-600 font-semibold text-xs sm:text-sm',

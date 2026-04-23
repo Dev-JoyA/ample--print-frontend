@@ -12,7 +12,16 @@ const OptimizedImage = dynamic(() => import('@/components/ui/OptimizedImage'), {
   ssr: false,
 });
 
-const LazyImage = ({ src, alt, width, height, fill = false, className = '', priority = false, ...props }) => {
+const LazyImage = ({
+  src,
+  alt,
+  width,
+  height,
+  fill = false,
+  className = '',
+  priority = false,
+  ...props
+}) => {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef(null);
 

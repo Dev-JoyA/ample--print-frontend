@@ -17,15 +17,15 @@ const Sidebar = ({ userRole = 'customer' }) => {
   useEffect(() => {
     const token = document.cookie
       .split('; ')
-      .find(row => row.startsWith('token='))
+      .find((row) => row.startsWith('token='))
       ?.split('=')[1];
-    
+
     if (token) {
       try {
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
         const decoded = JSON.parse(window.atob(base64));
-        
+
         const role = decoded?.role || decoded?.userRole || decoded?.user?.role;
         if (role) {
           const normalizedRole = role.toLowerCase();
@@ -73,26 +73,47 @@ const Sidebar = ({ userRole = 'customer' }) => {
 
   const superAdminNavItems = [
     { name: 'Dashboard', href: '/dashboards/super-admin-dashboard', icon: '📊' },
-    { name: 'Admin Management', href: '/dashboards/super-admin-dashboard/admin-management', icon: '👥' },
+    {
+      name: 'Admin Management',
+      href: '/dashboards/super-admin-dashboard/admin-management',
+      icon: '👥',
+    },
     { name: 'Invoices', href: '/dashboards/super-admin-dashboard/invoices', icon: '📄' },
     { name: 'Notifications', href: '/notifications', icon: '➕' },
     { name: 'Discounts', href: '/dashboards/super-admin-dashboard/discounts', icon: '💰' },
-    { name: 'Payment Verification', href: '/dashboards/super-admin-dashboard/payment-verification', icon: '✅' },
-    { name: 'Financial Records', href: '/dashboards/super-admin-dashboard/financial-records', icon: '📊' },
+    {
+      name: 'Payment Verification',
+      href: '/dashboards/super-admin-dashboard/payment-verification',
+      icon: '✅',
+    },
+    {
+      name: 'Financial Records',
+      href: '/dashboards/super-admin-dashboard/financial-records',
+      icon: '📊',
+    },
     { name: 'Bank Accounts', href: '/dashboards/super-admin-dashboard/bank-accounts', icon: '🏦' },
   ];
 
   const getNavItems = () => {
     console.log('Getting nav items for role:', effectiveRole);
     if (effectiveRole === 'admin' || effectiveRole === 'Admin') return adminNavItems;
-    if (effectiveRole === 'super-admin' || effectiveRole === 'SuperAdmin' || effectiveRole === 'superadmin') return superAdminNavItems;
+    if (
+      effectiveRole === 'super-admin' ||
+      effectiveRole === 'SuperAdmin' ||
+      effectiveRole === 'superadmin'
+    )
+      return superAdminNavItems;
     return customerNavItems;
   };
 
   const navItems = getNavItems();
 
   const isActive = (href) => {
-    if (href === '/dashboards' || href === '/dashboards/admin-dashboard' || href === '/dashboards/super-admin-dashboard') {
+    if (
+      href === '/dashboards' ||
+      href === '/dashboards/admin-dashboard' ||
+      href === '/dashboards/super-admin-dashboard'
+    ) {
       return pathname === href || pathname.startsWith(href + '/');
     }
     return pathname === href || pathname.startsWith(href);
@@ -101,10 +122,10 @@ const Sidebar = ({ userRole = 'customer' }) => {
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
-      
+
       const refreshToken = document.cookie
         .split('; ')
-        .find(row => row.startsWith(`${COOKIE_NAMES.REFRESH_TOKEN}=`))
+        .find((row) => row.startsWith(`${COOKIE_NAMES.REFRESH_TOKEN}=`))
         ?.split('=')[1];
 
       if (refreshToken) {
@@ -118,9 +139,8 @@ const Sidebar = ({ userRole = 'customer' }) => {
       document.cookie = `${COOKIE_NAMES.TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
       document.cookie = `${COOKIE_NAMES.REFRESH_TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
       document.cookie = `super_admin_secret=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
-      
+
       router.push('/');
-      
     } catch (error) {
       console.error('Logout failed:', error);
       router.push('/');
@@ -141,7 +161,11 @@ const Sidebar = ({ userRole = 'customer' }) => {
     <>
       <div className="p-4 sm:p-6">
         <div className="flex items-center gap-2">
-          <img className="h-16 sm:h-24 w-auto brightness-110 drop-shadow-md" src="/images/logo/logo.png" alt="Logo" />
+          <img
+            className="h-16 w-auto brightness-110 drop-shadow-md sm:h-24"
+            src="/images/logo/logo.png"
+            alt="Logo"
+          />
         </div>
       </div>
 
@@ -190,16 +214,18 @@ const Sidebar = ({ userRole = 'customer' }) => {
         aria-label="Menu"
       >
         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 6h16M4 12h16M4 18h16"
+          />
         </svg>
       </button>
 
       {/* Mobile Sidebar Overlay */}
       {isMobileOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={closeMobileMenu}
-        />
+        <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={closeMobileMenu} />
       )}
 
       {/* Sidebar - Mobile: Fixed drawer, Desktop: Static */}
@@ -210,9 +236,9 @@ const Sidebar = ({ userRole = 'customer' }) => {
       > */}
       <aside
         className={`fixed left-0 top-0 z-40 flex h-full w-64 flex-col border-r border-dark-light bg-slate-950 transition-transform duration-300 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
-            isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
-        >
+      >
         {sidebarContent}
       </aside>
     </>

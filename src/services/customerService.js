@@ -1,11 +1,11 @@
-import { api } from "@/lib/api";
-import { API_PATHS } from "@/lib/constants";
+import { api } from '@/lib/api';
+import { API_PATHS } from '@/lib/constants';
 
 const getCurrentUserId = () => {
   try {
     const token = document.cookie
       .split('; ')
-      .find(row => row.startsWith('token='))
+      .find((row) => row.startsWith('token='))
       ?.split('=')[1];
     if (token) {
       const decoded = JSON.parse(atob(token.split('.')[1]));
@@ -57,14 +57,14 @@ export const customerService = {
         phoneNumber: userData.phoneNumber || '',
         address: userData.address || '',
         role: userData.role || 'Customer',
-        isActive: userData.isActive !== undefined ? userData.isActive : true
+        isActive: userData.isActive !== undefined ? userData.isActive : true,
       };
     } catch (error) {
       console.error('Failed to fetch user profile:', error);
       try {
         const token = document.cookie
           .split('; ')
-          .find(row => row.startsWith('token='))
+          .find((row) => row.startsWith('token='))
           ?.split('=')[1];
         if (token) {
           const decoded = JSON.parse(atob(token.split('.')[1]));
@@ -78,7 +78,7 @@ export const customerService = {
             phoneNumber: '',
             address: '',
             role: decoded?.role || 'Customer',
-            isActive: true
+            isActive: true,
           };
         }
       } catch (e) {
@@ -94,7 +94,7 @@ export const customerService = {
         phoneNumber: '',
         address: '',
         role: 'Customer',
-        isActive: true
+        isActive: true,
       };
     }
   },
@@ -119,15 +119,13 @@ export const customerService = {
         } else if (ordersResponse?.data?.order) {
           orders = ordersResponse.data.order;
         }
-        activeOrders = orders.filter(o => 
-          !['Delivered', 'Cancelled', 'Completed'].includes(o?.status)
+        activeOrders = orders.filter(
+          (o) => !['Delivered', 'Cancelled', 'Completed'].includes(o?.status)
         );
-        designsForApproval = orders.filter(o => 
-          o?.status === 'DesignUploaded' || o?.status === 'UnderReview'
+        designsForApproval = orders.filter(
+          (o) => o?.status === 'DesignUploaded' || o?.status === 'UnderReview'
         );
-        completedOrders = orders.filter(o => 
-          ['Delivered', 'Completed'].includes(o?.status)
-        );
+        completedOrders = orders.filter((o) => ['Delivered', 'Completed'].includes(o?.status));
       } catch (orderError) {
         console.warn('Could not fetch orders:', orderError);
       }
@@ -145,8 +143,8 @@ export const customerService = {
         } else if (Array.isArray(invoicesResponse)) {
           invoices = invoicesResponse;
         }
-        pendingInvoices = invoices.filter(i => 
-          i?.status === 'Sent' || i?.status === 'Pending' || i?.status === 'PartPayment'
+        pendingInvoices = invoices.filter(
+          (i) => i?.status === 'Sent' || i?.status === 'Pending' || i?.status === 'PartPayment'
         );
       } catch (invoiceError) {
         console.warn('Could not fetch invoices:', invoiceError);
@@ -157,7 +155,7 @@ export const customerService = {
         designsForApproval: designsForApproval.length,
         completedOrders: completedOrders.length,
         recentOrders: orders.slice(0, 5) || [],
-        unpaidInvoices: pendingInvoices.slice(0, 5)
+        unpaidInvoices: pendingInvoices.slice(0, 5),
       };
     } catch (error) {
       console.error('Failed to fetch dashboard stats:', error);
@@ -167,7 +165,7 @@ export const customerService = {
         designsForApproval: 0,
         completedOrders: 0,
         recentOrders: [],
-        unpaidInvoices: []
+        unpaidInvoices: [],
       };
     }
   },
@@ -246,7 +244,9 @@ export const customerService = {
   getNotifications: async (params = {}) => {
     try {
       const queryParams = new URLSearchParams(params).toString();
-      const endpoint = queryParams ? `${API_PATHS.NOTIFICATIONS.HISTORY}?${queryParams}` : API_PATHS.NOTIFICATIONS.HISTORY;
+      const endpoint = queryParams
+        ? `${API_PATHS.NOTIFICATIONS.HISTORY}?${queryParams}`
+        : API_PATHS.NOTIFICATIONS.HISTORY;
       const response = await api.get(endpoint);
       return response.data || response;
     } catch (error) {
@@ -293,7 +293,10 @@ export const customerService = {
     try {
       const userId = getCurrentUserId();
       if (!userId) throw new Error('Not authenticated');
-      const response = await api.put(`${API_PATHS.USERS.ADDRESS(userId)}/${addressId}`, addressData);
+      const response = await api.put(
+        `${API_PATHS.USERS.ADDRESS(userId)}/${addressId}`,
+        addressData
+      );
       return response.data || response;
     } catch (error) {
       console.error('Failed to update address:', error);
@@ -346,7 +349,9 @@ export const customerService = {
   getTransactions: async (params = {}) => {
     try {
       const queryParams = new URLSearchParams(params).toString();
-      const endpoint = queryParams ? `${API_PATHS.PAYMENTS.MY_TRANSACTIONS}?${queryParams}` : API_PATHS.PAYMENTS.MY_TRANSACTIONS;
+      const endpoint = queryParams
+        ? `${API_PATHS.PAYMENTS.MY_TRANSACTIONS}?${queryParams}`
+        : API_PATHS.PAYMENTS.MY_TRANSACTIONS;
       const response = await api.get(endpoint);
       return response.data || response;
     } catch (error) {
@@ -358,7 +363,7 @@ export const customerService = {
   downloadInvoice: async (invoiceId) => {
     try {
       const response = await api.get(API_PATHS.INVOICES.PDF(invoiceId), {
-        fetchOpts: { responseType: 'blob' }
+        fetchOpts: { responseType: 'blob' },
       });
       return response;
     } catch (error) {
@@ -370,7 +375,9 @@ export const customerService = {
   getOrderHistory: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams(filters).toString();
-      const endpoint = queryParams ? `${API_PATHS.ORDERS.MY_ORDERS}?${queryParams}` : API_PATHS.ORDERS.MY_ORDERS;
+      const endpoint = queryParams
+        ? `${API_PATHS.ORDERS.MY_ORDERS}?${queryParams}`
+        : API_PATHS.ORDERS.MY_ORDERS;
       const response = await api.get(endpoint);
       if (response?.orders) return response.orders;
       if (response?.order) return response.order;
@@ -399,14 +406,18 @@ export const customerService = {
       const orders = await customerService.getOrderHistory({ limit: 1000 });
       const totalSpent = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
       const totalOrders = orders.length;
-      const completedOrders = orders.filter(o => o.status === 'Delivered' || o.status === 'Completed').length;
-      const pendingOrders = orders.filter(o => o.status !== 'Delivered' && o.status !== 'Completed' && o.status !== 'Cancelled').length;
+      const completedOrders = orders.filter(
+        (o) => o.status === 'Delivered' || o.status === 'Completed'
+      ).length;
+      const pendingOrders = orders.filter(
+        (o) => o.status !== 'Delivered' && o.status !== 'Completed' && o.status !== 'Cancelled'
+      ).length;
       return {
         totalSpent,
         totalOrders,
         completedOrders,
         pendingOrders,
-        averageOrderValue: totalOrders > 0 ? totalSpent / totalOrders : 0
+        averageOrderValue: totalOrders > 0 ? totalSpent / totalOrders : 0,
       };
     } catch (error) {
       console.error('Failed to fetch metrics:', error);
@@ -415,7 +426,7 @@ export const customerService = {
         totalOrders: 0,
         completedOrders: 0,
         pendingOrders: 0,
-        averageOrderValue: 0
+        averageOrderValue: 0,
       };
     }
   },
@@ -423,11 +434,13 @@ export const customerService = {
   getBriefsByOrderAndProduct: async (orderId, productId) => {
     console.log(`📋 Fetching briefs for order ${orderId}, product ${productId}`);
     try {
-      const response = await api.get(API_PATHS.CUSTOMER_BRIEFS.BY_ORDER_PRODUCT(orderId, productId));
-      console.log("✅ Briefs fetched:", response);
+      const response = await api.get(
+        API_PATHS.CUSTOMER_BRIEFS.BY_ORDER_PRODUCT(orderId, productId)
+      );
+      console.log('✅ Briefs fetched:', response);
       return response;
     } catch (error) {
-      console.error("❌ Failed to fetch briefs:", error);
+      console.error('❌ Failed to fetch briefs:', error);
       return { data: null };
     }
   },

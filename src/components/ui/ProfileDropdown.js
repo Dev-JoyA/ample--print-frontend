@@ -24,7 +24,7 @@ const ProfileDropdown = () => {
       setLoading(true);
       const userData = await profileService.getMyProfile();
       console.log('User data in dropdown:', userData);
-      
+
       if (userData?.user) {
         setProfile(userData.user);
       } else {
@@ -60,7 +60,7 @@ const ProfileDropdown = () => {
 
   const getDisplayName = () => {
     if (profile?.userName) {
-      return (profile.userName).toUpperCase();
+      return profile.userName.toUpperCase();
     }
     if (profile?.firstName && profile?.lastName) {
       return `${profile.firstName} ${profile.lastName}`;
@@ -106,11 +106,8 @@ const ProfileDropdown = () => {
 
       {isOpen && (
         <>
-          <div 
-            className="fixed inset-0 z-30" 
-            onClick={() => setIsOpen(false)}
-          />
-          
+          <div className="fixed inset-0 z-30" onClick={() => setIsOpen(false)} />
+
           <div className="absolute right-0 z-40 mt-2 w-56 rounded-lg border border-gray-800 bg-slate-900 shadow-lg">
             <div className="py-1">
               <div className="border-b border-gray-800 px-4 py-3">
@@ -124,7 +121,12 @@ const ProfileDropdown = () => {
                 onClick={() => setIsOpen(false)}
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
                 </svg>
                 <span>My Profile</span>
               </Link>
@@ -135,7 +137,12 @@ const ProfileDropdown = () => {
                 onClick={() => setIsOpen(false)}
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                  />
                 </svg>
                 <span>My Orders</span>
               </Link>
@@ -150,7 +157,12 @@ const ProfileDropdown = () => {
                 className="flex w-full items-center gap-3 px-4 py-2 text-sm text-red-400 transition-colors hover:bg-gray-800 hover:text-red-300"
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
                 </svg>
                 <span>Sign Out</span>
               </button>

@@ -12,7 +12,7 @@ import { api } from '@/lib/api';
 export default function BankAccountsPage() {
   useAuthCheck();
   const router = useRouter();
-  
+
   const [bankAccounts, setBankAccounts] = useState([]);
   const [activeAccount, setActiveAccount] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,12 +20,12 @@ export default function BankAccountsPage() {
   const [success, setSuccess] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     accountName: '',
     accountNumber: '',
     bankName: '',
-    isActive: false
+    isActive: false,
   });
 
   useEffect(() => {
@@ -37,19 +37,18 @@ export default function BankAccountsPage() {
       setLoading(true);
       const response = await api.get('/bank-accounts');
       console.log('Bank accounts response:', response);
-      
+
       let accounts = [];
       if (response?.bankAccounts && Array.isArray(response.bankAccounts)) {
         accounts = response.bankAccounts;
       } else if (Array.isArray(response)) {
         accounts = response;
       }
-      
+
       setBankAccounts(accounts);
-      
-      const active = accounts.find(acc => acc.isActive);
+
+      const active = accounts.find((acc) => acc.isActive);
       setActiveAccount(active);
-      
     } catch (err) {
       console.error('Failed to fetch bank accounts:', err);
       setError('Failed to load bank accounts');
@@ -60,9 +59,9 @@ export default function BankAccountsPage() {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
@@ -71,21 +70,20 @@ export default function BankAccountsPage() {
     setSubmitting(true);
     setError('');
     setSuccess('');
-    
+
     try {
       const response = await api.post('/bank-accounts', formData);
       console.log('Create response:', response);
-      
+
       setSuccess('Bank account created successfully');
       setFormData({
         accountName: '',
         accountNumber: '',
         bankName: '',
-        isActive: false
+        isActive: false,
       });
       setShowForm(false);
       fetchBankAccounts();
-      
     } catch (err) {
       console.error('Failed to create bank account:', err);
       setError(err?.data?.message || 'Failed to create bank account');
@@ -110,7 +108,7 @@ export default function BankAccountsPage() {
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this bank account?')) return;
-    
+
     try {
       setSubmitting(true);
       await api.delete(`/bank-accounts/${id}`);
@@ -131,7 +129,11 @@ export default function BankAccountsPage() {
   if (loading) {
     return (
       <>
-        <SEOHead title="Bank Accounts" description="Manage bank accounts" robots="noindex, nofollow" />
+        <SEOHead
+          title="Bank Accounts"
+          description="Manage bank accounts"
+          robots="noindex, nofollow"
+        />
         <DashboardLayout userRole="super-admin">
           <div className="flex min-h-[60vh] items-center justify-center">
             <div className="text-white">Loading...</div>
@@ -149,13 +151,11 @@ export default function BankAccountsPage() {
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white sm:text-3xl">Bank Accounts</h1>
-              <p className="mt-1 text-sm text-gray-400">Manage bank accounts for payment collections</p>
+              <p className="mt-1 text-sm text-gray-400">
+                Manage bank accounts for payment collections
+              </p>
             </div>
-            <Button
-              variant="primary"
-              onClick={() => setShowForm(!showForm)}
-              icon="+"
-            >
+            <Button variant="primary" onClick={() => setShowForm(!showForm)} icon="+">
               {showForm ? 'Cancel' : 'Add Bank Account'}
             </Button>
           </div>
@@ -229,7 +229,9 @@ export default function BankAccountsPage() {
             <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-12 text-center">
               <div className="mb-4 text-5xl">🏦</div>
               <h3 className="mb-2 text-lg font-semibold text-white">No Bank Accounts</h3>
-              <p className="text-sm text-gray-400">Add a bank account to start collecting payments</p>
+              <p className="text-sm text-gray-400">
+                Add a bank account to start collecting payments
+              </p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -253,7 +255,9 @@ export default function BankAccountsPage() {
                         )}
                       </div>
                       <p className="mt-1 text-sm text-white">{account.accountName}</p>
-                      <p className="text-sm text-gray-400">Account Number: {account.accountNumber}</p>
+                      <p className="text-sm text-gray-400">
+                        Account Number: {account.accountNumber}
+                      </p>
                       <p className="text-xs text-gray-500">
                         Created: {new Date(account.createdAt).toLocaleDateString()}
                       </p>
@@ -291,7 +295,8 @@ export default function BankAccountsPage() {
                 <div>
                   <p className="text-sm text-blue-300">Active Account for Customer Payments</p>
                   <p className="text-sm text-white">
-                    {activeAccount.bankName} - {activeAccount.accountName} ({activeAccount.accountNumber})
+                    {activeAccount.bankName} - {activeAccount.accountName} (
+                    {activeAccount.accountNumber})
                   </p>
                 </div>
               </div>

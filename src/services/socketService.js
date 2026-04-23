@@ -20,10 +20,10 @@ class SocketService {
     this.isConnecting = true;
     this.userRole = userRole;
     this.userId = userId;
-    
+
     const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4001';
     console.log('🔌 Connecting to socket at:', SOCKET_URL);
-    
+
     try {
       this.socket = io(SOCKET_URL, {
         transports: ['websocket', 'polling'],
@@ -32,7 +32,7 @@ class SocketService {
         reconnectionAttempts: this.maxReconnectAttempts,
         reconnectionDelay: 1000,
         forceNew: true,
-        timeout: 20000
+        timeout: 20000,
       });
 
       this.socket.on('connect', () => {
@@ -62,7 +62,6 @@ class SocketService {
       });
 
       this.setupEventListeners();
-      
     } catch (error) {
       console.error('Failed to create socket connection:', error);
       this.isConnecting = false;
@@ -75,8 +74,8 @@ class SocketService {
     if (this.userRole) {
       const roleMap = {
         'super-admin': 'SuperAdmin',
-        'admin': 'Admin',
-        'customer': 'Customer'
+        admin: 'Admin',
+        customer: 'Customer',
       };
       const role = roleMap[this.userRole] || this.userRole;
       this.socket.emit('joinRoom', role);
@@ -107,7 +106,8 @@ class SocketService {
           if (data.message?.includes('updated')) this.notifyListeners('invoice-updated', data);
           if (data.message?.includes('sent')) this.notifyListeners('invoice-sent', data);
           if (data.message?.includes('deleted')) this.notifyListeners('invoice-deleted', data);
-          if (data.message?.includes('payment')) this.notifyListeners('invoice-payment-updated', data);
+          if (data.message?.includes('payment'))
+            this.notifyListeners('invoice-payment-updated', data);
         }
         if (data.orderId) {
           if (data.status) this.notifyListeners('order-status-updated', data);
@@ -133,18 +133,38 @@ class SocketService {
     }
 
     const roomEvents = [
-      'new-order', 'order-ready-for-invoice', 'order-ready-for-shipping',
-      'new-invoice', 'invoice-created', 'invoice-updated', 'invoice-sent', 
-      'invoice-deleted', 'invoice-payment-updated', 'new-shipping-invoice',
-      'designUploaded', 'designUpdated', 'design-approved',
-      'new-customer-brief', 'admin-brief-response', 'brief-deleted',
-      'new-feedback', 'feedback-response', 'feedback-resolved',
-      'feedback-status-updated', 'feedback-deleted', 'pending-feedback-count',
-      'payment-received', 'pending-bank-transfer', 'bank-transfer-verified',
-      'shipping-created', 'pickup-ready', 'tracking-updated', 'shipping-status-updated'
+      'new-order',
+      'order-ready-for-invoice',
+      'order-ready-for-shipping',
+      'new-invoice',
+      'invoice-created',
+      'invoice-updated',
+      'invoice-sent',
+      'invoice-deleted',
+      'invoice-payment-updated',
+      'new-shipping-invoice',
+      'designUploaded',
+      'designUpdated',
+      'design-approved',
+      'new-customer-brief',
+      'admin-brief-response',
+      'brief-deleted',
+      'new-feedback',
+      'feedback-response',
+      'feedback-resolved',
+      'feedback-status-updated',
+      'feedback-deleted',
+      'pending-feedback-count',
+      'payment-received',
+      'pending-bank-transfer',
+      'bank-transfer-verified',
+      'shipping-created',
+      'pickup-ready',
+      'tracking-updated',
+      'shipping-status-updated',
     ];
 
-    roomEvents.forEach(event => {
+    roomEvents.forEach((event) => {
       this.socket.on(event, (data) => {
         console.log(`📨 Room event ${event}:`, data);
         this.notifyListeners(event, data);
@@ -161,7 +181,7 @@ class SocketService {
 
   off(event, callback) {
     if (this.listeners.has(event)) {
-      const callbacks = this.listeners.get(event).filter(cb => cb !== callback);
+      const callbacks = this.listeners.get(event).filter((cb) => cb !== callback);
       if (callbacks.length > 0) {
         this.listeners.set(event, callbacks);
       } else {
@@ -172,7 +192,7 @@ class SocketService {
 
   notifyListeners(event, data) {
     if (this.listeners.has(event)) {
-      this.listeners.get(event).forEach(callback => {
+      this.listeners.get(event).forEach((callback) => {
         try {
           callback(data);
         } catch (error) {

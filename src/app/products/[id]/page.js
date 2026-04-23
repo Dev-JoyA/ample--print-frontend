@@ -43,15 +43,14 @@ export default function ProductDetailPage() {
   const [imageryPreviews, setImageryPreviews] = useState([]);
   const [userActiveOrders, setUserActiveOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
+  const [showPriceAlert, setShowPriceAlert] = useState(false);
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const timerRef = useRef(null);
 
   useEffect(() => {
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='));
+    const token = document.cookie.split('; ').find((row) => row.startsWith('token='));
     setIsAuthenticated(!!token);
   }, []);
 
@@ -115,25 +114,25 @@ export default function ProductDetailPage() {
   const handleFileUpload = (e, type) => {
     const files = Array.from(e.target.files);
     if (type === 'logos') {
-      setLogos(prev => [...prev, ...files]);
-      const previews = files.map(file => URL.createObjectURL(file));
-      setLogoPreviews(prev => [...prev, ...previews]);
+      setLogos((prev) => [...prev, ...files]);
+      const previews = files.map((file) => URL.createObjectURL(file));
+      setLogoPreviews((prev) => [...prev, ...previews]);
     } else if (type === 'imagery') {
-      setImagery(prev => [...prev, ...files]);
-      const previews = files.map(file => URL.createObjectURL(file));
-      setImageryPreviews(prev => [...prev, ...previews]);
+      setImagery((prev) => [...prev, ...files]);
+      const previews = files.map((file) => URL.createObjectURL(file));
+      setImageryPreviews((prev) => [...prev, ...previews]);
     }
   };
 
   const removeFile = (type, index) => {
     if (type === 'logos') {
       URL.revokeObjectURL(logoPreviews[index]);
-      setLogos(prev => prev.filter((_, i) => i !== index));
-      setLogoPreviews(prev => prev.filter((_, i) => i !== index));
+      setLogos((prev) => prev.filter((_, i) => i !== index));
+      setLogoPreviews((prev) => prev.filter((_, i) => i !== index));
     } else if (type === 'imagery') {
       URL.revokeObjectURL(imageryPreviews[index]);
-      setImagery(prev => prev.filter((_, i) => i !== index));
-      setImageryPreviews(prev => prev.filter((_, i) => i !== index));
+      setImagery((prev) => prev.filter((_, i) => i !== index));
+      setImageryPreviews((prev) => prev.filter((_, i) => i !== index));
     }
   };
 
@@ -149,14 +148,16 @@ export default function ProductDetailPage() {
 
       mediaRecorderRef.current.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-        const audioFile = new File([audioBlob], `voice_briefing_${Date.now()}.wav`, { type: 'audio/wav' });
+        const audioFile = new File([audioBlob], `voice_briefing_${Date.now()}.wav`, {
+          type: 'audio/wav',
+        });
         setVoiceNote(audioFile);
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach((track) => track.stop());
       };
 
       mediaRecorderRef.current.start();
       setIsRecording(true);
-      
+
       timerRef.current = setInterval(() => {
         setRecordingTime((prev) => prev + 0.1);
       }, 100);
@@ -183,10 +184,19 @@ export default function ProductDetailPage() {
       return;
     }
 
-    const hasCustomization = 
-      designInstructions.trim() !== '' || 
-      logos.length > 0 || 
-      imagery.length > 0 || 
+    // Only show price alert - no validation here
+    setError('');
+    setShowPriceAlert(true);
+  };
+
+  const handlePriceAlertConfirm = () => {
+    setShowPriceAlert(false);
+
+    // Check for customization AFTER price alert is acknowledged
+    const hasCustomization =
+      designInstructions.trim() !== '' ||
+      logos.length > 0 ||
+      imagery.length > 0 ||
       voiceNote !== null ||
       size.trim() !== '' ||
       color.trim() !== '' ||
@@ -199,12 +209,53 @@ export default function ProductDetailPage() {
 
     setError('');
 
+    // Proceed with order
     if (userActiveOrders.length > 0) {
       setShowOrderModal(true);
     } else {
       handleSubmit(null);
     }
   };
+
+  //   const handleSubmitClick = () => {
+  //     if (!isAuthenticated) {
+  //       setShowAuthModal(true);
+  //       return;
+  //     }
+
+  //     setError('');
+  //     setShowPriceAlert(true);
+
+  //     const hasCustomization =
+  //       designInstructions.trim() !== '' ||
+  //       logos.length > 0 ||
+  //       imagery.length > 0 ||
+  //       voiceNote !== null ||
+  //       size.trim() !== '' ||
+  //       color.trim() !== '' ||
+  //       quantity > 0;
+
+  //     if (!hasCustomization) {
+  //       setError('Please provide at least one customization detail');
+  //       return;
+  //     }
+
+  //     if (userActiveOrders.length > 0) {
+  //       setShowOrderModal(true);
+  //     } else {
+  //       handleSubmit(null);
+  //     }
+
+  //   };
+
+  //   const handlePriceAlertConfirm = () => {
+  //   setShowPriceAlert(false);
+  //   if (userActiveOrders.length > 0) {
+  //     setShowOrderModal(true);
+  //   } else {
+  //     handleSubmit(null);
+  //   }
+  // };
 
   const handleSubmit = async (selectedOrderId) => {
     try {
@@ -213,11 +264,11 @@ export default function ProductDetailPage() {
       setShowOrderModal(false);
 
       let orderId;
-      
+
       if (selectedOrderId) {
         const addItemData = {
           productId: product._id,
-          quantity: quantity
+          quantity: quantity,
         };
         await orderService.addItemToOrder(selectedOrderId, addItemData);
         orderId = selectedOrderId;
@@ -226,9 +277,9 @@ export default function ProductDetailPage() {
           items: [
             {
               productId: product._id,
-              quantity: quantity
-            }
-          ]
+              quantity: quantity,
+            },
+          ],
         };
         const orderResponse = await orderService.create(orderData);
         orderId = orderResponse?.order?._id || orderResponse?.data?._id || orderResponse?._id;
@@ -333,6 +384,60 @@ ${new Date().toLocaleString()}
   return (
     <>
       <SEOHead {...getProductMetadata(product)} />
+
+      {/* Price Alert - Place OUTSIDE DashboardLayout at root level */}
+      {showPriceAlert && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-yellow-700/50 bg-slate-900 p-6 shadow-2xl">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-500/20">
+                <svg
+                  className="h-5 w-5 text-yellow-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-white">Pricing Notice</h3>
+            </div>
+
+            <p className="mb-2 text-sm text-gray-300">
+              The final price of your order is{' '}
+              <span className="font-semibold text-yellow-400">subject to change</span> based on your
+              customization requirements.
+            </p>
+            <p className="text-sm text-gray-400">
+              Once our team reviews your brief, an updated invoice will be sent to you reflecting
+              the final cost.
+            </p>
+
+            <div className="mt-6 flex gap-3">
+              <Button
+                variant="secondary"
+                className="flex-1"
+                onClick={() => setShowPriceAlert(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                className="flex-1 !bg-yellow-500 hover:!bg-yellow-600"
+                onClick={handlePriceAlertConfirm}
+              >
+                I Understand, Continue
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <DashboardLayout userRole="customer">
         <div className="mx-auto max-w-7xl">
           {showAuthModal && (
@@ -357,7 +462,9 @@ ${new Date().toLocaleString()}
                   <Button
                     variant="primary"
                     onClick={() =>
-                      router.push(`/auth/sign-in?next=${encodeURIComponent(`/products/${productId}`)}`)
+                      router.push(
+                        `/auth/sign-in?next=${encodeURIComponent(`/products/${productId}`)}`
+                      )
                     }
                   >
                     Sign In
@@ -377,15 +484,20 @@ ${new Date().toLocaleString()}
                     className="text-gray-400 transition hover:text-white"
                   >
                     <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 </div>
-                
+
                 <p className="mb-6 text-sm text-gray-400">
                   Would you like to add this item to an existing order or create a new one?
                 </p>
-                
+
                 <div className="mb-4 space-y-3">
                   <button
                     onClick={() => handleSubmit(null)}
@@ -396,29 +508,35 @@ ${new Date().toLocaleString()}
                         ✨
                       </div>
                       <div>
-                        <span className="block text-lg font-semibold text-white">Create New Order</span>
-                        <span className="text-xs text-gray-400">Start a fresh order with this item</span>
+                        <span className="block text-lg font-semibold text-white">
+                          Create New Order
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          Start a fresh order with this item
+                        </span>
                       </div>
                     </div>
                   </button>
-                  
+
                   <div className="relative py-3">
                     <div className="absolute inset-0 flex items-center">
                       <div className="w-full border-t border-gray-700"></div>
                     </div>
                     <div className="relative flex justify-center">
-                      <span className="bg-slate-900 px-4 text-sm text-gray-500">Your Active Orders</span>
+                      <span className="bg-slate-900 px-4 text-sm text-gray-500">
+                        Your Active Orders
+                      </span>
                     </div>
                   </div>
-                  
+
                   {loadingOrders ? (
                     <div className="py-8 text-center">
-                      <div className="mx-auto h-8 w-8 animate-spin rounded-full border-3 border-primary border-t-transparent"></div>
+                      <div className="border-3 mx-auto h-8 w-8 animate-spin rounded-full border-primary border-t-transparent"></div>
                       <p className="mt-3 text-sm text-gray-400">Loading your orders...</p>
                     </div>
                   ) : userActiveOrders.length > 0 ? (
                     <div className="max-h-60 space-y-2 overflow-y-auto pr-1">
-                      {userActiveOrders.map(order => (
+                      {userActiveOrders.map((order) => (
                         <button
                           key={order._id}
                           onClick={() => handleSubmit(order._id)}
@@ -447,7 +565,7 @@ ${new Date().toLocaleString()}
                     </div>
                   )}
                 </div>
-                
+
                 <div className="mt-4 flex justify-end gap-3 border-t border-gray-800 pt-3">
                   <Button variant="secondary" onClick={() => setShowOrderModal(false)}>
                     Cancel
@@ -468,13 +586,18 @@ ${new Date().toLocaleString()}
             className="mb-6 flex items-center gap-2 text-gray-400 transition-colors hover:text-white"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
             Back to Studio
           </button>
 
           {showFullscreenImage && (
-            <div 
+            <div
               className="fixed inset-0 z-40 flex items-center justify-center bg-black/90"
               onClick={() => setShowFullscreenImage(false)}
             >
@@ -483,11 +606,16 @@ ${new Date().toLocaleString()}
                 onClick={() => setShowFullscreenImage(false)}
               >
                 <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
               <div className="relative h-[80vh] w-full max-w-4xl">
-                <img 
+                <img
                   src={`${getImageUrl(images[selectedImageIndex])}?t=${Date.now()}`}
                   alt={product.name}
                   className="h-full w-full object-contain"
@@ -504,7 +632,12 @@ ${new Date().toLocaleString()}
                     className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white hover:bg-black/70"
                   >
                     <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 19l-7-7 7-7"
+                      />
                     </svg>
                   </button>
                   <button
@@ -515,7 +648,12 @@ ${new Date().toLocaleString()}
                     className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white hover:bg-black/70"
                   >
                     <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
                     </svg>
                   </button>
                 </>
@@ -525,12 +663,12 @@ ${new Date().toLocaleString()}
 
           <div className="grid gap-8 md:grid-cols-2">
             <div className="relative">
-              <div 
+              <div
                 className="relative mb-4 aspect-square w-full cursor-pointer overflow-hidden rounded-lg bg-slate-950"
                 onClick={() => setShowFullscreenImage(true)}
               >
                 {images.length > 0 ? (
-                  <img 
+                  <img
                     src={`${getImageUrl(images[selectedImageIndex])}?t=${Date.now()}`}
                     alt={product.name}
                     className="h-full w-full object-cover"
@@ -543,12 +681,12 @@ ${new Date().toLocaleString()}
                   </div>
                 )}
                 <div className="absolute right-4 top-4">
-                  <StatusBadge 
-                    status={product.deliveryDay || '3-5 Days'} 
-                    className="!border !border-gray-300 !bg-slate-950 !text-white" 
+                  <StatusBadge
+                    status={product.deliveryDay || '3-5 Days'}
+                    className="!border !border-gray-300 !bg-slate-950 !text-white"
                   />
                 </div>
-                
+
                 {images.length > 1 && (
                   <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-1 rounded-3xl bg-zinc-700/80 p-1">
                     {images.map((_, index) => (
@@ -574,7 +712,7 @@ ${new Date().toLocaleString()}
               {images.length > 1 && (
                 <div className="mt-4 grid w-full grid-cols-3 gap-2">
                   {images.map((img, index) => (
-                    <img 
+                    <img
                       key={index}
                       src={`${getImageUrl(img)}?t=${Date.now()}`}
                       alt={`${product.name} - Image ${index + 1}`}
@@ -593,13 +731,13 @@ ${new Date().toLocaleString()}
             <div className="space-y-6">
               <div>
                 <div className="mb-2 flex items-center gap-2">
-                  <StatusBadge 
-                    className="!border !border-red-700 !bg-slate-950" 
-                    status={product.collectionId?.name?.toUpperCase() || 'PREMIUM'} 
+                  <StatusBadge
+                    className="!border !border-red-700 !bg-slate-950"
+                    status={product.collectionId?.name?.toUpperCase() || 'PREMIUM'}
                   />
-                  <StatusBadge 
-                    className="!border-none !bg-slate-950 !text-green-600" 
-                    status="QUALITY GUARANTEED" 
+                  <StatusBadge
+                    className="!border-none !bg-slate-950 !text-green-600"
+                    status="QUALITY GUARANTEED"
                   />
                 </div>
                 <h1 className="mb-4 text-3xl font-bold text-white">{product.name}</h1>
@@ -610,7 +748,9 @@ ${new Date().toLocaleString()}
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-gray-400">Size</label>
+                  <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                    Size
+                  </label>
                   <input
                     type="text"
                     value={size}
@@ -620,7 +760,9 @@ ${new Date().toLocaleString()}
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-gray-400">Color</label>
+                  <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                    Color
+                  </label>
                   <input
                     type="text"
                     value={color}
@@ -630,7 +772,9 @@ ${new Date().toLocaleString()}
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-gray-400">Quantity</label>
+                  <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                    Quantity
+                  </label>
                   <input
                     type="number"
                     min={product.minOrder || 1}
@@ -648,7 +792,9 @@ ${new Date().toLocaleString()}
                 </div>
                 <div className="rounded-lg border border-dark-lighter bg-slate-900 p-4">
                   <p className="mb-1 text-xs font-semibold text-gray-400">LEAD TIME</p>
-                  <p className="text-xl font-bold text-white">{product.deliveryDay || '10-14 Days'}</p>
+                  <p className="text-xl font-bold text-white">
+                    {product.deliveryDay || '10-14 Days'}
+                  </p>
                 </div>
               </div>
 
@@ -658,7 +804,12 @@ ${new Date().toLocaleString()}
                   className="flex items-center gap-2 text-primary transition-colors hover:text-primary-dark"
                 >
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                    />
                   </svg>
                   <span className="font-medium">Upload Logo or Design Files</span>
                 </button>
@@ -693,7 +844,11 @@ ${new Date().toLocaleString()}
                               : 'bg-primary hover:bg-primary-dark'
                           }`}
                         >
-                          <svg className="h-7 w-7 text-white sm:h-8 sm:w-8" fill="currentColor" viewBox="0 0 24 24">
+                          <svg
+                            className="h-7 w-7 text-white sm:h-8 sm:w-8"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                          >
                             <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
                             <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
                           </svg>
@@ -707,7 +862,7 @@ ${new Date().toLocaleString()}
 
                   <div>
                     <h3 className="mb-3 font-semibold text-white">ASSET UPLOADS</h3>
-                    
+
                     <div className="mb-4">
                       <p className="mb-2 text-sm text-gray-400">Logos & Brand Assets</p>
                       <div className="rounded-lg border-2 border-dashed border-gray-700 p-4 transition-colors hover:border-primary">
@@ -721,11 +876,23 @@ ${new Date().toLocaleString()}
                         />
                         <label htmlFor="logo-upload" className="block cursor-pointer">
                           <div className="text-center">
-                            <svg className="mx-auto mb-2 h-8 w-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            <svg
+                              className="mx-auto mb-2 h-8 w-8 text-gray-500"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                              />
                             </svg>
                             <p className="text-sm text-white">Click to upload logos</p>
-                            <p className="mt-1 text-xs text-gray-500">SVG, PNG, PDF (max 10MB each)</p>
+                            <p className="mt-1 text-xs text-gray-500">
+                              SVG, PNG, PDF (max 10MB each)
+                            </p>
                           </div>
                         </label>
                       </div>
@@ -733,14 +900,28 @@ ${new Date().toLocaleString()}
                       {logoPreviews.length > 0 && (
                         <div className="mt-3 grid grid-cols-4 gap-2">
                           {logoPreviews.map((preview, index) => (
-                            <div key={index} className="relative group">
-                              <img src={preview} alt={`Logo ${index + 1}`} className="aspect-square w-full rounded-lg border border-gray-700 object-cover" />
+                            <div key={index} className="group relative">
+                              <img
+                                src={preview}
+                                alt={`Logo ${index + 1}`}
+                                className="aspect-square w-full rounded-lg border border-gray-700 object-cover"
+                              />
                               <button
                                 onClick={() => removeFile('logos', index)}
                                 className="absolute -right-1 -top-1 rounded-full bg-red-600 p-1 text-white opacity-0 transition group-hover:opacity-100"
                               >
-                                <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                <svg
+                                  className="h-3 w-3"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
                                 </svg>
                               </button>
                             </div>
@@ -762,8 +943,18 @@ ${new Date().toLocaleString()}
                         />
                         <label htmlFor="imagery-upload" className="block cursor-pointer">
                           <div className="text-center">
-                            <svg className="mx-auto mb-2 h-8 w-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            <svg
+                              className="mx-auto mb-2 h-8 w-8 text-gray-500"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                              />
                             </svg>
                             <p className="text-sm text-white">Click to upload reference images</p>
                             <p className="mt-1 text-xs text-gray-500">JPG, PNG (max 5 images)</p>
@@ -774,14 +965,28 @@ ${new Date().toLocaleString()}
                       {imageryPreviews.length > 0 && (
                         <div className="mt-3 grid grid-cols-4 gap-2">
                           {imageryPreviews.map((preview, index) => (
-                            <div key={index} className="relative group">
-                              <img src={preview} alt={`Reference ${index + 1}`} className="aspect-square w-full rounded-lg border border-gray-700 object-cover" />
+                            <div key={index} className="group relative">
+                              <img
+                                src={preview}
+                                alt={`Reference ${index + 1}`}
+                                className="aspect-square w-full rounded-lg border border-gray-700 object-cover"
+                              />
                               <button
                                 onClick={() => removeFile('imagery', index)}
                                 className="absolute -right-1 -top-1 rounded-full bg-red-600 p-1 text-white opacity-0 transition group-hover:opacity-100"
                               >
-                                <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                <svg
+                                  className="h-3 w-3"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
                                 </svg>
                               </button>
                             </div>
@@ -817,23 +1022,32 @@ ${new Date().toLocaleString()}
               <div className="space-y-3">
                 <div className="border-b border-gray-700 pb-4">
                   <div className="mt-8 flex justify-between">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-300">BASE DIMENSIONS/SIZE</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-300">
+                      BASE DIMENSIONS/SIZE
+                    </span>
                     <span className="font-medium text-white">
-                      {size || (product.dimension?.width && product.dimension?.height 
-                        ? `${product.dimension.width} x ${product.dimension.height}`
-                        : 'Standard')}
+                      {size ||
+                        (product.dimension?.width && product.dimension?.height
+                          ? `${product.dimension.width} x ${product.dimension.height}`
+                          : 'Standard')}
                     </span>
                   </div>
                 </div>
                 <div className="border-b border-gray-700 pb-4">
                   <div className="mt-8 flex justify-between">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-300">EST. PRODUCTION</span>
-                    <span className="font-medium text-white">{product.deliveryDay || '7-10 Days'}</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-300">
+                      EST. PRODUCTION
+                    </span>
+                    <span className="font-medium text-white">
+                      {product.deliveryDay || '7-10 Days'}
+                    </span>
                   </div>
                 </div>
                 <div className="border-b border-gray-700 pb-4">
                   <div className="mt-8 flex justify-between">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-300">COLOR</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-300">
+                      COLOR
+                    </span>
                     <span className="font-medium text-white">{color || 'To be specified'}</span>
                   </div>
                 </div>
@@ -841,25 +1055,31 @@ ${new Date().toLocaleString()}
               <div className="space-y-3">
                 <div className="border-b border-gray-700 pb-4">
                   <div className="mt-8 flex justify-between">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-300">PRODUCTION MOQ</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-300">
+                      PRODUCTION MOQ
+                    </span>
                     <span className="font-medium text-white">{product.minOrder || 20} Units</span>
                   </div>
                 </div>
                 <div className="border-b border-gray-700 pb-4">
                   <div className="mt-8 flex justify-between">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-300">MATERIAL</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-300">
+                      MATERIAL
+                    </span>
                     <span className="font-medium text-white">{product.material || 'Standard'}</span>
                   </div>
                 </div>
                 <div className="border-b border-gray-700 pb-4">
                   <div className="mt-8 flex justify-between">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-300">QUANTITY</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-300">
+                      QUANTITY
+                    </span>
                     <span className="font-medium text-white">{quantity} Units</span>
                   </div>
                 </div>
               </div>
             </div>
-            
+
             {(logos.length > 0 || imagery.length > 0 || voiceNote) && (
               <div className="mt-6 rounded-lg border border-gray-800 bg-slate-900/50 p-4">
                 <h4 className="mb-3 text-sm font-semibold text-white">ADDITIONAL ASSETS</h4>

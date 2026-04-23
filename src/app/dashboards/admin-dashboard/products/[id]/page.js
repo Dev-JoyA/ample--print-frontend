@@ -47,7 +47,9 @@ export default function ProductDetailPage() {
   const handleDelete = async () => {
     try {
       await productService.delete(productId);
-      router.push(`/dashboards/admin-dashboard/collections/${product?.collectionId?._id || product?.collectionId}/products`);
+      router.push(
+        `/dashboards/admin-dashboard/collections/${product?.collectionId?._id || product?.collectionId}/products`
+      );
     } catch (err) {
       alert('Failed to delete product: ' + err.message);
     }
@@ -75,10 +77,10 @@ export default function ProductDetailPage() {
       <>
         <SEOHead {...METADATA.dashboard.admin} />
         <DashboardLayout userRole="admin">
-          <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="flex min-h-[60vh] items-center justify-center">
             <div className="relative text-center">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-              <p className="text-gray-400 mt-4 text-sm sm:text-base">Loading product...</p>
+              <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-red-600 border-t-transparent sm:h-12 sm:w-12"></div>
+              <p className="mt-4 text-sm text-gray-400 sm:text-base">Loading product...</p>
             </div>
           </div>
         </DashboardLayout>
@@ -91,14 +93,10 @@ export default function ProductDetailPage() {
       <>
         <SEOHead {...METADATA.dashboard.admin} />
         <DashboardLayout userRole="admin">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="bg-red-900/30 border border-red-700 rounded-lg p-6 text-center">
-              <p className="text-red-200 text-sm sm:text-base">{error || 'Product not found'}</p>
-              <Button
-                variant="primary"
-                onClick={() => router.back()}
-                className="mt-4"
-              >
+          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            <div className="rounded-lg border border-red-700 bg-red-900/30 p-6 text-center">
+              <p className="text-sm text-red-200 sm:text-base">{error || 'Product not found'}</p>
+              <Button variant="primary" onClick={() => router.back()} className="mt-4">
                 Go Back
               </Button>
             </div>
@@ -116,8 +114,8 @@ export default function ProductDetailPage() {
       <SEOHead {...METADATA.dashboard.admin} />
       <DashboardLayout userRole="admin">
         <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-            <nav className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-400 mb-6 flex-wrap">
+          <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+            <nav className="mb-6 flex flex-wrap items-center gap-1 text-xs text-gray-400 sm:gap-2 sm:text-sm">
               <Link href="/dashboards/admin-dashboard" className="hover:text-red-400">
                 Dashboard
               </Link>
@@ -126,25 +124,41 @@ export default function ProductDetailPage() {
                 Collections
               </Link>
               <span>›</span>
-              <Link href={`/dashboards/admin-dashboard/collections/${collectionId}/products`} className="hover:text-red-400">
-                {product.collectionId?.name ? (product.collectionId.name.length > 20 ? `${product.collectionId.name.substring(0, 20)}...` : product.collectionId.name) : 'Collection'}
+              <Link
+                href={`/dashboards/admin-dashboard/collections/${collectionId}/products`}
+                className="hover:text-red-400"
+              >
+                {product.collectionId?.name
+                  ? product.collectionId.name.length > 20
+                    ? `${product.collectionId.name.substring(0, 20)}...`
+                    : product.collectionId.name
+                  : 'Collection'}
               </Link>
               <span>›</span>
-              <span className="text-white truncate max-w-[150px] sm:max-w-[200px]">{product.name}</span>
+              <span className="max-w-[150px] truncate text-white sm:max-w-[200px]">
+                {product.name}
+              </span>
             </nav>
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white truncate max-w-[250px] sm:max-w-full">{product.name}</h1>
-                <p className="text-gray-400 text-xs sm:text-sm mt-1">
+                <h1 className="max-w-[250px] truncate text-2xl font-bold text-white sm:max-w-full sm:text-3xl">
+                  {product.name}
+                </h1>
+                <p className="mt-1 text-xs text-gray-400 sm:text-sm">
                   Product ID: {product._id?.slice(-8) || product._id}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Link href={`/dashboards/admin-dashboard/products/${productId}/edit`}>
                   <Button variant="secondary" className="gap-2 text-sm">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                      />
                     </svg>
                     Edit Product
                   </Button>
@@ -154,18 +168,24 @@ export default function ProductDetailPage() {
                   className="gap-2 text-sm"
                   onClick={() => setShowDeleteConfirm(true)}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
                   </svg>
                   Delete
                 </Button>
-                <Button
-                  variant="ghost"
-                  className="gap-2 text-sm"
-                  onClick={() => router.back()}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                <Button variant="ghost" className="gap-2 text-sm" onClick={() => router.back()}>
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                    />
                   </svg>
                   Back
                 </Button>
@@ -173,13 +193,13 @@ export default function ProductDetailPage() {
             </div>
 
             {showDeleteConfirm && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                <div className="bg-slate-900 rounded-xl border border-gray-800 p-5 sm:p-6 max-w-md w-full">
-                  <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Confirm Delete</h3>
-                  <p className="text-gray-400 text-sm sm:text-base mb-6">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                <div className="w-full max-w-md rounded-xl border border-gray-800 bg-slate-900 p-5 sm:p-6">
+                  <h3 className="mb-4 text-lg font-bold text-white sm:text-xl">Confirm Delete</h3>
+                  <p className="mb-6 text-sm text-gray-400 sm:text-base">
                     Are you sure you want to delete "{product.name}"? This action cannot be undone.
                   </p>
-                  <div className="flex flex-col sm:flex-row gap-3 justify-end">
+                  <div className="flex flex-col justify-end gap-3 sm:flex-row">
                     <Button
                       variant="secondary"
                       onClick={() => setShowDeleteConfirm(false)}
@@ -187,11 +207,7 @@ export default function ProductDetailPage() {
                     >
                       Cancel
                     </Button>
-                    <Button
-                      variant="danger"
-                      onClick={handleDelete}
-                      className="w-full sm:w-auto"
-                    >
+                    <Button variant="danger" onClick={handleDelete} className="w-full sm:w-auto">
                       Delete Permanently
                     </Button>
                   </div>
@@ -200,39 +216,76 @@ export default function ProductDetailPage() {
             )}
 
             {showImageModal && (
-              <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={() => setShowImageModal(false)}>
-                <div className="relative max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+                onClick={() => setShowImageModal(false)}
+              >
+                <div className="relative w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => setShowImageModal(false)}
-                    className="absolute -top-10 sm:-top-12 right-0 text-white hover:text-gray-300"
+                    className="absolute -top-10 right-0 text-white hover:text-gray-300 sm:-top-12"
                   >
-                    <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <svg
+                      className="h-6 w-6 sm:h-8 sm:w-8"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
-                  <div className="relative h-[60vh] sm:h-[70vh] md:h-[80vh] bg-slate-900 rounded-lg overflow-hidden">
+                  <div className="relative h-[60vh] overflow-hidden rounded-lg bg-slate-900 sm:h-[70vh] md:h-[80vh]">
                     <img
                       src={getImageUrl(images[modalImageIndex])}
                       alt={`${product.name} - Image ${modalImageIndex + 1}`}
-                      className="w-full h-full object-contain"
+                      className="h-full w-full object-contain"
                     />
                   </div>
                   {images.length > 1 && (
                     <>
                       <button
-                        onClick={() => setModalImageIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1))}
-                        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 sm:p-2 rounded-full"
+                        onClick={() =>
+                          setModalImageIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1))
+                        }
+                        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70 sm:left-4 sm:p-2"
                       >
-                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        <svg
+                          className="h-5 w-5 sm:h-6 sm:w-6"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 19l-7-7 7-7"
+                          />
                         </svg>
                       </button>
                       <button
-                        onClick={() => setModalImageIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0))}
-                        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 sm:p-2 rounded-full"
+                        onClick={() =>
+                          setModalImageIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0))
+                        }
+                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70 sm:right-4 sm:p-2"
                       >
-                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        <svg
+                          className="h-5 w-5 sm:h-6 sm:w-6"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
                         </svg>
                       </button>
                     </>
@@ -241,21 +294,21 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-              <div className="lg:col-span-2 space-y-4">
+            <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-3">
+              <div className="space-y-4 lg:col-span-2">
                 <div
-                  className="bg-slate-900 rounded-xl border border-gray-800 overflow-hidden cursor-pointer hover:border-red-600 transition group"
+                  className="group cursor-pointer overflow-hidden rounded-xl border border-gray-800 bg-slate-900 transition hover:border-red-600"
                   onClick={() => {
                     setModalImageIndex(selectedImage);
                     setShowImageModal(true);
                   }}
                 >
-                  <div className="relative aspect-square bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center p-4">
+                  <div className="relative flex aspect-square items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 p-4">
                     {images.length > 0 ? (
                       <img
                         src={getImageUrl(images[selectedImage])}
                         alt={product.name}
-                        className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                        className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
                         style={{ maxHeight: 'calc(100% - 2rem)' }}
                         onError={(e) => {
                           e.target.onerror = null;
@@ -263,7 +316,7 @@ export default function ProductDetailPage() {
                         }}
                       />
                     ) : (
-                      <span className="text-6xl sm:text-8xl text-gray-700">📦</span>
+                      <span className="text-6xl text-gray-700 sm:text-8xl">📦</span>
                     )}
                   </div>
                 </div>
@@ -274,7 +327,7 @@ export default function ProductDetailPage() {
                       <div
                         key={index}
                         onClick={() => setSelectedImage(index)}
-                        className={`relative aspect-square bg-slate-800 rounded-lg overflow-hidden cursor-pointer border-2 transition ${
+                        className={`relative aspect-square cursor-pointer overflow-hidden rounded-lg border-2 bg-slate-800 transition ${
                           selectedImage === index
                             ? 'border-red-600'
                             : 'border-transparent hover:border-gray-600'
@@ -283,7 +336,7 @@ export default function ProductDetailPage() {
                         <img
                           src={getImageUrl(img)}
                           alt={`Thumbnail ${index + 1}`}
-                          className="w-full h-full object-cover"
+                          className="h-full w-full object-cover"
                           onError={(e) => {
                             e.target.onerror = null;
                             e.target.src = 'https://via.placeholder.com/100x100?text=No+Image';
@@ -296,82 +349,114 @@ export default function ProductDetailPage() {
               </div>
 
               <div className="space-y-5 sm:space-y-6">
-                <div className="bg-slate-900 rounded-xl border border-gray-800 p-5 sm:p-6">
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-4">Product Status</h3>
+                <div className="rounded-xl border border-gray-800 bg-slate-900 p-5 sm:p-6">
+                  <h3 className="mb-4 text-base font-semibold text-white sm:text-lg">
+                    Product Status
+                  </h3>
                   <div className="space-y-3">
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                      <span className="text-gray-400 text-sm">Status</span>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <span className="text-sm text-gray-400">Status</span>
                       {product.status === 'active' ? (
-                        <span className="inline-block w-fit px-3 py-1 bg-green-600/20 text-green-400 rounded-full text-xs sm:text-sm font-medium">
+                        <span className="inline-block w-fit rounded-full bg-green-600/20 px-3 py-1 text-xs font-medium text-green-400 sm:text-sm">
                           Active
                         </span>
                       ) : (
-                        <span className="inline-block w-fit px-3 py-1 bg-red-600/20 text-red-400 rounded-full text-xs sm:text-sm font-medium">
+                        <span className="inline-block w-fit rounded-full bg-red-600/20 px-3 py-1 text-xs font-medium text-red-400 sm:text-sm">
                           Inactive
                         </span>
                       )}
                     </div>
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                      <span className="text-gray-400 text-sm">Price</span>
-                      <span className="text-xl sm:text-2xl font-bold text-white">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <span className="text-sm text-gray-400">Price</span>
+                      <span className="text-xl font-bold text-white sm:text-2xl">
                         ₦{product.price?.toLocaleString()}
                       </span>
                     </div>
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                      <span className="text-gray-400 text-sm">Minimum Order</span>
-                      <span className="text-white font-medium text-sm sm:text-base">{product.minOrder}</span>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <span className="text-sm text-gray-400">Minimum Order</span>
+                      <span className="text-sm font-medium text-white sm:text-base">
+                        {product.minOrder}
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-slate-900 rounded-xl border border-gray-800 p-5 sm:p-6">
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-4">Specifications</h3>
+                <div className="rounded-xl border border-gray-800 bg-slate-900 p-5 sm:p-6">
+                  <h3 className="mb-4 text-base font-semibold text-white sm:text-lg">
+                    Specifications
+                  </h3>
                   <div className="space-y-3">
                     {product.dimension?.width && product.dimension?.height && (
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                        <span className="text-gray-400 text-sm">Dimensions</span>
-                        <span className="text-white text-sm sm:text-base">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <span className="text-sm text-gray-400">Dimensions</span>
+                        <span className="text-sm text-white sm:text-base">
                           {product.dimension.width} × {product.dimension.height}
                         </span>
                       </div>
                     )}
                     {product.material && (
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                        <span className="text-gray-400 text-sm">Material</span>
-                        <span className="text-white text-sm sm:text-base">{product.material}</span>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <span className="text-sm text-gray-400">Material</span>
+                        <span className="text-sm text-white sm:text-base">{product.material}</span>
                       </div>
                     )}
                     {product.deliveryDay && (
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                        <span className="text-gray-400 text-sm">Delivery Time</span>
-                        <span className="text-white text-sm sm:text-base">{product.deliveryDay}</span>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <span className="text-sm text-gray-400">Delivery Time</span>
+                        <span className="text-sm text-white sm:text-base">
+                          {product.deliveryDay}
+                        </span>
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="bg-slate-900 rounded-xl border border-gray-800 p-5 sm:p-6">
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-4">Description</h3>
-                  <p className="text-gray-300 leading-relaxed text-sm sm:text-base min-h-[80px] sm:min-h-[100px]">
+                <div className="rounded-xl border border-gray-800 bg-slate-900 p-5 sm:p-6">
+                  <h3 className="mb-4 text-base font-semibold text-white sm:text-lg">
+                    Description
+                  </h3>
+                  <p className="min-h-[80px] text-sm leading-relaxed text-gray-300 sm:min-h-[100px] sm:text-base">
                     {product.description || 'No description provided.'}
                   </p>
                 </div>
 
-                <div className="bg-slate-900 rounded-xl border border-gray-800 p-5 sm:p-6">
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-4">Quick Actions</h3>
+                <div className="rounded-xl border border-gray-800 bg-slate-900 p-5 sm:p-6">
+                  <h3 className="mb-4 text-base font-semibold text-white sm:text-lg">
+                    Quick Actions
+                  </h3>
                   <div className="space-y-2">
                     <Link href={`/dashboards/admin-dashboard/products/${productId}/edit`}>
-                      <button className="w-full text-left px-4 py-2.5 sm:py-3 bg-slate-800 hover:bg-slate-700 rounded-lg text-blue-400 transition flex items-center gap-3 text-sm">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      <button className="flex w-full items-center gap-3 rounded-lg bg-slate-800 px-4 py-2.5 text-left text-sm text-blue-400 transition hover:bg-slate-700 sm:py-3">
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                          />
                         </svg>
                         <span>Edit Product</span>
                       </button>
                     </Link>
                     <Link href={`/dashboards/admin-dashboard/collections/${collectionId}/products`}>
-                      <button className="w-full text-left px-4 py-2.5 sm:py-3 bg-slate-800 hover:bg-slate-700 rounded-lg text-gray-300 transition flex items-center gap-3 text-sm">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                      <button className="flex w-full items-center gap-3 rounded-lg bg-slate-800 px-4 py-2.5 text-left text-sm text-gray-300 transition hover:bg-slate-700 sm:py-3">
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                          />
                         </svg>
                         <span>Back to Collection</span>
                       </button>

@@ -1,5 +1,5 @@
-import { api } from "@/lib/api";
-import { API_PATHS } from "@/lib/constants";
+import { api } from '@/lib/api';
+import { API_PATHS } from '@/lib/constants';
 
 export const paymentService = {
   initializePaystack: async (data) => {
@@ -14,7 +14,9 @@ export const paymentService = {
 
   verifyPaystack: async (reference) => {
     try {
-      const response = await api.get(`${API_PATHS.PAYMENTS.PAYSTACK_VERIFY}?reference=${reference}`);
+      const response = await api.get(
+        `${API_PATHS.PAYMENTS.PAYSTACK_VERIFY}?reference=${reference}`
+      );
       return response;
     } catch (error) {
       console.error('Failed to verify payment:', error);
@@ -48,7 +50,9 @@ export const paymentService = {
       if (params.page) queryParams.append('page', params.page);
       if (params.limit) queryParams.append('limit', params.limit);
       const queryString = queryParams.toString();
-      const endpoint = queryString ? `${API_PATHS.PAYMENTS.BANK_TRANSFER_PENDING}?${queryString}` : API_PATHS.PAYMENTS.BANK_TRANSFER_PENDING;
+      const endpoint = queryString
+        ? `${API_PATHS.PAYMENTS.BANK_TRANSFER_PENDING}?${queryString}`
+        : API_PATHS.PAYMENTS.BANK_TRANSFER_PENDING;
       const response = await api.get(endpoint);
       return response;
     } catch (error) {
@@ -83,12 +87,14 @@ export const paymentService = {
       if (params.page) queryParams.append('page', params.page);
       if (params.limit) queryParams.append('limit', params.limit);
       const queryString = queryParams.toString();
-      const endpoint = queryString ? `${API_PATHS.PAYMENTS.MY_TRANSACTIONS}?${queryString}` : API_PATHS.PAYMENTS.MY_TRANSACTIONS;
+      const endpoint = queryString
+        ? `${API_PATHS.PAYMENTS.MY_TRANSACTIONS}?${queryString}`
+        : API_PATHS.PAYMENTS.MY_TRANSACTIONS;
       const response = await api.get(endpoint);
       return response;
     } catch (error) {
       console.error('Failed to fetch transactions:', error);
       return { transactions: [], total: 0 };
     }
-  }
+  },
 };

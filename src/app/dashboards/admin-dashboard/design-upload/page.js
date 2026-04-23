@@ -17,7 +17,7 @@ function DesignUploadPageContent() {
   const orderIdParam = searchParams.get('orderId');
   const productIdParam = searchParams.get('productId');
   const feedbackIdParam = searchParams.get('feedbackId');
-  
+
   const [selectedOrder, setSelectedOrder] = useState(orderIdParam || '');
   const [orders, setOrders] = useState([]);
   const [orderDetails, setOrderDetails] = useState(null);
@@ -53,12 +53,13 @@ function DesignUploadPageContent() {
       if (response?.order && Array.isArray(response.order)) {
         allOrders = response.order;
       }
-      const eligibleOrders = allOrders.filter(order => {
+      const eligibleOrders = allOrders.filter((order) => {
         if (!order.invoiceId) return false;
         const isValidStatus = order.status === 'FinalPaid' || order.status === 'PartPaymentMade';
-        const isValidPayment = 
-          order.paymentStatus === 'Completed' || 
-          (order.paymentStatus === 'PartPayment' && order.amountPaid >= (order.requiredDeposit || 0));
+        const isValidPayment =
+          order.paymentStatus === 'Completed' ||
+          (order.paymentStatus === 'PartPayment' &&
+            order.amountPaid >= (order.requiredDeposit || 0));
         return isValidStatus && isValidPayment;
       });
       setOrders(eligibleOrders);
@@ -85,7 +86,7 @@ function DesignUploadPageContent() {
       const response = await designService.getByOrder(orderId);
       const designs = response?.data || [];
       const designMap = {};
-      designs.forEach(design => {
+      designs.forEach((design) => {
         const productId = design.productId?._id || design.productId;
         designMap[productId] = design;
       });
@@ -122,11 +123,10 @@ function DesignUploadPageContent() {
           files: [],
           uploading: false,
           uploaded: !!existingDesign,
-          designStatus: existingDesign?.isApproved ? 'approved' : 
-                       existingDesign ? 'pending' : null,
+          designStatus: existingDesign?.isApproved ? 'approved' : existingDesign ? 'pending' : null,
           designId: existingDesign?._id,
           error: null,
-          index
+          index,
         };
       });
       setProductDesigns(initialDesigns);
@@ -143,45 +143,45 @@ function DesignUploadPageContent() {
       setError('Cannot upload new design for approved product');
       return;
     }
-    setProductDesigns(prev => ({
+    setProductDesigns((prev) => ({
       ...prev,
       [productId]: {
         ...prev[productId],
         files: [...prev[productId].files, ...Array.from(files)],
-        error: null
-      }
+        error: null,
+      },
     }));
   };
 
   const removeFile = (productId, fileIndex) => {
-    setProductDesigns(prev => ({
+    setProductDesigns((prev) => ({
       ...prev,
       [productId]: {
         ...prev[productId],
-        files: prev[productId].files.filter((_, i) => i !== fileIndex)
-      }
+        files: prev[productId].files.filter((_, i) => i !== fileIndex),
+      },
     }));
   };
 
   const handleUploadDesign = async (productId) => {
     const design = productDesigns[productId];
     if (!design || design.files.length === 0) {
-      setProductDesigns(prev => ({
+      setProductDesigns((prev) => ({
         ...prev,
         [productId]: {
           ...prev[productId],
-          error: 'Please select at least one file to upload'
-        }
+          error: 'Please select at least one file to upload',
+        },
       }));
       return;
     }
     try {
-      setProductDesigns(prev => ({
+      setProductDesigns((prev) => ({
         ...prev,
-        [productId]: { ...prev[productId], uploading: true, error: null }
+        [productId]: { ...prev[productId], uploading: true, error: null },
       }));
       const formData = new FormData();
-      design.files.forEach(file => {
+      design.files.forEach((file) => {
         formData.append('images', file);
       });
       formData.append('productId', productId);
@@ -201,7 +201,7 @@ function DesignUploadPageContent() {
           console.error('Failed to update feedback status:', fbErr);
         }
       }
-      setProductDesigns(prev => ({
+      setProductDesigns((prev) => ({
         ...prev,
         [productId]: {
           ...prev[productId],
@@ -210,8 +210,8 @@ function DesignUploadPageContent() {
           files: [],
           designStatus: 'pending',
           designId: response.data?._id,
-          uploadResponse: response
-        }
+          uploadResponse: response,
+        },
       }));
       setSuccess(`Design for ${design.productName} uploaded successfully!`);
       if (feedbackIdParam) {
@@ -226,15 +226,15 @@ function DesignUploadPageContent() {
       console.error('❌ Error details:', {
         message: err.message,
         status: err.status,
-        data: err.data
+        data: err.data,
       });
-      setProductDesigns(prev => ({
+      setProductDesigns((prev) => ({
         ...prev,
         [productId]: {
           ...prev[productId],
           uploading: false,
-          error: err.message || 'Failed to upload design. Please try again.'
-        }
+          error: err.message || 'Failed to upload design. Please try again.',
+        },
       }));
     }
   };
@@ -246,11 +246,19 @@ function DesignUploadPageContent() {
   };
 
   const getDesignStatusBadge = (status) => {
-    switch(status) {
+    switch (status) {
       case 'approved':
-        return <span className="px-2 py-1 bg-green-900/50 text-green-400 rounded-full text-xs">Approved</span>;
+        return (
+          <span className="rounded-full bg-green-900/50 px-2 py-1 text-xs text-green-400">
+            Approved
+          </span>
+        );
       case 'pending':
-        return <span className="px-2 py-1 bg-yellow-900/50 text-yellow-400 rounded-full text-xs">Pending Approval</span>;
+        return (
+          <span className="rounded-full bg-yellow-900/50 px-2 py-1 text-xs text-yellow-400">
+            Pending Approval
+          </span>
+        );
       default:
         return null;
     }
@@ -261,8 +269,8 @@ function DesignUploadPageContent() {
       <>
         <SEOHead {...METADATA.dashboard.admin} />
         <DashboardLayout userRole="admin">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex justify-center items-center min-h-[60vh]">
+          <div className="mx-auto max-w-4xl">
+            <div className="flex min-h-[60vh] items-center justify-center">
               <div className="text-white">Loading orders...</div>
             </div>
           </div>
@@ -275,24 +283,26 @@ function DesignUploadPageContent() {
     <>
       <SEOHead {...METADATA.dashboard.admin} />
       <DashboardLayout userRole="admin">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="mb-6 sm:mb-8">
-            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Design Upload</h1>
-            <p className="text-gray-400 text-sm sm:text-base">
-              {feedbackIdParam 
+            <h1 className="mb-2 text-3xl font-bold text-white sm:text-4xl">Design Upload</h1>
+            <p className="text-sm text-gray-400 sm:text-base">
+              {feedbackIdParam
                 ? 'Upload a new design version in response to customer feedback'
                 : 'Upload designs for each product individually'}
             </p>
             {feedbackInfo && (
-              <div className="mt-4 p-4 bg-yellow-900/20 border border-yellow-800 rounded-lg">
+              <div className="mt-4 rounded-lg border border-yellow-800 bg-yellow-900/20 p-4">
                 <div className="flex items-start gap-3">
-                  <div className="text-yellow-400 text-xl">💬</div>
+                  <div className="text-xl text-yellow-400">💬</div>
                   <div>
-                    <h3 className="text-white font-semibold mb-1">Responding to Customer Feedback</h3>
-                    <p className="text-sm text-gray-300 mb-2">"{feedbackInfo.message}"</p>
+                    <h3 className="mb-1 font-semibold text-white">
+                      Responding to Customer Feedback
+                    </h3>
+                    <p className="mb-2 text-sm text-gray-300">"{feedbackInfo.message}"</p>
                     <p className="text-xs text-gray-400">
-                      Order #{feedbackInfo.orderId?.orderNumber} • 
-                      Product: {feedbackInfo.designId?.productName || 'Unknown'}
+                      Order #{feedbackInfo.orderId?.orderNumber} • Product:{' '}
+                      {feedbackInfo.designId?.productName || 'Unknown'}
                     </p>
                   </div>
                 </div>
@@ -301,64 +311,61 @@ function DesignUploadPageContent() {
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-200">
+            <div className="mb-4 rounded-lg border border-red-700 bg-red-900/50 p-3 text-red-200">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="mb-4 p-3 bg-green-900/50 border border-green-700 rounded-lg text-green-200">
+            <div className="mb-4 rounded-lg border border-green-700 bg-green-900/50 p-3 text-green-200">
               {success}
-              {feedbackIdParam && (
-                <p className="text-sm mt-1">Redirecting back to feedback...</p>
-              )}
+              {feedbackIdParam && <p className="mt-1 text-sm">Redirecting back to feedback...</p>}
             </div>
           )}
 
-          <div className="bg-slate-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-4 sm:p-6 space-y-6">
+          <div className="space-y-6 rounded-xl border border-gray-800 bg-slate-900/50 p-4 backdrop-blur-sm sm:p-6">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Select Order
-              </label>
+              <label className="mb-2 block text-sm font-medium text-gray-300">Select Order</label>
               <select
                 value={selectedOrder}
                 onChange={(e) => handleOrderSelect(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                className="w-full rounded-lg border border-gray-700 bg-slate-800 px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
                 disabled={!!orderIdParam}
               >
                 <option value="">Choose an order...</option>
                 {orders.map((order) => (
                   <option key={order._id} value={order._id}>
-                    {order.orderNumber} - {getPaymentStatusLabel(order)} - ₦{order.totalAmount?.toLocaleString()}
+                    {order.orderNumber} - {getPaymentStatusLabel(order)} - ₦
+                    {order.totalAmount?.toLocaleString()}
                   </option>
                 ))}
               </select>
               {orderIdParam && (
-                <p className="text-xs text-blue-400 mt-2">
-                  Order pre-selected from feedback
-                </p>
+                <p className="mt-2 text-xs text-blue-400">Order pre-selected from feedback</p>
               )}
             </div>
 
             {orderDetails && (
-              <div className="bg-slate-800/30 rounded-lg p-4">
-                <h3 className="text-white font-medium mb-3">Order Summary</h3>
+              <div className="rounded-lg bg-slate-800/30 p-4">
+                <h3 className="mb-3 font-medium text-white">Order Summary</h3>
                 <div className="space-y-2 text-sm">
-                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                     <span className="text-gray-400">Order Number:</span>
                     <span className="text-white">{orderDetails.orderNumber}</span>
                   </div>
-                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                     <span className="text-gray-400">Status:</span>
-                    <span className={`inline-block w-fit px-2 py-0.5 rounded-full text-xs ${
-                      orderDetails.status === 'FinalPaid' 
-                        ? 'bg-green-900/50 text-green-400' 
-                        : 'bg-yellow-900/50 text-yellow-400'
-                    }`}>
+                    <span
+                      className={`inline-block w-fit rounded-full px-2 py-0.5 text-xs ${
+                        orderDetails.status === 'FinalPaid'
+                          ? 'bg-green-900/50 text-green-400'
+                          : 'bg-yellow-900/50 text-yellow-400'
+                      }`}
+                    >
                       {orderDetails.status}
                     </span>
                   </div>
-                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                     <span className="text-gray-400">Total Items:</span>
                     <span className="text-white">{orderDetails.items?.length}</span>
                   </div>
@@ -366,110 +373,129 @@ function DesignUploadPageContent() {
               </div>
             )}
 
-            {orderDetails && Object.entries(productDesigns).map(([productId, design]) => {
-              const isTargetProduct = productIdParam === productId;
-              return (
-                <div 
-                  key={productId} 
-                  className={`border rounded-lg p-4 sm:p-6 space-y-4 ${
-                    isTargetProduct 
-                      ? 'border-yellow-600 bg-yellow-900/10' 
-                      : 'border-gray-800'
-                  }`}
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <h3 className="text-base sm:text-lg font-semibold text-white">{design.productName}</h3>
-                      {getDesignStatusBadge(design.designStatus)}
-                      {isTargetProduct && (
-                        <span className="px-2 py-1 bg-yellow-900/50 text-yellow-400 rounded-full text-xs">
-                          Needs Update
-                        </span>
-                      )}
+            {orderDetails &&
+              Object.entries(productDesigns).map(([productId, design]) => {
+                const isTargetProduct = productIdParam === productId;
+                return (
+                  <div
+                    key={productId}
+                    className={`space-y-4 rounded-lg border p-4 sm:p-6 ${
+                      isTargetProduct ? 'border-yellow-600 bg-yellow-900/10' : 'border-gray-800'
+                    }`}
+                  >
+                    <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h3 className="text-base font-semibold text-white sm:text-lg">
+                          {design.productName}
+                        </h3>
+                        {getDesignStatusBadge(design.designStatus)}
+                        {isTargetProduct && (
+                          <span className="rounded-full bg-yellow-900/50 px-2 py-1 text-xs text-yellow-400">
+                            Needs Update
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className={`border-2 border-dashed rounded-lg p-4 sm:p-6 text-center transition-colors ${
-                    design.designStatus === 'approved'
-                      ? 'border-gray-700 bg-gray-800/50 cursor-not-allowed'
-                      : 'border-gray-700 hover:border-primary/50 cursor-pointer'
-                  }`}>
-                    <input
-                      type="file"
-                      accept="image/*,.pdf,.ai,.psd"
-                      multiple
-                      onChange={(e) => handleFileUpload(productId, e.target.files)}
-                      className="hidden"
-                      id={`design-upload-${productId}`}
-                      disabled={design.designStatus === 'approved' || design.uploading}
-                    />
-                    <label 
-                      htmlFor={`design-upload-${productId}`} 
-                      className={`${design.designStatus === 'approved' ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                    <div
+                      className={`rounded-lg border-2 border-dashed p-4 text-center transition-colors sm:p-6 ${
+                        design.designStatus === 'approved'
+                          ? 'cursor-not-allowed border-gray-700 bg-gray-800/50'
+                          : 'cursor-pointer border-gray-700 hover:border-primary/50'
+                      }`}
                     >
-                      <svg className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                      </svg>
-                      <p className="text-white font-medium mb-1 text-sm sm:text-base">
-                        {design.designStatus === 'approved' 
-                          ? 'Design already approved - cannot modify' 
-                          : design.uploading 
-                            ? 'Uploading...' 
-                            : design.uploaded
-                              ? 'Design uploaded (pending approval)'
-                              : 'Click to upload or drag and drop'}
-                      </p>
-                      <p className="text-gray-400 text-xs sm:text-sm">
-                        {design.designStatus !== 'approved' && 'PNG, JPG, PDF, AI, PSD (MAX. 50MB per file)'}
-                      </p>
-                    </label>
-                  </div>
+                      <input
+                        type="file"
+                        accept="image/*,.pdf,.ai,.psd"
+                        multiple
+                        onChange={(e) => handleFileUpload(productId, e.target.files)}
+                        className="hidden"
+                        id={`design-upload-${productId}`}
+                        disabled={design.designStatus === 'approved' || design.uploading}
+                      />
+                      <label
+                        htmlFor={`design-upload-${productId}`}
+                        className={`${design.designStatus === 'approved' ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                      >
+                        <svg
+                          className="mx-auto mb-4 h-10 w-10 text-gray-400 sm:h-12 sm:w-12"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                          />
+                        </svg>
+                        <p className="mb-1 text-sm font-medium text-white sm:text-base">
+                          {design.designStatus === 'approved'
+                            ? 'Design already approved - cannot modify'
+                            : design.uploading
+                              ? 'Uploading...'
+                              : design.uploaded
+                                ? 'Design uploaded (pending approval)'
+                                : 'Click to upload or drag and drop'}
+                        </p>
+                        <p className="text-xs text-gray-400 sm:text-sm">
+                          {design.designStatus !== 'approved' &&
+                            'PNG, JPG, PDF, AI, PSD (MAX. 50MB per file)'}
+                        </p>
+                      </label>
+                    </div>
 
-                  {design.files.length > 0 && design.designStatus !== 'approved' && (
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-gray-300">Selected Files:</p>
-                      {design.files.map((file, fileIndex) => (
-                        <div key={fileIndex} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-800 rounded-lg p-2">
-                          <span className="text-white text-sm truncate max-w-full sm:max-w-[300px]">{file.name}</span>
-                          <button
-                            onClick={() => removeFile(productId, fileIndex)}
-                            className="text-red-400 hover:text-red-300 text-sm"
-                            disabled={design.uploading}
+                    {design.files.length > 0 && design.designStatus !== 'approved' && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-gray-300">Selected Files:</p>
+                        {design.files.map((file, fileIndex) => (
+                          <div
+                            key={fileIndex}
+                            className="flex flex-col justify-between gap-2 rounded-lg bg-slate-800 p-2 sm:flex-row sm:items-center"
                           >
-                            Remove
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                            <span className="max-w-full truncate text-sm text-white sm:max-w-[300px]">
+                              {file.name}
+                            </span>
+                            <button
+                              onClick={() => removeFile(productId, fileIndex)}
+                              className="text-sm text-red-400 hover:text-red-300"
+                              disabled={design.uploading}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
-                  {design.error && (
-                    <p className="text-sm text-red-400">{design.error}</p>
-                  )}
+                    {design.error && <p className="text-sm text-red-400">{design.error}</p>}
 
-                  {design.designStatus !== 'approved' && !design.uploaded && (
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => handleUploadDesign(productId)}
-                      disabled={design.files.length === 0 || design.uploading}
-                      className="w-full"
-                    >
-                      {design.uploading ? 'Uploading...' : `Upload Design for ${design.productName}`}
-                    </Button>
-                  )}
+                    {design.designStatus !== 'approved' && !design.uploaded && (
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => handleUploadDesign(productId)}
+                        disabled={design.files.length === 0 || design.uploading}
+                        className="w-full"
+                      >
+                        {design.uploading
+                          ? 'Uploading...'
+                          : `Upload Design for ${design.productName}`}
+                      </Button>
+                    )}
 
-                  {design.uploaded && design.designStatus === 'pending' && (
-                    <p className="text-sm text-yellow-400 text-center">
-                      Design uploaded and pending customer approval
-                    </p>
-                  )}
-                </div>
-              );
-            })}
+                    {design.uploaded && design.designStatus === 'pending' && (
+                      <p className="text-center text-sm text-yellow-400">
+                        Design uploaded and pending customer approval
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
 
             {orderDetails && (
-              <div className="flex justify-end pt-4 border-t border-gray-800">
+              <div className="flex justify-end border-t border-gray-800 pt-4">
                 <Button
                   variant="secondary"
                   onClick={() => {

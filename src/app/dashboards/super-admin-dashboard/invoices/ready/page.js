@@ -1,50 +1,50 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import DashboardLayout from "@/components/layouts/DashboardLayout";
-import Button from "@/components/ui/Button";
-import StatusBadge from "@/components/ui/StatusBadge";
-import SEOHead from "@/components/common/SEOHead";
-import { invoiceService } from "@/services/invoiceService";
-import { orderService } from "@/services/orderService";
-import { customerBriefService } from "@/services/customerBriefService";
-import { profileService } from "@/services/profileService";
-import { socketService } from "@/services/socketService";
-import { METADATA } from "@/lib/metadata";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import DashboardLayout from '@/components/layouts/DashboardLayout';
+import Button from '@/components/ui/Button';
+import StatusBadge from '@/components/ui/StatusBadge';
+import SEOHead from '@/components/common/SEOHead';
+import { invoiceService } from '@/services/invoiceService';
+import { orderService } from '@/services/orderService';
+import { customerBriefService } from '@/services/customerBriefService';
+import { profileService } from '@/services/profileService';
+import { socketService } from '@/services/socketService';
+import { METADATA } from '@/lib/metadata';
 
 export default function ReadyForInvoicePage() {
   const router = useRouter();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderDetails, setOrderDetails] = useState(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [customerData, setCustomerData] = useState({});
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchReadyOrders();
 
     const handleNewOrder = (data) => {
-      console.log("New order via socket:", data);
+      console.log('New order via socket:', data);
       fetchReadyOrders();
     };
 
     const handleOrderUpdated = (data) => {
-      console.log("Order updated via socket:", data);
+      console.log('Order updated via socket:', data);
       fetchReadyOrders();
     };
 
-    socketService.on("new-order", handleNewOrder);
-    socketService.on("order-status-updated", handleOrderUpdated);
-    socketService.on("order-ready-for-invoice", handleNewOrder);
+    socketService.on('new-order', handleNewOrder);
+    socketService.on('order-status-updated', handleOrderUpdated);
+    socketService.on('order-ready-for-invoice', handleNewOrder);
 
     return () => {
-      socketService.off("new-order", handleNewOrder);
-      socketService.off("order-status-updated", handleOrderUpdated);
-      socketService.off("order-ready-for-invoice", handleNewOrder);
+      socketService.off('new-order', handleNewOrder);
+      socketService.off('order-status-updated', handleOrderUpdated);
+      socketService.off('order-ready-for-invoice', handleNewOrder);
     };
   }, []);
 
@@ -56,8 +56,8 @@ export default function ReadyForInvoicePage() {
       setOrders(ordersList);
       await fetchCustomerData(ordersList);
     } catch (err) {
-      console.error("Failed to fetch ready orders:", err);
-      setError("Failed to load orders ready for invoice");
+      console.error('Failed to fetch ready orders:', err);
+      setError('Failed to load orders ready for invoice');
     } finally {
       setLoading(false);
     }
@@ -65,55 +65,58 @@ export default function ReadyForInvoicePage() {
 
   const fetchCustomerData = async (ordersList) => {
     const customerDataMap = {};
-    
+
     await Promise.all(
       ordersList.map(async (order) => {
         let userId = null;
-        
+
         if (order.userId) {
-          if (typeof order.userId === "object") {
+          if (typeof order.userId === 'object') {
             userId = order.userId._id || order.userId;
           } else {
             userId = order.userId;
           }
         }
-        
+
         if (userId) {
           try {
             const userIdStr = userId.toString ? userId.toString() : userId;
             const profileResponse = await profileService.getUserById(userIdStr);
             const userData = profileResponse?.user || profileResponse?.data || profileResponse;
-            
+
             if (userData) {
               customerDataMap[order._id] = {
-                firstName: userData.firstName || "",
-                lastName: userData.lastName || "",
-                email: userData.email || "",
-                fullName: `${userData.firstName || ""} ${userData.lastName || ""}`.trim() || userData.email?.split("@")[0] || "Customer"
+                firstName: userData.firstName || '',
+                lastName: userData.lastName || '',
+                email: userData.email || '',
+                fullName:
+                  `${userData.firstName || ''} ${userData.lastName || ''}`.trim() ||
+                  userData.email?.split('@')[0] ||
+                  'Customer',
               };
             }
           } catch (err) {
             console.error(`Failed to fetch customer for order ${order._id}:`, err);
-            const fallbackEmail = order.userId?.email || "";
+            const fallbackEmail = order.userId?.email || '';
             customerDataMap[order._id] = {
-              firstName: "",
-              lastName: "",
+              firstName: '',
+              lastName: '',
               email: fallbackEmail,
-              fullName: fallbackEmail.split("@")[0] || "Customer"
+              fullName: fallbackEmail.split('@')[0] || 'Customer',
             };
           }
         } else {
-          const fallbackEmail = order.userId?.email || "";
+          const fallbackEmail = order.userId?.email || '';
           customerDataMap[order._id] = {
-            firstName: "",
-            lastName: "",
+            firstName: '',
+            lastName: '',
             email: fallbackEmail,
-            fullName: fallbackEmail.split("@")[0] || "Customer"
+            fullName: fallbackEmail.split('@')[0] || 'Customer',
           };
         }
       })
     );
-    
+
     setCustomerData(customerDataMap);
   };
 
@@ -121,49 +124,52 @@ export default function ReadyForInvoicePage() {
     try {
       setLoadingDetails(true);
       setSelectedOrder(orderId);
-      
+
       const orderResponse = await orderService.getById(orderId);
       const orderData = orderResponse?.order || orderResponse?.data || orderResponse;
-      
+
       const itemsWithBriefs = await Promise.all(
         orderData.items.map(async (item) => {
           const productId = item.productId._id || item.productId;
           try {
-            const briefResponse = await customerBriefService.getByOrderAndProduct(orderId, productId);
+            const briefResponse = await customerBriefService.getByOrderAndProduct(
+              orderId,
+              productId
+            );
             const briefs = briefResponse?.data;
-            
-            let briefStatus = "no-brief";
+
+            let briefStatus = 'no-brief';
             if (briefs?.customer) {
               if (briefs.admin || briefs.superAdmin) {
-                briefStatus = "responded";
+                briefStatus = 'responded';
               } else {
-                briefStatus = "pending";
+                briefStatus = 'pending';
               }
             }
-            
+
             return {
               ...item,
               briefs: briefs,
-              briefStatus
+              briefStatus,
             };
           } catch (err) {
             console.log(`No brief for product ${productId}`);
             return {
               ...item,
               briefs: null,
-              briefStatus: "no-brief"
+              briefStatus: 'no-brief',
             };
           }
         })
       );
-      
+
       setOrderDetails({
         ...orderData,
-        items: itemsWithBriefs
+        items: itemsWithBriefs,
       });
     } catch (err) {
-      console.error("Failed to fetch order details:", err);
-      alert("Failed to load order details");
+      console.error('Failed to fetch order details:', err);
+      alert('Failed to load order details');
     } finally {
       setLoadingDetails(false);
     }
@@ -174,41 +180,47 @@ export default function ReadyForInvoicePage() {
   };
 
   const getBriefStatusColor = (status) => {
-    switch(status) {
-      case "pending": return "bg-yellow-600/20 text-yellow-400";
-      case "responded": return "bg-green-600/20 text-green-400";
-      default: return "bg-gray-600/20 text-gray-400";
+    switch (status) {
+      case 'pending':
+        return 'bg-yellow-600/20 text-yellow-400';
+      case 'responded':
+        return 'bg-green-600/20 text-green-400';
+      default:
+        return 'bg-gray-600/20 text-gray-400';
     }
   };
 
   const getBriefStatusText = (status) => {
-    switch(status) {
-      case "pending": return "Needs Response";
-      case "responded": return "Admin Responded";
-      default: return "No Brief Required";
+    switch (status) {
+      case 'pending':
+        return 'Needs Response';
+      case 'responded':
+        return 'Admin Responded';
+      default:
+        return 'No Brief Required';
     }
   };
 
   const formatCurrency = (amount) => {
-    return `₦${amount?.toLocaleString() || "0"}`;
+    return `₦${amount?.toLocaleString() || '0'}`;
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric"
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
     });
   };
 
-  const filteredOrders = orders.filter(order => {
+  const filteredOrders = orders.filter((order) => {
     if (!searchTerm) return true;
-    
+
     const searchLower = searchTerm.toLowerCase();
-    const customer = customerData[order._id] || { fullName: "", email: "" };
-    const orderNumber = order.orderNumber?.toLowerCase() || "";
-    
+    const customer = customerData[order._id] || { fullName: '', email: '' };
+    const orderNumber = order.orderNumber?.toLowerCase() || '';
+
     return (
       orderNumber.includes(searchLower) ||
       customer.fullName.toLowerCase().includes(searchLower) ||
@@ -220,7 +232,7 @@ export default function ReadyForInvoicePage() {
     return (
       <DashboardLayout userRole="super-admin">
         <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-3 border-primary border-t-transparent"></div>
+          <div className="border-3 h-8 w-8 animate-spin rounded-full border-primary border-t-transparent"></div>
         </div>
       </DashboardLayout>
     );
@@ -236,7 +248,10 @@ export default function ReadyForInvoicePage() {
               <h1 className="mb-2 text-3xl font-bold text-white sm:text-4xl">Ready for Invoice</h1>
               <p className="text-sm text-gray-400">Orders that are ready for invoice generation</p>
             </div>
-            <Button variant="secondary" onClick={() => router.push("/dashboards/super-admin-dashboard/invoices")}>
+            <Button
+              variant="secondary"
+              onClick={() => router.push('/dashboards/super-admin-dashboard/invoices')}
+            >
               View All Invoices
             </Button>
           </div>
@@ -276,24 +291,24 @@ export default function ReadyForInvoicePage() {
             <div className="rounded-xl border border-gray-800 bg-slate-900/30 py-16 text-center">
               <div className="mb-4 text-6xl">📄</div>
               <h3 className="mb-2 text-xl font-semibold text-white">
-                {searchTerm ? "No matching orders found" : "No orders ready for invoice"}
+                {searchTerm ? 'No matching orders found' : 'No orders ready for invoice'}
               </h3>
               <p className="text-gray-400">
-                {searchTerm 
-                  ? "Try adjusting your search term"
-                  : "Orders become ready when they are received and waiting for invoice"}
+                {searchTerm
+                  ? 'Try adjusting your search term'
+                  : 'Orders become ready when they are received and waiting for invoice'}
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredOrders.map((order) => {
-                const customer = customerData[order._id] || { 
-                  firstName: "", 
-                  lastName: "", 
-                  email: "",
-                  fullName: "Customer" 
+                const customer = customerData[order._id] || {
+                  firstName: '',
+                  lastName: '',
+                  email: '',
+                  fullName: 'Customer',
                 };
-                
+
                 return (
                   <div
                     key={order._id}
@@ -304,9 +319,7 @@ export default function ReadyForInvoicePage() {
                       <div className="mb-4 flex items-start justify-between">
                         <div>
                           <p className="font-mono text-sm text-primary">#{order.orderNumber}</p>
-                          <h3 className="mt-1 font-semibold text-white">
-                            {customer.fullName}
-                          </h3>
+                          <h3 className="mt-1 font-semibold text-white">{customer.fullName}</h3>
                           {customer.email && (
                             <p className="mt-0.5 text-xs text-gray-500">{customer.email}</p>
                           )}
@@ -316,7 +329,7 @@ export default function ReadyForInvoicePage() {
 
                       <div className="mb-4 space-y-2">
                         <p className="text-sm text-gray-400">
-                          {order.items?.length} product{order.items?.length !== 1 ? "s" : ""}
+                          {order.items?.length} product{order.items?.length !== 1 ? 's' : ''}
                         </p>
                         <p className="text-2xl font-bold text-white">
                           {formatCurrency(order.totalAmount)}
@@ -359,7 +372,12 @@ export default function ReadyForInvoicePage() {
                 className="rounded-lg p-2 text-gray-400 transition hover:bg-slate-800 hover:text-white"
               >
                 <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -367,14 +385,14 @@ export default function ReadyForInvoicePage() {
             <div className="space-y-6 p-6">
               {loadingDetails ? (
                 <div className="flex justify-center py-8">
-                  <div className="h-8 w-8 animate-spin rounded-full border-3 border-primary border-t-transparent"></div>
+                  <div className="border-3 h-8 w-8 animate-spin rounded-full border-primary border-t-transparent"></div>
                 </div>
               ) : (
                 <>
                   <div className="rounded-lg bg-slate-800/30 p-4">
                     <h3 className="mb-2 font-medium text-white">Customer</h3>
                     <p className="text-white">
-                      {customerData[orderDetails._id]?.fullName || "Customer"}
+                      {customerData[orderDetails._id]?.fullName || 'Customer'}
                     </p>
                     <p className="text-sm text-gray-400">{orderDetails.userId?.email}</p>
                   </div>
@@ -398,7 +416,9 @@ export default function ReadyForInvoicePage() {
 
                           <div className="mb-3 flex items-center gap-2">
                             <span className="text-sm text-gray-400">Brief status:</span>
-                            <span className={`rounded-full px-2 py-1 text-xs font-medium ${getBriefStatusColor(item.briefStatus)}`}>
+                            <span
+                              className={`rounded-full px-2 py-1 text-xs font-medium ${getBriefStatusColor(item.briefStatus)}`}
+                            >
                               {getBriefStatusText(item.briefStatus)}
                             </span>
                           </div>
@@ -407,13 +427,17 @@ export default function ReadyForInvoicePage() {
                             <div className="mt-3 border-t border-gray-700 pt-3">
                               <p className="mb-2 text-xs text-primary">Customer Brief:</p>
                               <p className="line-clamp-2 text-sm text-gray-300">
-                                {item.briefs.customer.description || "No description"}
+                                {item.briefs.customer.description || 'No description'}
                               </p>
                               {item.briefs.customer.image && (
-                                <span className="mt-1 inline-block text-xs text-blue-400">📷 Has image</span>
+                                <span className="mt-1 inline-block text-xs text-blue-400">
+                                  📷 Has image
+                                </span>
                               )}
                               {item.briefs.customer.voiceNote && (
-                                <span className="ml-2 inline-block text-xs text-green-400">🎤 Has voice note</span>
+                                <span className="ml-2 inline-block text-xs text-green-400">
+                                  🎤 Has voice note
+                                </span>
                               )}
                             </div>
                           )}

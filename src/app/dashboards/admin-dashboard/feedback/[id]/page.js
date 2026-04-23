@@ -48,11 +48,11 @@ export default function FeedbackDetailPage() {
 
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
-    setResponseFiles(prev => [...prev, ...files]);
+    setResponseFiles((prev) => [...prev, ...files]);
   };
 
   const removeFile = (index) => {
-    setResponseFiles(prev => prev.filter((_, i) => i !== index));
+    setResponseFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleRespond = async () => {
@@ -65,7 +65,7 @@ export default function FeedbackDetailPage() {
       setSubmitting(true);
       const formData = new FormData();
       formData.append('response', response);
-      responseFiles.forEach(file => {
+      responseFiles.forEach((file) => {
         formData.append('attachments', file);
       });
       await feedbackService.respond(feedbackId, formData);
@@ -95,8 +95,7 @@ export default function FeedbackDetailPage() {
   };
 
   const handleUploadNewDesign = () => {
-    const productId = feedback.designId?.productId?._id || 
-                     feedback.designId?.productId;
+    const productId = feedback.designId?.productId?._id || feedback.designId?.productId;
     router.push(
       `/dashboards/admin-dashboard/design-upload?orderId=${feedback.orderId._id}&productId=${productId}&feedbackId=${feedback._id}`
     );
@@ -104,9 +103,9 @@ export default function FeedbackDetailPage() {
 
   const getStatusColor = (status) => {
     const colors = {
-      'Pending': 'yellow',
-      'Reviewed': 'blue',
-      'Resolved': 'green'
+      Pending: 'yellow',
+      Reviewed: 'blue',
+      Resolved: 'green',
     };
     return colors[status] || 'gray';
   };
@@ -134,8 +133,8 @@ export default function FeedbackDetailPage() {
       <>
         <SEOHead {...METADATA.dashboard.admin} />
         <DashboardLayout userRole="admin">
-          <div className="max-w-4xl mx-auto px-4 py-8">
-            <div className="flex justify-center items-center min-h-[60vh]">
+          <div className="mx-auto max-w-4xl px-4 py-8">
+            <div className="flex min-h-[60vh] items-center justify-center">
               <div className="text-white">Loading feedback...</div>
             </div>
           </div>
@@ -149,8 +148,8 @@ export default function FeedbackDetailPage() {
       <>
         <SEOHead {...METADATA.dashboard.admin} />
         <DashboardLayout userRole="admin">
-          <div className="max-w-4xl mx-auto px-4 py-8">
-            <div className="text-center py-16">
+          <div className="mx-auto max-w-4xl px-4 py-8">
+            <div className="py-16 text-center">
               <p className="text-red-400">{error || 'Feedback not found'}</p>
               <button
                 onClick={() => router.back()}
@@ -169,22 +168,27 @@ export default function FeedbackDetailPage() {
     <>
       <SEOHead {...METADATA.dashboard.admin} />
       <DashboardLayout userRole="admin">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
           <div className="mb-6">
             <button
               onClick={() => router.back()}
-              className="flex items-center gap-2 text-gray-400 hover:text-white mb-4 transition-colors"
+              className="mb-4 flex items-center gap-2 text-gray-400 transition-colors hover:text-white"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
               <span className="text-sm sm:text-base">Back to Feedback</span>
             </button>
-            
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+
+            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Feedback Details</h1>
-                <p className="text-gray-400 text-sm sm:text-base">
+                <h1 className="mb-2 text-2xl font-bold text-white sm:text-3xl">Feedback Details</h1>
+                <p className="text-sm text-gray-400 sm:text-base">
                   Order #{feedback.orderId?.orderNumber}
                 </p>
               </div>
@@ -195,40 +199,50 @@ export default function FeedbackDetailPage() {
           </div>
 
           <div className="space-y-5 sm:space-y-6">
-            <div className="bg-slate-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-5 sm:p-6">
-              <h2 className="text-base sm:text-lg font-semibold text-white mb-4">Customer Information</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-5 backdrop-blur-sm sm:p-6">
+              <h2 className="mb-4 text-base font-semibold text-white sm:text-lg">
+                Customer Information
+              </h2>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <p className="text-xs sm:text-sm text-gray-400">Name</p>
-                  <p className="text-white text-sm sm:text-base">{feedback.userId?.fullname || feedback.userId?.email || 'Customer'}</p>
+                  <p className="text-xs text-gray-400 sm:text-sm">Name</p>
+                  <p className="text-sm text-white sm:text-base">
+                    {feedback.userId?.fullname || feedback.userId?.email || 'Customer'}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-xs sm:text-sm text-gray-400">Email</p>
-                  <p className="text-white text-sm sm:text-base">{feedback.userId?.email || 'N/A'}</p>
+                  <p className="text-xs text-gray-400 sm:text-sm">Email</p>
+                  <p className="text-sm text-white sm:text-base">
+                    {feedback.userId?.email || 'N/A'}
+                  </p>
                 </div>
               </div>
             </div>
 
             {feedback.designId && (
-              <div className="bg-slate-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-5 sm:p-6">
-                <h2 className="text-base sm:text-lg font-semibold text-white mb-4">Design Information</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-5 backdrop-blur-sm sm:p-6">
+                <h2 className="mb-4 text-base font-semibold text-white sm:text-lg">
+                  Design Information
+                </h2>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <p className="text-xs sm:text-sm text-gray-400">Product</p>
-                    <p className="text-white text-sm sm:text-base">{getProductName()}</p>
+                    <p className="text-xs text-gray-400 sm:text-sm">Product</p>
+                    <p className="text-sm text-white sm:text-base">{getProductName()}</p>
                   </div>
                   <div>
-                    <p className="text-xs sm:text-sm text-gray-400">Design Version</p>
-                    <p className="text-white text-sm sm:text-base">v{feedback.designId.version || 1}</p>
+                    <p className="text-xs text-gray-400 sm:text-sm">Design Version</p>
+                    <p className="text-sm text-white sm:text-base">
+                      v{feedback.designId.version || 1}
+                    </p>
                   </div>
                   {feedback.designId.designUrl && (
                     <div className="sm:col-span-2">
-                      <p className="text-xs sm:text-sm text-gray-400 mb-2">Design Preview</p>
-                      <a 
-                        href={getImageUrl(feedback.designId.designUrl)} 
-                        target="_blank" 
+                      <p className="mb-2 text-xs text-gray-400 sm:text-sm">Design Preview</p>
+                      <a
+                        href={getImageUrl(feedback.designId.designUrl)}
+                        target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-block px-4 py-2 bg-purple-600/20 text-purple-400 rounded-lg hover:bg-purple-600/30 transition text-sm"
+                        className="inline-block rounded-lg bg-purple-600/20 px-4 py-2 text-sm text-purple-400 transition hover:bg-purple-600/30"
                       >
                         View Design
                       </a>
@@ -238,16 +252,22 @@ export default function FeedbackDetailPage() {
               </div>
             )}
 
-            <div className="bg-slate-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-5 sm:p-6">
-              <h2 className="text-base sm:text-lg font-semibold text-white mb-4">Customer Message</h2>
-              <div className="bg-slate-800/50 rounded-lg p-4">
-                <p className="text-xs text-gray-400 mb-2">Submitted on {new Date(feedback.createdAt).toLocaleString()}</p>
-                <p className="text-white whitespace-pre-wrap text-sm sm:text-base">{feedback.message}</p>
+            <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-5 backdrop-blur-sm sm:p-6">
+              <h2 className="mb-4 text-base font-semibold text-white sm:text-lg">
+                Customer Message
+              </h2>
+              <div className="rounded-lg bg-slate-800/50 p-4">
+                <p className="mb-2 text-xs text-gray-400">
+                  Submitted on {new Date(feedback.createdAt).toLocaleString()}
+                </p>
+                <p className="whitespace-pre-wrap text-sm text-white sm:text-base">
+                  {feedback.message}
+                </p>
               </div>
 
               {feedback.attachment && feedback.attachment.length > 0 && (
                 <div className="mt-4">
-                  <p className="text-xs sm:text-sm text-gray-400 mb-2">Attachments:</p>
+                  <p className="mb-2 text-xs text-gray-400 sm:text-sm">Attachments:</p>
                   <div className="flex flex-wrap gap-2">
                     {feedback.attachment.map((url, idx) => (
                       <a
@@ -255,7 +275,7 @@ export default function FeedbackDetailPage() {
                         href={getImageUrl(url)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1 p-2 bg-slate-800 rounded-lg hover:bg-slate-700 transition"
+                        className="flex items-center gap-1 rounded-lg bg-slate-800 p-2 transition hover:bg-slate-700"
                       >
                         <span className="text-blue-400">📎</span>
                         <span className="text-xs text-gray-300">Attachment {idx + 1}</span>
@@ -267,24 +287,31 @@ export default function FeedbackDetailPage() {
             </div>
 
             {feedback.adminResponse && (
-              <div className="bg-slate-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-5 sm:p-6">
-                <h2 className="text-base sm:text-lg font-semibold text-white mb-4">Admin Response</h2>
-                <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-4">
-                  <p className="text-xs text-blue-400 mb-2">
-                    Responded by {feedback.respondedBy?.fullname || 'Admin'} on {new Date(feedback.adminResponseAt).toLocaleString()}
+              <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-5 backdrop-blur-sm sm:p-6">
+                <h2 className="mb-4 text-base font-semibold text-white sm:text-lg">
+                  Admin Response
+                </h2>
+                <div className="rounded-lg border border-blue-800 bg-blue-900/20 p-4">
+                  <p className="mb-2 text-xs text-blue-400">
+                    Responded by {feedback.respondedBy?.fullname || 'Admin'} on{' '}
+                    {new Date(feedback.adminResponseAt).toLocaleString()}
                   </p>
-                  <p className="text-white whitespace-pre-wrap text-sm sm:text-base">{feedback.adminResponse}</p>
+                  <p className="whitespace-pre-wrap text-sm text-white sm:text-base">
+                    {feedback.adminResponse}
+                  </p>
                 </div>
               </div>
             )}
 
             {showRespondForm ? (
-              <div className="bg-slate-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-5 sm:p-6">
-                <h2 className="text-base sm:text-lg font-semibold text-white mb-4">Reply to Customer</h2>
-                
+              <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-5 backdrop-blur-sm sm:p-6">
+                <h2 className="mb-4 text-base font-semibold text-white sm:text-lg">
+                  Reply to Customer
+                </h2>
+
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                    <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                       Your Response <span className="text-red-500">*</span>
                     </label>
                     <textarea
@@ -292,15 +319,15 @@ export default function FeedbackDetailPage() {
                       value={response}
                       onChange={(e) => setResponse(e.target.value)}
                       rows={4}
-                      className="w-full bg-slate-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                      className="w-full rounded-lg border border-gray-700 bg-slate-800 px-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                    <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                       Attachments (Optional)
                     </label>
-                    <div className="border-2 border-dashed border-gray-700 rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
+                    <div className="rounded-lg border-2 border-dashed border-gray-700 p-4 text-center transition-colors hover:border-primary/50">
                       <input
                         type="file"
                         accept="image/*,.pdf"
@@ -310,11 +337,21 @@ export default function FeedbackDetailPage() {
                         id="response-attachments"
                       />
                       <label htmlFor="response-attachments" className="cursor-pointer">
-                        <svg className="w-8 h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        <svg
+                          className="mx-auto mb-2 h-8 w-8 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                          />
                         </svg>
                         <p className="text-sm text-gray-400">Click to upload files</p>
-                        <p className="text-xs text-gray-500 mt-1">PNG, JPG, PDF up to 10MB</p>
+                        <p className="mt-1 text-xs text-gray-500">PNG, JPG, PDF up to 10MB</p>
                       </label>
                     </div>
                   </div>
@@ -323,11 +360,16 @@ export default function FeedbackDetailPage() {
                     <div className="space-y-2">
                       <p className="text-sm font-medium text-gray-300">Files to attach:</p>
                       {responseFiles.map((file, index) => (
-                        <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-800 rounded-lg p-2">
-                          <span className="text-white text-sm truncate max-w-full sm:max-w-[250px]">{file.name}</span>
+                        <div
+                          key={index}
+                          className="flex flex-col justify-between gap-2 rounded-lg bg-slate-800 p-2 sm:flex-row sm:items-center"
+                        >
+                          <span className="max-w-full truncate text-sm text-white sm:max-w-[250px]">
+                            {file.name}
+                          </span>
                           <button
                             onClick={() => removeFile(index)}
-                            className="text-red-400 hover:text-red-300 text-sm"
+                            className="text-sm text-red-400 hover:text-red-300"
                           >
                             Remove
                           </button>
@@ -336,7 +378,7 @@ export default function FeedbackDetailPage() {
                     </div>
                   )}
 
-                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                  <div className="flex flex-col gap-3 pt-4 sm:flex-row">
                     <Button
                       variant="secondary"
                       onClick={() => {
@@ -360,10 +402,7 @@ export default function FeedbackDetailPage() {
             ) : (
               <div className="flex flex-wrap gap-3">
                 {feedback.status !== 'Resolved' && (
-                  <Button
-                    variant="primary"
-                    onClick={() => setShowRespondForm(true)}
-                  >
+                  <Button variant="primary" onClick={() => setShowRespondForm(true)}>
                     Reply to Customer
                   </Button>
                 )}
@@ -379,10 +418,7 @@ export default function FeedbackDetailPage() {
                 )}
 
                 {feedback.status === 'Reviewed' && feedback.designId && (
-                  <Button
-                    variant="warning"
-                    onClick={handleUploadNewDesign}
-                  >
+                  <Button variant="warning" onClick={handleUploadNewDesign}>
                     Upload New Design
                   </Button>
                 )}
@@ -397,10 +433,7 @@ export default function FeedbackDetailPage() {
                   </Button>
                 )}
 
-                <Button
-                  variant="ghost"
-                  onClick={() => router.back()}
-                >
+                <Button variant="ghost" onClick={() => router.back()}>
                   Go Back
                 </Button>
               </div>

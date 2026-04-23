@@ -16,10 +16,10 @@ export default function RespondToBriefPage({ params }) {
   const unwrappedParams = React.use(params);
   const orderId = unwrappedParams.id;
   const productId = unwrappedParams.productId;
-  
+
   const router = useRouter();
   const { isLoading: authLoading } = useProtectedRoute({
-    redirectTo: '/auth/sign-in'
+    redirectTo: '/auth/sign-in',
   });
   const { showToast } = useToast();
 
@@ -41,10 +41,8 @@ export default function RespondToBriefPage({ params }) {
       const response = await orderService.getById(orderId);
       const orderData = response?.order || response?.data || response;
       setOrder(orderData);
-      
-      const item = orderData.items?.find(
-        i => (i.productId._id || i.productId) === productId
-      );
+
+      const item = orderData.items?.find((i) => (i.productId._id || i.productId) === productId);
       if (item) {
         setProduct(item);
       }
@@ -58,7 +56,7 @@ export default function RespondToBriefPage({ params }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!description.trim()) {
       showToast('Please enter your response', 'error');
       return;
@@ -88,7 +86,9 @@ export default function RespondToBriefPage({ params }) {
   }
 
   const pageTitle = product ? `Respond to Brief - ${product.productName}` : 'Respond to Brief';
-  const pageDescription = order ? `Respond to customization brief for order #${order.orderNumber}` : 'Respond to your customization brief';
+  const pageDescription = order
+    ? `Respond to customization brief for order #${order.orderNumber}`
+    : 'Respond to your customization brief';
 
   return (
     <>
@@ -103,7 +103,12 @@ export default function RespondToBriefPage({ params }) {
           <Link href={`/orders/${orderId}`} className="inline-block">
             <Button variant="ghost" size="sm" className="mb-4 gap-2 sm:mb-6">
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
               Back to Order
             </Button>

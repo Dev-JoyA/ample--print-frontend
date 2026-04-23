@@ -1,5 +1,5 @@
-import { api } from "@/lib/api";
-import { API_PATHS } from "@/lib/constants";
+import { api } from '@/lib/api';
+import { API_PATHS } from '@/lib/constants';
 
 export const shippingService = {
   getByOrderId: async (orderId) => {
@@ -63,15 +63,17 @@ export const shippingService = {
       if (params.page) queryParams.append('page', params.page);
       if (params.limit) queryParams.append('limit', params.limit);
       const queryString = queryParams.toString();
-      const endpoint = queryString ? `${API_PATHS.SHIPPING.ALL}?${queryString}` : API_PATHS.SHIPPING.ALL;
+      const endpoint = queryString
+        ? `${API_PATHS.SHIPPING.ALL}?${queryString}`
+        : API_PATHS.SHIPPING.ALL;
       const response = await api.get(endpoint);
       const shippingData = response?.data || response?.shipping || [];
       const total = response?.total || shippingData.length;
-      return { 
-        data: shippingData, 
+      return {
+        data: shippingData,
         total,
         page: response?.page || params.page || 1,
-        limit: response?.limit || params.limit || 10
+        limit: response?.limit || params.limit || 10,
       };
     } catch (error) {
       console.error('Failed to fetch shipping records:', error);
@@ -92,7 +94,9 @@ export const shippingService = {
       if (params.page) queryParams.append('page', params.page);
       if (params.limit) queryParams.append('limit', params.limit);
       const queryString = queryParams.toString();
-      const endpoint = queryString ? `${API_PATHS.SHIPPING.FILTER}?${queryString}` : API_PATHS.SHIPPING.FILTER;
+      const endpoint = queryString
+        ? `${API_PATHS.SHIPPING.FILTER}?${queryString}`
+        : API_PATHS.SHIPPING.FILTER;
       const response = await api.get(endpoint);
       const shippingData = response?.data || response?.shipping || [];
       const total = response?.total || shippingData.length;

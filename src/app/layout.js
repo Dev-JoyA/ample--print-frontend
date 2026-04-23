@@ -1,27 +1,27 @@
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { carlito, inter } from "../app/ui/fonts";
-import { ToastProvider } from "../components/providers/ToastProvider";
-import { NotificationProvider } from "../components/providers/NotificationProvider";
-import SEOHead from "@/components/common/SEOHead";
-import { OrganizationSchema, WebsiteSchema } from "@/components/common/StructuredData";
-import { SITE_CONFIG } from "@/lib/metadata";
+import { Geist, Geist_Mono } from 'next/font/google';
+import './globals.css';
+import { carlito, inter } from '../app/ui/fonts';
+import { ToastProvider } from '../components/providers/ToastProvider';
+import { NotificationProvider } from '../components/providers/NotificationProvider';
+import SEOHead from '@/components/common/SEOHead';
+import { OrganizationSchema, WebsiteSchema } from '@/components/common/StructuredData';
+import { SITE_CONFIG } from '@/lib/metadata';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
 });
 
 export const metadata = {
   metadataBase: new URL(SITE_CONFIG.url),
   title: {
     default: SITE_CONFIG.title,
-    template: `%s | ${SITE_CONFIG.name}`
+    template: `%s | ${SITE_CONFIG.name}`,
   },
   description: SITE_CONFIG.description,
   keywords: SITE_CONFIG.keywords,
@@ -88,9 +88,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className={`${inter.className} antialiased`}>
         <ToastProvider>
-          <NotificationProvider>
-            {children}
-          </NotificationProvider>
+          <NotificationProvider>{children}</NotificationProvider>
         </ToastProvider>
       </body>
     </html>

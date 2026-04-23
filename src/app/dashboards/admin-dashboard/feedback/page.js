@@ -14,7 +14,7 @@ import { METADATA } from '@/lib/metadata';
 export default function AdminFeedbackPage() {
   const router = useRouter();
   useAuthCheck();
-  
+
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -37,9 +37,9 @@ export default function AdminFeedbackPage() {
       if (filter === 'all') {
         response = await feedbackService.getAll({ limit: 50 });
       } else {
-        response = await feedbackService.filter({ 
+        response = await feedbackService.filter({
           limit: 50,
-          status: filter 
+          status: filter,
         });
       }
       console.log('📋 Feedback response:', response);
@@ -55,11 +55,11 @@ export default function AdminFeedbackPage() {
 
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
-    setResponseFiles(prev => [...prev, ...files]);
+    setResponseFiles((prev) => [...prev, ...files]);
   };
 
   const removeFile = (index) => {
-    setResponseFiles(prev => prev.filter((_, i) => i !== index));
+    setResponseFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleRespond = async () => {
@@ -71,7 +71,7 @@ export default function AdminFeedbackPage() {
       setSubmitting(true);
       const formData = new FormData();
       formData.append('response', response);
-      responseFiles.forEach(file => {
+      responseFiles.forEach((file) => {
         formData.append('attachments', file);
       });
       await feedbackService.respond(selectedFeedback._id, formData);
@@ -102,8 +102,7 @@ export default function AdminFeedbackPage() {
   };
 
   const handleUploadNewDesign = (feedback) => {
-    const productId = feedback.designId?.productId?._id || 
-                     feedback.designId?.productId;
+    const productId = feedback.designId?.productId?._id || feedback.designId?.productId;
     router.push(
       `/dashboards/admin-dashboard/design-upload?orderId=${feedback.orderId._id}&productId=${productId}&feedbackId=${feedback._id}`
     );
@@ -111,9 +110,9 @@ export default function AdminFeedbackPage() {
 
   const getStatusColor = (status) => {
     const colors = {
-      'Pending': 'yellow',
-      'Reviewed': 'blue',
-      'Resolved': 'green'
+      Pending: 'yellow',
+      Reviewed: 'blue',
+      Resolved: 'green',
     };
     return colors[status] || 'gray';
   };
@@ -140,8 +139,8 @@ export default function AdminFeedbackPage() {
       <>
         <SEOHead {...METADATA.dashboard.admin} />
         <DashboardLayout userRole="admin">
-          <div className="max-w-7xl mx-auto px-4 py-8">
-            <div className="flex justify-center items-center min-h-[60vh]">
+          <div className="mx-auto max-w-7xl px-4 py-8">
+            <div className="flex min-h-[60vh] items-center justify-center">
               <div className="text-white">Loading feedback...</div>
             </div>
           </div>
@@ -154,53 +153,58 @@ export default function AdminFeedbackPage() {
     <>
       <SEOHead {...METADATA.dashboard.admin} />
       <DashboardLayout userRole="admin">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 sm:mb-8">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+          <div className="mb-6 flex flex-col gap-4 sm:mb-8 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Customer Feedback</h1>
-              <p className="text-gray-400 text-sm sm:text-base">Review, respond, and manage customer feedback</p>
+              <h1 className="mb-2 text-3xl font-bold text-white sm:text-4xl">Customer Feedback</h1>
+              <p className="text-sm text-gray-400 sm:text-base">
+                Review, respond, and manage customer feedback
+              </p>
             </div>
             <div className="flex gap-3">
-              <Button
-                variant="secondary"
-                onClick={fetchFeedback}
-                size="sm"
-                disabled={loading}
-              >
+              <Button variant="secondary" onClick={fetchFeedback} size="sm" disabled={loading}>
                 {loading ? 'Loading...' : 'Refresh'}
               </Button>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 mb-6 overflow-x-auto pb-2">
+          <div className="mb-6 flex flex-wrap gap-2 overflow-x-auto pb-2">
             <button
               onClick={() => setFilter('all')}
-              className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition ${
-                filter === 'all' ? 'bg-primary text-white' : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
+              className={`whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition sm:px-4 sm:text-sm ${
+                filter === 'all'
+                  ? 'bg-primary text-white'
+                  : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
               }`}
             >
               All Feedback
             </button>
             <button
               onClick={() => setFilter('Pending')}
-              className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition ${
-                filter === 'Pending' ? 'bg-yellow-600 text-white' : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
+              className={`whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition sm:px-4 sm:text-sm ${
+                filter === 'Pending'
+                  ? 'bg-yellow-600 text-white'
+                  : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
               }`}
             >
               Pending
             </button>
             <button
               onClick={() => setFilter('Reviewed')}
-              className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition ${
-                filter === 'Reviewed' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
+              className={`whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition sm:px-4 sm:text-sm ${
+                filter === 'Reviewed'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
               }`}
             >
               Reviewed
             </button>
             <button
               onClick={() => setFilter('Resolved')}
-              className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition ${
-                filter === 'Resolved' ? 'bg-green-600 text-white' : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
+              className={`whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition sm:px-4 sm:text-sm ${
+                filter === 'Resolved'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
               }`}
             >
               Resolved
@@ -208,24 +212,24 @@ export default function AdminFeedbackPage() {
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-200">
+            <div className="mb-4 rounded-lg border border-red-700 bg-red-900/50 p-3 text-red-200">
               {error}
             </div>
           )}
 
           {feedbacks.length === 0 ? (
-            <div className="text-center py-16 bg-slate-900/30 rounded-xl border border-gray-800">
-              <div className="text-6xl mb-4">💬</div>
-              <h3 className="text-xl font-semibold text-white mb-2">No feedback found</h3>
+            <div className="rounded-xl border border-gray-800 bg-slate-900/30 py-16 text-center">
+              <div className="mb-4 text-6xl">💬</div>
+              <h3 className="mb-2 text-xl font-semibold text-white">No feedback found</h3>
               <p className="text-gray-400">
-                {filter === 'all' 
-                  ? 'No feedback available' 
+                {filter === 'all'
+                  ? 'No feedback available'
                   : `No ${filter.toLowerCase()} feedback at the moment`}
               </p>
               {filter !== 'all' && (
                 <button
                   onClick={() => setFilter('all')}
-                  className="mt-4 text-primary hover:text-primary-dark text-sm"
+                  className="mt-4 text-sm text-primary hover:text-primary-dark"
                 >
                   View all feedback →
                 </button>
@@ -234,25 +238,30 @@ export default function AdminFeedbackPage() {
           ) : (
             <div className="space-y-5 sm:space-y-6">
               {feedbacks.map((feedback) => (
-                <div key={feedback._id} className="bg-slate-900/50 backdrop-blur-sm border border-gray-800 rounded-xl overflow-hidden">
+                <div
+                  key={feedback._id}
+                  className="overflow-hidden rounded-xl border border-gray-800 bg-slate-900/50 backdrop-blur-sm"
+                >
                   <div className="p-5 sm:p-6">
-                    <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+                    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                       <div className="flex-1">
-                        <div className="flex flex-wrap items-center gap-3 mb-2">
-                          <h3 className="text-base sm:text-lg font-semibold text-white">
+                        <div className="mb-2 flex flex-wrap items-center gap-3">
+                          <h3 className="text-base font-semibold text-white sm:text-lg">
                             Order #{feedback.orderId?.orderNumber}
                           </h3>
-                          <span className={`inline-block px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-${getStatusColor(feedback.status)}-900/50 text-${getStatusColor(feedback.status)}-400`}>
+                          <span
+                            className={`inline-block rounded-full px-2 py-1 text-xs font-medium sm:px-3 bg-${getStatusColor(feedback.status)}-900/50 text-${getStatusColor(feedback.status)}-400`}
+                          >
                             {feedback.status}
                           </span>
                           {feedback.designId && (
-                            <span className="px-2 py-1 bg-purple-900/50 text-purple-400 rounded-full text-xs">
+                            <span className="rounded-full bg-purple-900/50 px-2 py-1 text-xs text-purple-400">
                               Design Feedback
                             </span>
                           )}
                         </div>
-                        
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm mb-3">
+
+                        <div className="mb-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2 sm:text-sm">
                           <p className="text-gray-400">
                             <span className="text-gray-500">From:</span>{' '}
                             {feedback.userId?.fullname || feedback.userId?.email || 'Customer'}
@@ -271,13 +280,13 @@ export default function AdminFeedbackPage() {
                       </div>
                     </div>
 
-                    <div className="bg-slate-800/50 rounded-lg p-4 mb-4">
-                      <p className="text-xs sm:text-sm text-gray-400 mb-2">Customer Message:</p>
-                      <p className="text-white whitespace-pre-wrap text-sm">{feedback.message}</p>
-                      
+                    <div className="mb-4 rounded-lg bg-slate-800/50 p-4">
+                      <p className="mb-2 text-xs text-gray-400 sm:text-sm">Customer Message:</p>
+                      <p className="whitespace-pre-wrap text-sm text-white">{feedback.message}</p>
+
                       {feedback.attachment && feedback.attachment.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-gray-700">
-                          <p className="text-xs text-gray-400 mb-2">Attachments:</p>
+                        <div className="mt-3 border-t border-gray-700 pt-3">
+                          <p className="mb-2 text-xs text-gray-400">Attachments:</p>
                           <div className="flex flex-wrap gap-2">
                             {feedback.attachment.map((url, idx) => (
                               <a
@@ -285,7 +294,7 @@ export default function AdminFeedbackPage() {
                                 href={getImageUrl(url)}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-1 p-2 bg-slate-700 rounded-lg hover:bg-slate-600 transition"
+                                className="flex items-center gap-1 rounded-lg bg-slate-700 p-2 transition hover:bg-slate-600"
                               >
                                 <span className="text-blue-400">📎</span>
                                 <span className="text-xs text-gray-300">Attachment {idx + 1}</span>
@@ -297,18 +306,20 @@ export default function AdminFeedbackPage() {
                     </div>
 
                     {feedback.adminResponse && (
-                      <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-4 mb-4">
-                        <p className="text-xs sm:text-sm text-blue-400 mb-2">Admin Response:</p>
-                        <p className="text-white whitespace-pre-wrap text-sm">{feedback.adminResponse}</p>
+                      <div className="mb-4 rounded-lg border border-blue-800 bg-blue-900/20 p-4">
+                        <p className="mb-2 text-xs text-blue-400 sm:text-sm">Admin Response:</p>
+                        <p className="whitespace-pre-wrap text-sm text-white">
+                          {feedback.adminResponse}
+                        </p>
                         {feedback.adminResponseAt && (
-                          <p className="text-xs text-gray-500 mt-2">
+                          <p className="mt-2 text-xs text-gray-500">
                             Responded on {new Date(feedback.adminResponseAt).toLocaleString()}
                           </p>
                         )}
                       </div>
                     )}
 
-                    <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-gray-800">
+                    <div className="mt-4 flex flex-wrap gap-3 border-t border-gray-800 pt-4">
                       {feedback.status !== 'Resolved' && (
                         <Button
                           variant="primary"
@@ -365,23 +376,23 @@ export default function AdminFeedbackPage() {
           )}
 
           {showRespondModal && selectedFeedback && (
-            <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-              <div className="bg-slate-900 rounded-xl border border-gray-800 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-                <div className="p-5 sm:p-6 border-b border-gray-800">
-                  <h3 className="text-lg sm:text-xl font-bold text-white">Reply to Customer</h3>
-                  <p className="text-xs sm:text-sm text-gray-400 mt-1">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+              <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-gray-800 bg-slate-900">
+                <div className="border-b border-gray-800 p-5 sm:p-6">
+                  <h3 className="text-lg font-bold text-white sm:text-xl">Reply to Customer</h3>
+                  <p className="mt-1 text-xs text-gray-400 sm:text-sm">
                     Order #{selectedFeedback.orderId?.orderNumber}
                   </p>
                 </div>
-                
-                <div className="p-5 sm:p-6 space-y-4">
-                  <div className="bg-slate-800/50 rounded-lg p-3 max-h-40 overflow-y-auto">
-                    <p className="text-xs text-gray-400 mb-1">Customer message:</p>
-                    <p className="text-xs sm:text-sm text-gray-300">{selectedFeedback.message}</p>
+
+                <div className="space-y-4 p-5 sm:p-6">
+                  <div className="max-h-40 overflow-y-auto rounded-lg bg-slate-800/50 p-3">
+                    <p className="mb-1 text-xs text-gray-400">Customer message:</p>
+                    <p className="text-xs text-gray-300 sm:text-sm">{selectedFeedback.message}</p>
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                    <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                       Your Response <span className="text-red-500">*</span>
                     </label>
                     <textarea
@@ -389,15 +400,15 @@ export default function AdminFeedbackPage() {
                       value={response}
                       onChange={(e) => setResponse(e.target.value)}
                       rows={4}
-                      className="w-full bg-slate-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                      className="w-full rounded-lg border border-gray-700 bg-slate-800 px-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                    <label className="mb-2 block text-xs font-medium text-gray-300 sm:text-sm">
                       Attachments (Optional)
                     </label>
-                    <div className="border-2 border-dashed border-gray-700 rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
+                    <div className="rounded-lg border-2 border-dashed border-gray-700 p-4 text-center transition-colors hover:border-primary/50">
                       <input
                         type="file"
                         accept="image/*,.pdf"
@@ -407,11 +418,21 @@ export default function AdminFeedbackPage() {
                         id="response-attachments"
                       />
                       <label htmlFor="response-attachments" className="cursor-pointer">
-                        <svg className="w-8 h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        <svg
+                          className="mx-auto mb-2 h-8 w-8 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                          />
                         </svg>
                         <p className="text-sm text-gray-400">Click to upload files</p>
-                        <p className="text-xs text-gray-500 mt-1">PNG, JPG, PDF up to 10MB</p>
+                        <p className="mt-1 text-xs text-gray-500">PNG, JPG, PDF up to 10MB</p>
                       </label>
                     </div>
                   </div>
@@ -420,11 +441,16 @@ export default function AdminFeedbackPage() {
                     <div className="space-y-2">
                       <p className="text-sm font-medium text-gray-300">Files to attach:</p>
                       {responseFiles.map((file, index) => (
-                        <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-800 rounded-lg p-2">
-                          <span className="text-white text-sm truncate max-w-full sm:max-w-[250px]">{file.name}</span>
+                        <div
+                          key={index}
+                          className="flex flex-col justify-between gap-2 rounded-lg bg-slate-800 p-2 sm:flex-row sm:items-center"
+                        >
+                          <span className="max-w-full truncate text-sm text-white sm:max-w-[250px]">
+                            {file.name}
+                          </span>
                           <button
                             onClick={() => removeFile(index)}
-                            className="text-red-400 hover:text-red-300 text-sm"
+                            className="text-sm text-red-400 hover:text-red-300"
                           >
                             Remove
                           </button>
@@ -433,7 +459,7 @@ export default function AdminFeedbackPage() {
                     </div>
                   )}
 
-                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                  <div className="flex flex-col gap-3 pt-4 sm:flex-row">
                     <Button
                       variant="secondary"
                       onClick={() => {

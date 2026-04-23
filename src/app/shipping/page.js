@@ -18,7 +18,7 @@ function ShippingPageContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
   useAuthCheck();
-  
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState(null);
@@ -61,21 +61,21 @@ function ShippingPageContent() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
+
       const [profileResponse, orderResponse] = await Promise.all([
         profileService.getMyProfile(),
-        orderService.getById(orderId)
+        orderService.getById(orderId),
       ]);
-      
+
       console.log('Profile response:', profileResponse);
       console.log('Order response:', orderResponse);
-      
+
       const userData = profileResponse?.user || profileResponse?.data || profileResponse;
       setProfile(userData);
-      
+
       const orderData = orderResponse?.order || orderResponse?.data || orderResponse;
       setOrder(orderData);
-      
+
       if (userData) {
         setShippingData({
           phone: userData.phoneNumber || '',
@@ -95,7 +95,7 @@ function ShippingPageContent() {
   };
 
   const handleInputChange = (field, value) => {
-    setShippingData(prev => ({ ...prev, [field]: value }));
+    setShippingData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async () => {
@@ -104,12 +104,13 @@ function ShippingPageContent() {
       setError('');
 
       let shippingPayload;
-      
+
       if (shippingOption === 'pickup') {
         shippingPayload = {
           shippingMethod: 'pickup',
+          deliveryType: 'pickup',
           shippingCost: 0,
-          pickupNotes: pickupNotes.trim() || 'Customer will pick up from store'
+          pickupNotes: pickupNotes.trim() || 'Customer will pick up from store',
         };
       } else {
         if (!shippingData.address || !shippingData.city || !shippingData.state) {
@@ -118,17 +119,18 @@ function ShippingPageContent() {
           return;
         }
 
-        const recipientName = profile ? 
-          `${profile.firstName || ''} ${profile.lastName || ''}`.trim() : 
-          'Customer';
+        const recipientName = profile
+          ? `${profile.firstName || ''} ${profile.lastName || ''}`.trim()
+          : 'Customer';
 
         const fullDeliveryNotes = [
           shippingOption === 'pay-on-delivery' ? 'Pay on delivery' : 'Prepaid delivery',
-          deliveryNotes.trim() ? ` - ${deliveryNotes.trim()}` : ''
+          deliveryNotes.trim() ? ` - ${deliveryNotes.trim()}` : '',
         ].join('');
 
         shippingPayload = {
           shippingMethod: 'delivery',
+          deliveryType: shippingOption === 'pay-on-delivery' ? 'pay_on_delivery' : 'prepaid',
           shippingCost: 0,
           recipientName: recipientName,
           recipientPhone: profile?.phoneNumber || shippingData.phone,
@@ -136,9 +138,9 @@ function ShippingPageContent() {
             street: shippingData.address,
             city: shippingData.city,
             state: shippingData.state,
-            country: shippingData.country
+            country: shippingData.country,
           },
-          pickupNotes: fullDeliveryNotes
+          pickupNotes: fullDeliveryNotes,
         };
       }
 
@@ -153,7 +155,6 @@ function ShippingPageContent() {
       } else {
         router.push(`/order-history/${orderId}?message=shipping-selected`);
       }
-
     } catch (err) {
       console.error('Failed to save shipping:', err);
       setError(err.message || 'Failed to save shipping information');
@@ -229,15 +230,23 @@ function ShippingPageContent() {
       <DashboardLayout userRole="customer">
         <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
           <div className="mb-6 flex items-center gap-3 sm:mb-8">
-            <img src="/images/logo/shipping.png" alt="shipping logo" className="h-10 w-10 object-contain sm:h-12 sm:w-12" />
+            <img
+              src="/images/logo/shipping.png"
+              alt="shipping logo"
+              className="h-10 w-10 object-contain sm:h-12 sm:w-12"
+            />
             <div>
               <h1 className="text-2xl font-bold text-white sm:text-3xl sm:text-4xl">Shipping</h1>
-              <p className="mt-1 text-xs text-gray-400 sm:text-sm">Select how you want to receive your order</p>
+              <p className="mt-1 text-xs text-gray-400 sm:text-sm">
+                Select how you want to receive your order
+              </p>
             </div>
           </div>
 
           <div className="mb-6 rounded-xl border border-gray-800 bg-gradient-to-br from-slate-900 to-slate-950 p-4 sm:p-6">
-            <h2 className="mb-3 text-base font-semibold text-white sm:mb-4 sm:text-lg">Order Details</h2>
+            <h2 className="mb-3 text-base font-semibold text-white sm:mb-4 sm:text-lg">
+              Order Details
+            </h2>
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <div className="mb-2 flex flex-wrap items-center gap-2 sm:gap-3">
@@ -246,12 +255,17 @@ function ShippingPageContent() {
                 </div>
                 <p className="text-xs text-gray-400 sm:text-sm">{getProductSummary()}</p>
                 <p className="text-xs text-gray-400 sm:text-sm">
-                  Total: <span className="font-bold text-primary">{formatCurrency(order.totalAmount)}</span>
+                  Total:{' '}
+                  <span className="font-bold text-primary">
+                    {formatCurrency(order.totalAmount)}
+                  </span>
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-xs text-gray-500">Order placed</p>
-                <p className="text-xs text-white sm:text-sm">{new Date(order.createdAt).toLocaleDateString()}</p>
+                <p className="text-xs text-white sm:text-sm">
+                  {new Date(order.createdAt).toLocaleDateString()}
+                </p>
               </div>
             </div>
           </div>
@@ -264,8 +278,10 @@ function ShippingPageContent() {
 
           <div className="space-y-5 sm:space-y-6">
             <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-4 backdrop-blur-sm sm:p-6">
-              <h2 className="mb-4 text-base font-semibold text-white sm:mb-6 sm:text-xl">Select Shipping Option for Order #{order.orderNumber}</h2>
-              
+              <h2 className="mb-4 text-base font-semibold text-white sm:mb-6 sm:text-xl">
+                Select Shipping Option for Order #{order.orderNumber}
+              </h2>
+
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
                 <div
                   onClick={() => {
@@ -316,8 +332,12 @@ function ShippingPageContent() {
                       <span className="text-2xl sm:text-3xl">💵</span>
                     </div>
                     <div className="mb-2 sm:mb-3">
-                      <h3 className="text-sm font-semibold text-white sm:text-base">Pay on Delivery</h3>
-                      <p className="text-xs text-gray-400 sm:text-sm">Pay delivery agent directly</p>
+                      <h3 className="text-sm font-semibold text-white sm:text-base">
+                        Pay on Delivery
+                      </h3>
+                      <p className="text-xs text-gray-400 sm:text-sm">
+                        Pay delivery agent directly
+                      </p>
                     </div>
                     <input
                       type="radio"
@@ -367,12 +387,14 @@ function ShippingPageContent() {
             {shippingOption !== 'pickup' && (
               <>
                 <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-4 backdrop-blur-sm sm:p-6">
-                  <h3 className="mb-3 text-base font-semibold text-white sm:mb-4 sm:text-lg">Delivery Address for Order #{order.orderNumber}</h3>
-                  
+                  <h3 className="mb-3 text-base font-semibold text-white sm:mb-4 sm:text-lg">
+                    Delivery Address for Order #{order.orderNumber}
+                  </h3>
+
                   <div className="mb-4 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:gap-4">
                     <button
                       onClick={() => setDeliveryType('own')}
-                      className={`rounded-lg border-2 py-2 px-3 transition-all sm:flex-1 sm:py-3 sm:px-4 ${
+                      className={`rounded-lg border-2 px-3 py-2 transition-all sm:flex-1 sm:px-4 sm:py-3 ${
                         deliveryType === 'own'
                           ? 'border-primary bg-primary/10 text-white'
                           : 'border-gray-700 text-gray-400 hover:border-gray-600'
@@ -393,7 +415,7 @@ function ShippingPageContent() {
                           country: 'Nigeria',
                         });
                       }}
-                      className={`rounded-lg border-2 py-2 px-3 transition-all sm:flex-1 sm:py-3 sm:px-4 ${
+                      className={`rounded-lg border-2 px-3 py-2 transition-all sm:flex-1 sm:px-4 sm:py-3 ${
                         deliveryType === 'new'
                           ? 'border-primary bg-primary/10 text-white'
                           : 'border-gray-700 text-gray-400 hover:border-gray-600'
@@ -414,7 +436,7 @@ function ShippingPageContent() {
                           value={shippingData.phoneCountryCode}
                           onChange={(e) => handleInputChange('phoneCountryCode', e.target.value)}
                           disabled={deliveryType === 'own' && profile?.phoneNumber}
-                          className="w-20 rounded-lg border border-gray-700 bg-slate-800 px-2 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 sm:w-24 sm:px-3 sm:py-3"
+                          className="w-20 rounded-lg border border-gray-700 bg-slate-800 px-2 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 sm:w-24 sm:px-3 sm:py-3"
                         >
                           <option value="+234">🇳🇬 +234</option>
                           <option value="+233">🇬🇭 +233</option>
@@ -431,11 +453,13 @@ function ShippingPageContent() {
                           onChange={(e) => handleInputChange('phone', e.target.value)}
                           placeholder="Phone number"
                           disabled={deliveryType === 'own' && profile?.phoneNumber}
-                          className="flex-1 rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 sm:px-4 sm:py-3"
+                          className="flex-1 rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 sm:px-4 sm:py-3"
                         />
                       </div>
                       {deliveryType === 'own' && profile?.phoneNumber && (
-                        <p className="mt-1 text-xs text-gray-500">Using phone number from your profile</p>
+                        <p className="mt-1 text-xs text-gray-500">
+                          Using phone number from your profile
+                        </p>
                       )}
                     </div>
 
@@ -449,7 +473,7 @@ function ShippingPageContent() {
                         onChange={(e) => handleInputChange('address', e.target.value)}
                         placeholder="Enter street address"
                         disabled={deliveryType === 'own' && profile?.address}
-                        className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 sm:px-4 sm:py-3"
+                        className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 sm:px-4 sm:py-3"
                       />
                     </div>
 
@@ -464,7 +488,7 @@ function ShippingPageContent() {
                           onChange={(e) => handleInputChange('city', e.target.value)}
                           placeholder="Enter city"
                           disabled={deliveryType === 'own' && profile?.city}
-                          className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 sm:px-4 sm:py-3"
+                          className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 sm:px-4 sm:py-3"
                         />
                       </div>
                       <div>
@@ -477,7 +501,7 @@ function ShippingPageContent() {
                           onChange={(e) => handleInputChange('state', e.target.value)}
                           placeholder="Enter state"
                           disabled={deliveryType === 'own' && profile?.state}
-                          className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 sm:px-4 sm:py-3"
+                          className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 sm:px-4 sm:py-3"
                         />
                       </div>
                     </div>
@@ -490,7 +514,7 @@ function ShippingPageContent() {
                         value={shippingData.country}
                         onChange={(e) => handleInputChange('country', e.target.value)}
                         disabled={deliveryType === 'own'}
-                        className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 sm:px-4 sm:py-3"
+                        className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 sm:px-4 sm:py-3"
                       >
                         <option value="Nigeria">Nigeria</option>
                         <option value="Ghana">Ghana</option>
@@ -512,7 +536,7 @@ function ShippingPageContent() {
                         value={deliveryNotes}
                         onChange={(e) => setDeliveryNotes(e.target.value)}
                         rows={3}
-                        className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary"
                       />
                       <p className="mt-1 text-xs text-gray-500">
                         Add any special instructions for the delivery agent
@@ -546,7 +570,9 @@ function ShippingPageContent() {
             {shippingOption === 'pickup' && (
               <>
                 <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-4 backdrop-blur-sm sm:p-6">
-                  <h3 className="mb-3 text-base font-semibold text-white sm:mb-4 sm:text-lg">Pickup Instructions</h3>
+                  <h3 className="mb-3 text-base font-semibold text-white sm:mb-4 sm:text-lg">
+                    Pickup Instructions
+                  </h3>
                   <div className="space-y-3 sm:space-y-4">
                     <div>
                       <label className="mb-1 block text-xs font-medium text-gray-300 sm:mb-2 sm:text-sm">
@@ -557,7 +583,7 @@ function ShippingPageContent() {
                         value={pickupNotes}
                         onChange={(e) => setPickupNotes(e.target.value)}
                         rows={3}
-                        className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="w-full rounded-lg border border-gray-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary"
                       />
                       <p className="mt-1 text-xs text-gray-500">
                         Add any special instructions for when you come to pick up your order
@@ -584,12 +610,7 @@ function ShippingPageContent() {
               >
                 Back
               </Button>
-              <Button
-                variant="primary"
-                onClick={handleSubmit}
-                className="flex-1"
-                disabled={saving}
-              >
+              <Button variant="primary" onClick={handleSubmit} className="flex-1" disabled={saving}>
                 {saving ? 'Saving...' : 'Continue'}
               </Button>
             </div>

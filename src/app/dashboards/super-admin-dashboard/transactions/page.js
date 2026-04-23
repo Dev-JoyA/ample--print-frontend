@@ -1,32 +1,32 @@
-"use client";
+'use client';
 
-import { Suspense, useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import DashboardLayout from "@/components/layouts/DashboardLayout";
-import Button from "@/components/ui/Button";
-import SEOHead from "@/components/common/SEOHead";
-import { useAuthCheck } from "@/app/lib/auth";
-import { paymentService } from "@/services/paymentService";
-import { invoiceService } from "@/services/invoiceService";
-import { profileService } from "@/services/profileService";
-import { METADATA } from "@/lib/metadata";
+import { Suspense, useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import DashboardLayout from '@/components/layouts/DashboardLayout';
+import Button from '@/components/ui/Button';
+import SEOHead from '@/components/common/SEOHead';
+import { useAuthCheck } from '@/app/lib/auth';
+import { paymentService } from '@/services/paymentService';
+import { invoiceService } from '@/services/invoiceService';
+import { profileService } from '@/services/profileService';
+import { METADATA } from '@/lib/metadata';
 
 function TransactionsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const isPrintMode = searchParams.get("print") === "true";
-  
+  const isPrintMode = searchParams.get('print') === 'true';
+
   useAuthCheck();
 
   const [isClient, setIsClient] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [transactions, setTransactions] = useState([]);
   const [customerData, setCustomerData] = useState({});
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState('all');
   const [summary, setSummary] = useState({
     totalAmount: 0,
     completedCount: 0,
@@ -36,7 +36,7 @@ function TransactionsPageContent() {
     bankTransferCount: 0,
     mainInvoiceCount: 0,
     shippingInvoiceCount: 0,
-    depositInvoiceCount: 0
+    depositInvoiceCount: 0,
   });
 
   useEffect(() => {
@@ -58,36 +58,55 @@ function TransactionsPageContent() {
   const fetchTransactions = async () => {
     try {
       setLoading(true);
-      
+
       const invoicesResponse = await invoiceService.getAll({ limit: 1000 });
       const invoices = invoicesResponse?.invoices || [];
-      
+
       const allTransactions = invoices
-        .flatMap(inv => (inv.transactions || []).map(t => ({
-          ...t,
-          invoiceNumber: inv.invoiceNumber,
-          invoiceType: inv.invoiceType || "main",
-          orderNumber: inv.orderNumber,
-          invoiceId: inv._id,
-          customerId: inv.userId?._id || inv.orderId?.userId?._id,
-          createdAt: t.createdAt || inv.createdAt
-        })))
+        .flatMap((inv) =>
+          (inv.transactions || []).map((t) => ({
+            ...t,
+            invoiceNumber: inv.invoiceNumber,
+            invoiceType: inv.invoiceType || 'main',
+            orderNumber: inv.orderNumber,
+            invoiceId: inv._id,
+            customerId: inv.userId?._id || inv.orderId?.userId?._id,
+            createdAt: t.createdAt || inv.createdAt,
+          }))
+        )
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       let filteredTransactions = allTransactions;
-      if (filter !== "all") {
-        filteredTransactions = allTransactions.filter(t => t.transactionStatus === filter);
+      if (filter !== 'all') {
+        filteredTransactions = allTransactions.filter((t) => t.transactionStatus === filter);
       }
 
-      const totalAmount = filteredTransactions.reduce((sum, t) => sum + (t.transactionAmount || 0), 0);
-      const completedCount = filteredTransactions.filter(t => t.transactionStatus === "completed").length;
-      const pendingCount = filteredTransactions.filter(t => t.transactionStatus === "pending").length;
-      const failedCount = filteredTransactions.filter(t => t.transactionStatus === "failed").length;
-      const paystackCount = filteredTransactions.filter(t => t.paymentMethod === "paystack").length;
-      const bankTransferCount = filteredTransactions.filter(t => t.paymentMethod === "bank_transfer").length;
-      const mainInvoiceCount = filteredTransactions.filter(t => t.invoiceType === "main").length;
-      const shippingInvoiceCount = filteredTransactions.filter(t => t.invoiceType === "shipping").length;
-      const depositInvoiceCount = filteredTransactions.filter(t => t.invoiceType === "deposit").length;
+      const totalAmount = filteredTransactions.reduce(
+        (sum, t) => sum + (t.transactionAmount || 0),
+        0
+      );
+      const completedCount = filteredTransactions.filter(
+        (t) => t.transactionStatus === 'completed'
+      ).length;
+      const pendingCount = filteredTransactions.filter(
+        (t) => t.transactionStatus === 'pending'
+      ).length;
+      const failedCount = filteredTransactions.filter(
+        (t) => t.transactionStatus === 'failed'
+      ).length;
+      const paystackCount = filteredTransactions.filter(
+        (t) => t.paymentMethod === 'paystack'
+      ).length;
+      const bankTransferCount = filteredTransactions.filter(
+        (t) => t.paymentMethod === 'bank_transfer'
+      ).length;
+      const mainInvoiceCount = filteredTransactions.filter((t) => t.invoiceType === 'main').length;
+      const shippingInvoiceCount = filteredTransactions.filter(
+        (t) => t.invoiceType === 'shipping'
+      ).length;
+      const depositInvoiceCount = filteredTransactions.filter(
+        (t) => t.invoiceType === 'deposit'
+      ).length;
 
       setSummary({
         totalAmount,
@@ -98,7 +117,7 @@ function TransactionsPageContent() {
         bankTransferCount,
         mainInvoiceCount,
         shippingInvoiceCount,
-        depositInvoiceCount
+        depositInvoiceCount,
       });
 
       const limit = isPrintMode ? 1000 : 20;
@@ -106,25 +125,28 @@ function TransactionsPageContent() {
       const paginatedTransactions = filteredTransactions.slice(start, start + limit);
       const total = filteredTransactions.length;
 
-      const uniqueUserIds = [...new Set(paginatedTransactions
-        .map(t => t.customerId)
-        .filter(id => id))];
-      
+      const uniqueUserIds = [
+        ...new Set(paginatedTransactions.map((t) => t.customerId).filter((id) => id)),
+      ];
+
       const customerDataMap = {};
-      
+
       await Promise.all(
         uniqueUserIds.map(async (userId) => {
           try {
             const userIdStr = userId.toString ? userId.toString() : userId;
             const profileResponse = await profileService.getUserById(userIdStr);
             const userData = profileResponse?.user || profileResponse?.data || profileResponse;
-            
+
             if (userData) {
               customerDataMap[userId] = {
-                firstName: userData.firstName || "",
-                lastName: userData.lastName || "",
-                email: userData.email || "",
-                fullName: `${userData.firstName || ""} ${userData.lastName || ""}`.trim() || userData.email?.split("@")[0] || "Customer"
+                firstName: userData.firstName || '',
+                lastName: userData.lastName || '',
+                email: userData.email || '',
+                fullName:
+                  `${userData.firstName || ''} ${userData.lastName || ''}`.trim() ||
+                  userData.email?.split('@')[0] ||
+                  'Customer',
               };
             }
           } catch (err) {
@@ -132,67 +154,66 @@ function TransactionsPageContent() {
           }
         })
       );
-      
+
       setCustomerData(customerDataMap);
       setTransactions(paginatedTransactions);
       setTotalPages(Math.ceil(total / limit));
-
     } catch (err) {
-      console.error("Failed to fetch transactions:", err);
-      setError("Failed to load transactions");
+      console.error('Failed to fetch transactions:', err);
+      setError('Failed to load transactions');
     } finally {
       setLoading(false);
     }
   };
 
   const formatCurrency = (amount) => {
-    return `₦${amount?.toLocaleString() || "0"}`;
+    return `₦${amount?.toLocaleString() || '0'}`;
   };
 
   const getStatusColor = (status) => {
     const colors = {
-      "completed": "green",
-      "pending": "yellow",
-      "failed": "red",
-      "refunded": "gray"
+      completed: 'green',
+      pending: 'yellow',
+      failed: 'red',
+      refunded: 'gray',
     };
-    return colors[status] || "gray";
+    return colors[status] || 'gray';
   };
 
   const getInvoiceTypeColor = (type) => {
     const colors = {
-      "main": "blue",
-      "shipping": "purple",
-      "deposit": "orange"
+      main: 'blue',
+      shipping: 'purple',
+      deposit: 'orange',
     };
-    return colors[type] || "gray";
+    return colors[type] || 'gray';
   };
 
   const getInvoiceTypeLabel = (type) => {
     const labels = {
-      "main": "Main",
-      "shipping": "Shipping",
-      "deposit": "Deposit"
+      main: 'Main',
+      shipping: 'Shipping',
+      deposit: 'Deposit',
     };
     return labels[type] || type;
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
+    if (!dateString) return 'N/A';
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
   const getReportDate = () => {
-    if (!isClient) return "";
+    if (!isClient) return '';
     const now = new Date();
-    return `${now.toLocaleDateString("en-GB")} at ${now.toLocaleTimeString("en-GB")}`;
+    return `${now.toLocaleDateString('en-GB')} at ${now.toLocaleTimeString('en-GB')}`;
   };
 
   if (!isClient) {
@@ -205,7 +226,9 @@ function TransactionsPageContent() {
         <div className="mb-8 border-b-2 border-gray-300 pb-4 text-center">
           <h1 className="mb-2 text-3xl font-bold">Transaction Report</h1>
           <p className="text-gray-600">Generated on {getReportDate()}</p>
-          <p className="text-gray-600">Filter: {filter === "all" ? "All Transactions" : `${filter} transactions`}</p>
+          <p className="text-gray-600">
+            Filter: {filter === 'all' ? 'All Transactions' : `${filter} transactions`}
+          </p>
         </div>
 
         <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
@@ -254,67 +277,97 @@ function TransactionsPageContent() {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-gray-200">
-                  <th className="border border-gray-300 p-2 text-left text-sm font-semibold">Date</th>
-                  <th className="border border-gray-300 p-2 text-left text-sm font-semibold">Transaction ID</th>
-                  <th className="border border-gray-300 p-2 text-left text-sm font-semibold">Invoice #</th>
-                  <th className="border border-gray-300 p-2 text-left text-sm font-semibold">Invoice Type</th>
-                  <th className="border border-gray-300 p-2 text-left text-sm font-semibold">Customer</th>
-                  <th className="border border-gray-300 p-2 text-left text-sm font-semibold">Order #</th>
-                  <th className="border border-gray-300 p-2 text-left text-sm font-semibold">Amount</th>
-                  <th className="border border-gray-300 p-2 text-left text-sm font-semibold">Payment Type</th>
-                  <th className="border border-gray-300 p-2 text-left text-sm font-semibold">Method</th>
-                  <th className="border border-gray-300 p-2 text-left text-sm font-semibold">Status</th>
-                 </tr>
+                  <th className="border border-gray-300 p-2 text-left text-sm font-semibold">
+                    Date
+                  </th>
+                  <th className="border border-gray-300 p-2 text-left text-sm font-semibold">
+                    Transaction ID
+                  </th>
+                  <th className="border border-gray-300 p-2 text-left text-sm font-semibold">
+                    Invoice #
+                  </th>
+                  <th className="border border-gray-300 p-2 text-left text-sm font-semibold">
+                    Invoice Type
+                  </th>
+                  <th className="border border-gray-300 p-2 text-left text-sm font-semibold">
+                    Customer
+                  </th>
+                  <th className="border border-gray-300 p-2 text-left text-sm font-semibold">
+                    Order #
+                  </th>
+                  <th className="border border-gray-300 p-2 text-left text-sm font-semibold">
+                    Amount
+                  </th>
+                  <th className="border border-gray-300 p-2 text-left text-sm font-semibold">
+                    Payment Type
+                  </th>
+                  <th className="border border-gray-300 p-2 text-left text-sm font-semibold">
+                    Method
+                  </th>
+                  <th className="border border-gray-300 p-2 text-left text-sm font-semibold">
+                    Status
+                  </th>
+                </tr>
               </thead>
               <tbody>
                 {transactions.length === 0 ? (
                   <tr>
-                    <td colSpan="10" className="border border-gray-300 p-4 text-center text-gray-500">
+                    <td
+                      colSpan="10"
+                      className="border border-gray-300 p-4 text-center text-gray-500"
+                    >
                       No transactions found
                     </td>
                   </tr>
                 ) : (
                   transactions.map((transaction, index) => {
-                    const customer = transaction.customerId ? 
-                      customerData[transaction.customerId] : 
-                      { fullName: transaction.customer || "Customer" };
-                    
+                    const customer = transaction.customerId
+                      ? customerData[transaction.customerId]
+                      : { fullName: transaction.customer || 'Customer' };
+
                     return (
                       <tr key={index} className="hover:bg-gray-50">
                         <td className="border border-gray-300 p-2 text-sm">
                           {formatDate(transaction.createdAt)}
                         </td>
                         <td className="border border-gray-300 p-2 font-mono text-sm">
-                          {transaction.transactionId?.slice(-8) || "N/A"}
+                          {transaction.transactionId?.slice(-8) || 'N/A'}
                         </td>
                         <td className="border border-gray-300 p-2 font-mono text-sm">
-                          {transaction.invoiceNumber?.slice(-8) || "N/A"}
+                          {transaction.invoiceNumber?.slice(-8) || 'N/A'}
                         </td>
                         <td className="border border-gray-300 p-2 text-sm">
-                          <span className={`rounded-full px-2 py-1 text-xs bg-${getInvoiceTypeColor(transaction.invoiceType)}-100 text-${getInvoiceTypeColor(transaction.invoiceType)}-800`}>
+                          <span
+                            className={`rounded-full px-2 py-1 text-xs bg-${getInvoiceTypeColor(transaction.invoiceType)}-100 text-${getInvoiceTypeColor(transaction.invoiceType)}-800`}
+                          >
                             {getInvoiceTypeLabel(transaction.invoiceType)}
                           </span>
                         </td>
+                        <td className="border border-gray-300 p-2 text-sm">{customer.fullName}</td>
                         <td className="border border-gray-300 p-2 text-sm">
-                          {customer.fullName}
+                          {transaction.orderNumber}
                         </td>
-                        <td className="border border-gray-300 p-2 text-sm">{transaction.orderNumber}</td>
                         <td className="border border-gray-300 p-2 text-sm font-medium">
                           {formatCurrency(transaction.transactionAmount)}
                         </td>
                         <td className="border border-gray-300 p-2 text-sm">
-                          {transaction.transactionType === "part" ? "Part" : "Full"}
+                          {transaction.transactionType === 'part' ? 'Part' : 'Full'}
                         </td>
                         <td className="border border-gray-300 p-2 text-sm">
-                          {transaction.paymentMethod === "bank_transfer" ? "Bank" : "Paystack"}
+                          {transaction.paymentMethod === 'bank_transfer' ? 'Bank' : 'Paystack'}
                         </td>
                         <td className="border border-gray-300 p-2 text-sm">
-                          <span className={`rounded-full px-2 py-1 text-xs ${
-                            transaction.transactionStatus === "completed" ? "bg-green-100 text-green-800" :
-                            transaction.transactionStatus === "pending" ? "bg-yellow-100 text-yellow-800" :
-                            transaction.transactionStatus === "failed" ? "bg-red-100 text-red-800" :
-                            "bg-gray-100 text-gray-800"
-                          }`}>
+                          <span
+                            className={`rounded-full px-2 py-1 text-xs ${
+                              transaction.transactionStatus === 'completed'
+                                ? 'bg-green-100 text-green-800'
+                                : transaction.transactionStatus === 'pending'
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : transaction.transactionStatus === 'failed'
+                                    ? 'bg-red-100 text-red-800'
+                                    : 'bg-gray-100 text-gray-800'
+                            }`}
+                          >
                             {transaction.transactionStatus}
                           </span>
                         </td>
@@ -328,7 +381,10 @@ function TransactionsPageContent() {
         )}
 
         <div className="mt-8 text-center text-sm text-gray-500">
-          <p>Total Transactions: {transactions.length} • Total Amount: {formatCurrency(summary.totalAmount)}</p>
+          <p>
+            Total Transactions: {transactions.length} • Total Amount:{' '}
+            {formatCurrency(summary.totalAmount)}
+          </p>
           <p className="mt-1">This is a computer-generated document. No signature is required.</p>
         </div>
       </div>
@@ -352,40 +408,62 @@ function TransactionsPageContent() {
                 </Button>
               </Link>
               <Link href="/dashboards/super-admin-dashboard/financial-records">
-                <Button variant="ghost" size="sm">← Back to Financial Records</Button>
+                <Button variant="ghost" size="sm">
+                  ← Back to Financial Records
+                </Button>
               </Link>
             </div>
           </div>
 
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => { setFilter("all"); setPage(1); }}
+              onClick={() => {
+                setFilter('all');
+                setPage(1);
+              }}
               className={`rounded-lg px-3 py-1 text-sm transition ${
-                filter === "all" ? "bg-primary text-white" : "bg-slate-800 text-gray-400 hover:bg-slate-700"
+                filter === 'all'
+                  ? 'bg-primary text-white'
+                  : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
               }`}
             >
               All
             </button>
             <button
-              onClick={() => { setFilter("completed"); setPage(1); }}
+              onClick={() => {
+                setFilter('completed');
+                setPage(1);
+              }}
               className={`rounded-lg px-3 py-1 text-sm transition ${
-                filter === "completed" ? "bg-green-600 text-white" : "bg-slate-800 text-gray-400 hover:bg-slate-700"
+                filter === 'completed'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
               }`}
             >
               Completed
             </button>
             <button
-              onClick={() => { setFilter("pending"); setPage(1); }}
+              onClick={() => {
+                setFilter('pending');
+                setPage(1);
+              }}
               className={`rounded-lg px-3 py-1 text-sm transition ${
-                filter === "pending" ? "bg-yellow-600 text-white" : "bg-slate-800 text-gray-400 hover:bg-slate-700"
+                filter === 'pending'
+                  ? 'bg-yellow-600 text-white'
+                  : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
               }`}
             >
               Pending
             </button>
             <button
-              onClick={() => { setFilter("failed"); setPage(1); }}
+              onClick={() => {
+                setFilter('failed');
+                setPage(1);
+              }}
               className={`rounded-lg px-3 py-1 text-sm transition ${
-                filter === "failed" ? "bg-red-600 text-white" : "bg-slate-800 text-gray-400 hover:bg-slate-700"
+                filter === 'failed'
+                  ? 'bg-red-600 text-white'
+                  : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
               }`}
             >
               Failed
@@ -404,13 +482,19 @@ function TransactionsPageContent() {
                 <thead className="bg-slate-800">
                   <tr>
                     <th className="p-3 text-left text-xs font-medium text-gray-400">Date</th>
-                    <th className="p-3 text-left text-xs font-medium text-gray-400">Transaction ID</th>
+                    <th className="p-3 text-left text-xs font-medium text-gray-400">
+                      Transaction ID
+                    </th>
                     <th className="p-3 text-left text-xs font-medium text-gray-400">Invoice #</th>
-                    <th className="p-3 text-left text-xs font-medium text-gray-400">Invoice Type</th>
+                    <th className="p-3 text-left text-xs font-medium text-gray-400">
+                      Invoice Type
+                    </th>
                     <th className="p-3 text-left text-xs font-medium text-gray-400">Customer</th>
                     <th className="p-3 text-left text-xs font-medium text-gray-400">Order #</th>
                     <th className="p-3 text-left text-xs font-medium text-gray-400">Amount</th>
-                    <th className="p-3 text-left text-xs font-medium text-gray-400">Payment Type</th>
+                    <th className="p-3 text-left text-xs font-medium text-gray-400">
+                      Payment Type
+                    </th>
                     <th className="p-3 text-left text-xs font-medium text-gray-400">Method</th>
                     <th className="p-3 text-left text-xs font-medium text-gray-400">Status</th>
                   </tr>
@@ -430,53 +514,59 @@ function TransactionsPageContent() {
                     </tr>
                   ) : (
                     transactions.map((transaction, index) => {
-                      const customer = transaction.customerId ? 
-                        customerData[transaction.customerId] : 
-                        { fullName: transaction.customer || "Customer" };
-                      
+                      const customer = transaction.customerId
+                        ? customerData[transaction.customerId]
+                        : { fullName: transaction.customer || 'Customer' };
+
                       return (
                         <tr key={index} className="border-t border-gray-800 hover:bg-slate-800/50">
                           <td className="p-3 text-sm text-gray-300">
                             {formatDate(transaction.createdAt)}
                           </td>
                           <td className="p-3 font-mono text-sm text-white">
-                            {transaction.transactionId?.slice(-8) || "N/A"}
+                            {transaction.transactionId?.slice(-8) || 'N/A'}
                           </td>
                           <td className="p-3 font-mono text-sm text-white">
-                            {transaction.invoiceNumber?.slice(-8) || "N/A"}
+                            {transaction.invoiceNumber?.slice(-8) || 'N/A'}
                           </td>
                           <td className="p-3">
-                            <span className={`rounded-full px-2 py-1 text-xs bg-${getInvoiceTypeColor(transaction.invoiceType)}-900/50 text-${getInvoiceTypeColor(transaction.invoiceType)}-400`}>
+                            <span
+                              className={`rounded-full px-2 py-1 text-xs bg-${getInvoiceTypeColor(transaction.invoiceType)}-900/50 text-${getInvoiceTypeColor(transaction.invoiceType)}-400`}
+                            >
                               {getInvoiceTypeLabel(transaction.invoiceType)}
                             </span>
                           </td>
-                          <td className="p-3 text-sm text-gray-300">
-                            {customer.fullName}
-                          </td>
+                          <td className="p-3 text-sm text-gray-300">{customer.fullName}</td>
                           <td className="p-3 text-sm text-gray-300">{transaction.orderNumber}</td>
                           <td className="p-3 text-sm font-medium text-white">
                             {formatCurrency(transaction.transactionAmount)}
                           </td>
                           <td className="p-3">
-                            <span className={`rounded-full px-2 py-1 text-xs ${
-                              transaction.transactionType === "part" 
-                                ? "bg-blue-900/50 text-blue-400" 
-                                : "bg-green-900/50 text-green-400"
-                            }`}>
-                              {transaction.transactionType === "part" ? "Part" : "Full"}
+                            <span
+                              className={`rounded-full px-2 py-1 text-xs ${
+                                transaction.transactionType === 'part'
+                                  ? 'bg-blue-900/50 text-blue-400'
+                                  : 'bg-green-900/50 text-green-400'
+                              }`}
+                            >
+                              {transaction.transactionType === 'part' ? 'Part' : 'Full'}
                             </span>
                           </td>
                           <td className="p-3">
-                            <span className={`rounded-full px-2 py-1 text-xs ${
-                              transaction.paymentMethod === "bank_transfer" 
-                                ? "bg-purple-900/50 text-purple-400" 
-                                : "bg-orange-900/50 text-orange-400"
-                            }`}>
-                              {transaction.paymentMethod === "bank_transfer" ? "Bank" : "Paystack"}
+                            <span
+                              className={`rounded-full px-2 py-1 text-xs ${
+                                transaction.paymentMethod === 'bank_transfer'
+                                  ? 'bg-purple-900/50 text-purple-400'
+                                  : 'bg-orange-900/50 text-orange-400'
+                              }`}
+                            >
+                              {transaction.paymentMethod === 'bank_transfer' ? 'Bank' : 'Paystack'}
                             </span>
                           </td>
                           <td className="p-3">
-                            <span className={`rounded-full px-2 py-1 text-xs bg-${getStatusColor(transaction.transactionStatus)}-900/50 text-${getStatusColor(transaction.transactionStatus)}-400`}>
+                            <span
+                              className={`rounded-full px-2 py-1 text-xs bg-${getStatusColor(transaction.transactionStatus)}-900/50 text-${getStatusColor(transaction.transactionStatus)}-400`}
+                            >
                               {transaction.transactionStatus}
                             </span>
                           </td>
@@ -492,7 +582,7 @@ function TransactionsPageContent() {
           {totalPages > 1 && !loading && (
             <div className="flex justify-center gap-2">
               <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
                 className="rounded-lg bg-slate-800 px-3 py-1 text-white disabled:opacity-50"
               >
@@ -502,7 +592,7 @@ function TransactionsPageContent() {
                 Page {page} of {totalPages}
               </span>
               <button
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
                 className="rounded-lg bg-slate-800 px-3 py-1 text-white disabled:opacity-50"
               >

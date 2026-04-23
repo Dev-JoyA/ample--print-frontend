@@ -1,10 +1,13 @@
-import { api } from "@/lib/api";
-import { API_PATHS } from "@/lib/constants";
+import { api } from '@/lib/api';
+import { API_PATHS } from '@/lib/constants';
 
 export const profileService = {
   getMyProfile: async () => {
     try {
-      const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+      const token = document.cookie
+        .split('; ')
+        .find((row) => row.startsWith('token='))
+        ?.split('=')[1];
       if (!token) throw new Error('Not authenticated');
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -48,8 +51,8 @@ export const profileService = {
         user: {
           firstName: '',
           lastName: '',
-          email: ''
-        }
+          email: '',
+        },
       };
     }
   },

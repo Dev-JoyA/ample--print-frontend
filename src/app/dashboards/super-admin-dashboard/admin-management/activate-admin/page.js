@@ -1,35 +1,35 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import DashboardLayout from "@/components/layouts/DashboardLayout";
-import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
-import SEOHead from "@/components/common/SEOHead";
-import { authService } from "@/services/authService";
-import { METADATA } from "@/lib/metadata";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import DashboardLayout from '@/components/layouts/DashboardLayout';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import SEOHead from '@/components/common/SEOHead';
+import { authService } from '@/services/authService';
+import { METADATA } from '@/lib/metadata';
 
 const Page = () => {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleClick = async () => {
-    const confirmation = confirm("Are you sure you want to activate this admin?");
+    const confirmation = confirm('Are you sure you want to activate this admin?');
     if (!confirmation) return;
     setLoading(true);
-    setMessage("");
-    setError("");
+    setMessage('');
+    setError('');
     try {
       await authService.reactivateAdmin({ email });
-      setMessage("Admin reactivated successfully");
+      setMessage('Admin reactivated successfully');
       setTimeout(() => {
-        router.push("/dashboards/super-admin-dashboard/admin-management");
+        router.push('/dashboards/super-admin-dashboard/admin-management');
       }, 1500);
     } catch (err) {
-      setError(err?.data?.error ?? err?.message ?? "Failed to reactivate");
+      setError(err?.data?.error ?? err?.message ?? 'Failed to reactivate');
     } finally {
       setLoading(false);
     }
@@ -47,12 +47,19 @@ const Page = () => {
                 className="mb-4 flex items-center gap-2 text-gray-400 transition-colors hover:text-white"
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
                 </svg>
                 Back
               </button>
               <h1 className="text-3xl font-bold text-white sm:text-4xl">Activate Admin</h1>
-              <p className="mt-2 text-sm text-gray-400">Reactivate a deactivated administrator account</p>
+              <p className="mt-2 text-sm text-gray-400">
+                Reactivate a deactivated administrator account
+              </p>
             </div>
 
             <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-6 backdrop-blur-sm">
@@ -89,7 +96,7 @@ const Page = () => {
                   className="w-full"
                   variant="primary"
                 >
-                  {loading ? "Activating..." : "Activate Admin"}
+                  {loading ? 'Activating...' : 'Activate Admin'}
                 </Button>
               </div>
 
