@@ -220,13 +220,13 @@ export default function OrderHistoryDetailPage() {
         <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="mb-6">
             <button
-              onClick={() => router.back()}
+              onClick={() => router.push("/shipping/orders")}
               className="mb-4 flex items-center gap-2 text-gray-400 transition-colors hover:text-white"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Back to Order History
+              Back to Shipping Orders
             </button>
 
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -365,7 +365,7 @@ export default function OrderHistoryDetailPage() {
                   </div>
                 )}
 
-                <div className="mt-4 rounded-lg border border-yellow-800 bg-yellow-900/20 p-3">
+                {/* <div className="mt-4 rounded-lg border border-yellow-800 bg-yellow-900/20 p-3">
                   <div className="flex items-center gap-2">
                     <svg className="h-5 w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -374,7 +374,19 @@ export default function OrderHistoryDetailPage() {
                       <span className="font-medium">Shipping invoice pending:</span> An admin will generate a shipping invoice soon. You'll be notified when it's ready for payment.
                     </p>
                   </div>
+                </div> */}
+                {shipping.shippingMethod === "delivery" && shipping.deliveryType === "prepaid" &&  (
+                <div className="mt-4 rounded-lg border border-yellow-800 bg-yellow-900/20 p-3">
+                    <div className="flex items-center gap-2">
+                    <svg className="h-5 w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-sm text-yellow-400">
+                        <span className="font-medium">Shipping invoice pending:</span> An admin will generate a shipping invoice soon. You'll be notified when it's ready for payment.
+                    </p>
+                    </div>
                 </div>
+                )}
               </div>
             </div>
           )}
@@ -412,8 +424,8 @@ export default function OrderHistoryDetailPage() {
           )}
 
           <div className="flex flex-col gap-4 sm:flex-row">
-            <Link href="/order-history">
-              <Button variant="secondary">Back to Order History</Button>
+            <Link href="/shipping/orders">
+              <Button variant="secondary">Back to Shipping Orders</Button>
             </Link>
 
             <Button

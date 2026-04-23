@@ -48,22 +48,64 @@ export default function CustomerInvoicesPage() {
   };
 
   const handlePayInvoice = (invoice) => {
-    console.log("Pay invoice clicked - full invoice object:", invoice);
+  console.log("Pay invoice clicked - full invoice object:", invoice);
 
-    const invoiceId = invoice?.id || invoice?._id;
+  const invoiceId = invoice?.id || invoice?._id;
+  const invoiceType = invoice?.invoiceType || 'main';
 
-    console.log("Extracted invoiceId:", invoiceId);
+  console.log("Extracted invoiceId:", invoiceId);
+  console.log("Invoice type:", invoiceType);
 
-    if (!invoiceId) {
-      console.error("No invoice ID found in:", invoice);
-      alert("Invalid invoice data - missing ID");
-      return;
-    }
+  if (!invoiceId) {
+    console.error("No invoice ID found in:", invoice);
+    alert("Invalid invoice data - missing ID");
+    return;
+  }
 
-    const amount = invoice.remainingAmount || invoice.balance || invoice.totalAmount;
+  let amount;
+  let paymentType = 'full';
+  
+  // For shipping invoices
+  if (invoiceType === 'shipping') {
+    amount = invoice.totalAmount;
+    paymentType = 'shipping'; 
+  }
+  // For partially paid invoices
+  else if (invoice.status === 'PartiallyPaid' || (invoice.amountPaid > 0 && invoice.remainingAmount > 0)) {
+    amount = invoice.remainingAmount;
+    paymentType = 'final';
+  }
+  // For invoices with deposit (part payment plan) and not paid yet
+  else if (invoice.depositAmount > 0 && invoice.amountPaid === 0) {
+    amount = invoice.depositAmount;
+    paymentType = 'part';
+  }
+  // Regular full payment
+  else {
+    amount = invoice.remainingAmount || invoice.balance || invoice.totalAmount;
+    paymentType = 'full';
+  }
 
-    router.push(`/payment?invoiceId=${invoiceId}&amount=${amount || 0}`);
-  };
+  router.push(`/payment?invoiceId=${invoiceId}&amount=${amount || 0}&paymentType=${paymentType}&invoiceType=${invoiceType}`);
+};
+
+//   const handlePayInvoice = (invoice) => {
+//     console.log("Pay invoice clicked - full invoice object:", invoice);
+
+//     const invoiceId = invoice?.id || invoice?._id;
+
+//     console.log("Extracted invoiceId:", invoiceId);
+
+//     if (!invoiceId) {
+//       console.error("No invoice ID found in:", invoice);
+//       alert("Invalid invoice data - missing ID");
+//       return;
+//     }
+
+//     const amount = invoice.remainingAmount || invoice.balance || invoice.totalAmount;
+
+//     router.push(`/payment?invoiceId=${invoiceId}&amount=${amount || 0}`);
+//   };
 
   const handleDownloadInvoice = async (invoice) => {
     try {

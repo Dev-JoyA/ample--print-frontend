@@ -108,6 +108,7 @@ function ShippingPageContent() {
       if (shippingOption === 'pickup') {
         shippingPayload = {
           shippingMethod: 'pickup',
+          deliveryType: 'pickup', 
           shippingCost: 0,
           pickupNotes: pickupNotes.trim() || 'Customer will pick up from store'
         };
@@ -129,6 +130,7 @@ function ShippingPageContent() {
 
         shippingPayload = {
           shippingMethod: 'delivery',
+          deliveryType: shippingOption === 'pay-on-delivery' ? 'pay_on_delivery' : 'prepaid', 
           shippingCost: 0,
           recipientName: recipientName,
           recipientPhone: profile?.phoneNumber || shippingData.phone,

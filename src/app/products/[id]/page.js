@@ -43,6 +43,7 @@ export default function ProductDetailPage() {
   const [imageryPreviews, setImageryPreviews] = useState([]);
   const [userActiveOrders, setUserActiveOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
+  const [showPriceAlert, setShowPriceAlert] = useState(false);
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -178,33 +179,85 @@ export default function ProductDetailPage() {
   };
 
   const handleSubmitClick = () => {
-    if (!isAuthenticated) {
-      setShowAuthModal(true);
-      return;
-    }
+  if (!isAuthenticated) {
+    setShowAuthModal(true);
+    return;
+  }
 
-    const hasCustomization = 
-      designInstructions.trim() !== '' || 
-      logos.length > 0 || 
-      imagery.length > 0 || 
-      voiceNote !== null ||
-      size.trim() !== '' ||
-      color.trim() !== '' ||
-      quantity > 0;
+  // Only show price alert - no validation here
+  setError('');
+  setShowPriceAlert(true);
+};
 
-    if (!hasCustomization) {
-      setError('Please provide at least one customization detail');
-      return;
-    }
+const handlePriceAlertConfirm = () => {
+  setShowPriceAlert(false);
+  
+  // Check for customization AFTER price alert is acknowledged
+  const hasCustomization = 
+    designInstructions.trim() !== '' || 
+    logos.length > 0 || 
+    imagery.length > 0 || 
+    voiceNote !== null ||
+    size.trim() !== '' ||
+    color.trim() !== '' ||
+    quantity > 0;
 
-    setError('');
+  if (!hasCustomization) {
+    setError('Please provide at least one customization detail');
+    return;
+  }
 
-    if (userActiveOrders.length > 0) {
-      setShowOrderModal(true);
-    } else {
-      handleSubmit(null);
-    }
-  };
+  setError('');
+  
+  // Proceed with order
+  if (userActiveOrders.length > 0) {
+    setShowOrderModal(true);
+  } else {
+    handleSubmit(null);
+  }
+};
+
+//   const handleSubmitClick = () => {
+//     if (!isAuthenticated) {
+//       setShowAuthModal(true);
+//       return;
+//     }
+
+//     setError('');
+//     setShowPriceAlert(true);
+
+//     const hasCustomization = 
+//       designInstructions.trim() !== '' || 
+//       logos.length > 0 || 
+//       imagery.length > 0 || 
+//       voiceNote !== null ||
+//       size.trim() !== '' ||
+//       color.trim() !== '' ||
+//       quantity > 0;
+
+//     if (!hasCustomization) {
+//       setError('Please provide at least one customization detail');
+//       return;
+//     }
+
+    
+
+//     if (userActiveOrders.length > 0) {
+//       setShowOrderModal(true);
+//     } else {
+//       handleSubmit(null);
+//     }
+
+//   };
+
+//   const handlePriceAlertConfirm = () => {
+//   setShowPriceAlert(false);
+//   if (userActiveOrders.length > 0) {
+//     setShowOrderModal(true);
+//   } else {
+//     handleSubmit(null);
+//   }
+// };
 
   const handleSubmit = async (selectedOrderId) => {
     try {
@@ -333,6 +386,47 @@ ${new Date().toLocaleString()}
   return (
     <>
       <SEOHead {...getProductMetadata(product)} />
+
+      {/* Price Alert - Place OUTSIDE DashboardLayout at root level */}
+      {showPriceAlert && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-yellow-700/50 bg-slate-900 p-6 shadow-2xl">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-500/20">
+                <svg className="h-5 w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-white">Pricing Notice</h3>
+            </div>
+
+            <p className="mb-2 text-sm text-gray-300">
+              The final price of your order is <span className="font-semibold text-yellow-400">subject to change</span> based on your customization requirements.
+            </p>
+            <p className="text-sm text-gray-400">
+              Once our team reviews your brief, an updated invoice will be sent to you reflecting the final cost.
+            </p>
+
+            <div className="mt-6 flex gap-3">
+              <Button
+                variant="secondary"
+                className="flex-1"
+                onClick={() => setShowPriceAlert(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                className="flex-1 !bg-yellow-500 hover:!bg-yellow-600"
+                onClick={handlePriceAlertConfirm}
+              >
+                I Understand, Continue
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+           
       <DashboardLayout userRole="customer">
         <div className="mx-auto max-w-7xl">
           {showAuthModal && (
