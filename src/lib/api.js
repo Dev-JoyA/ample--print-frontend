@@ -12,7 +12,7 @@ function buildHeaders(customHeaders = {}, options = {}) {
   const token = options.token ?? getToken();
 
   const headers = {
-    ...customHeaders, // ⚠️ no default Content-Type here
+    ...customHeaders,
   };
 
   if (token) {
@@ -110,7 +110,7 @@ export const api = {
   },
 
   upload: async (endpoint, formData, options = {}) => {
-    const headers = buildHeaders({}, options); // ❌ no Content-Type
+    const headers = buildHeaders({}, options);
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers,

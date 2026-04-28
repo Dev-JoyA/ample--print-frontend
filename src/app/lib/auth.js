@@ -63,7 +63,6 @@ export function useAuthCheck(options = {}) {
           return;
         }
 
-        // Actually verify the token with the backend
         const res = await fetch(`${API_BASE_URL}${VERIFY_PATH}`, {
           method: 'GET',
           headers: {
@@ -78,7 +77,6 @@ export function useAuthCheck(options = {}) {
 
         const data = await res.json();
 
-        // Extract user info from response
         const userData = data.user || data.data?.user || data;
         setUser(userData);
         setIsValid(true);
@@ -89,7 +87,6 @@ export function useAuthCheck(options = {}) {
       } catch (error) {
         console.error('Authentication error:', error?.message);
 
-        // Clear cookies on verification failure
         document.cookie = `${COOKIE_NAMES.TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${secure ? 'secure;' : ''} sameSite=strict`;
         document.cookie = `${COOKIE_NAMES.REFRESH_TOKEN}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${secure ? 'secure;' : ''} sameSite=strict`;
 
@@ -282,7 +279,6 @@ export function hasRole(requiredRole) {
   const userRole = getUserRole();
   if (!userRole) return false;
 
-  // Handle array of roles
   if (Array.isArray(requiredRole)) {
     return requiredRole.includes(userRole);
   }

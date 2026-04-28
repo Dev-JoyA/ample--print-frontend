@@ -10,6 +10,7 @@ import { METADATA } from '@/lib/metadata';
 import { collectionService } from '@/services/collectionService';
 import { productService } from '@/services/productService';
 import { useAuthCheck } from '@/app/lib/auth';
+import { getImageUrl } from '@/lib/imageUtils';
 
 export default function Page() {
   const params = useParams();
@@ -54,15 +55,15 @@ export default function Page() {
     }
   };
 
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return null;
-    if (imagePath.startsWith('http')) return imagePath;
-    let filename = imagePath;
-    if (imagePath.includes('/')) {
-      filename = imagePath.split('/').pop();
-    }
-    return `http://localhost:4001/api/v1/attachments/download/${filename}`;
-  };
+  //   const getImageUrl = (imagePath) => {
+  //     if (!imagePath) return null;
+  //     if (imagePath.startsWith('http')) return imagePath;
+  //     let filename = imagePath;
+  //     if (imagePath.includes('/')) {
+  //       filename = imagePath.split('/').pop();
+  //     }
+  //     return `http://localhost:4001/api/v1/attachments/download/${filename}`;
+  //   };
 
   if (loading) {
     return (

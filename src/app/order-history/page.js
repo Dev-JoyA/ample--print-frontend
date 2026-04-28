@@ -11,6 +11,7 @@ import SEOHead from '@/components/common/SEOHead';
 import { orderService } from '@/services/orderService';
 import { useAuth, useAuthCheck } from '@/app/lib/auth';
 import { METADATA } from '@/lib/metadata';
+import { getImageUrl } from '@/lib/imageUtils';
 
 const OrderStatus = {
   Pending: 'Pending',
@@ -262,8 +263,7 @@ export default function OrderHistoryPage() {
 
       await fetchOrders();
       await fetchAllOrderCounts();
-
-      //   alert("Order deleted successfully.");
+      alert('Order deleted successfully');
     } catch (err) {
       console.error('Failed to delete order:', err);
       alert(err.message || 'Failed to delete order. Please try again.');
@@ -281,15 +281,15 @@ export default function OrderHistoryPage() {
     setCurrentPage(1);
   };
 
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return null;
-    if (imagePath.startsWith('http')) return imagePath;
-    let filename = imagePath;
-    if (imagePath.includes('/')) {
-      filename = imagePath.split('/').pop();
-    }
-    return `http://localhost:4001/api/v1/attachments/download/${filename}`;
-  };
+  //   const getImageUrl = (imagePath) => {
+  //     if (!imagePath) return null;
+  //     if (imagePath.startsWith('http')) return imagePath;
+  //     let filename = imagePath;
+  //     if (imagePath.includes('/')) {
+  //       filename = imagePath.split('/').pop();
+  //     }
+  //     return `http://localhost:4001/api/v1/attachments/download/${filename}`;
+  //   };
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);

@@ -55,7 +55,6 @@ export default function BriefResponseDetailPage({ params }) {
     if (!authLoading && user) fetchBriefAndConversation();
   }, [authLoading, user, id]);
 
-  // Auto-mark ONLY when leaving the page (beforeunload or navigating away)
   useEffect(() => {
     const handleBeforeUnload = () => {
       hasLeftPageRef.current = true;
@@ -65,7 +64,6 @@ export default function BriefResponseDetailPage({ params }) {
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      // Auto-mark when component unmounts (user navigates away)
       if (!hasLeftPageRef.current && brief && !hasAutoMarked) {
         const isAdminBrief = brief.role === 'admin' || brief.role === 'super-admin';
         const shouldAutoMark = isAdminBrief && brief.status === 'responded' && !brief.viewed;

@@ -3,7 +3,7 @@ export const SITE_CONFIG = {
   title: 'Ample Print Hub - Professional Printing Services',
   description:
     'Premium printing services for businesses and individuals. Custom printing, fast delivery, and quality guaranteed.',
-  url: process.env.NEXT_PUBLIC_SITE_URL || 'https://ampleprinthub.com',
+  url: process.env.NEXT_PUBLIC_API_URL || 'https://ampleprinthub.com',
   logo: '/images/logo/logo.png',
   favicon: '/favicon.ico',
   email: 'hello@ampleprinthub.com',

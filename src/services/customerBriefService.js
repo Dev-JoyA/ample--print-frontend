@@ -39,10 +39,6 @@ export const customerBriefService = {
     return api.get(url);
   },
 
-  //   getPendingResponses: () => {
-  //     return api.get(PATHS.PENDING_RESPONSES);
-  //   },
-
   getPendingResponses: (limit = 10) => {
     return api.get(`${PATHS.PENDING_RESPONSES}?limit=${limit}`);
   },

@@ -39,7 +39,6 @@ export default function PaymentVerificationPage() {
       setLoading(true);
       setError('');
 
-      // Fetch ALL transactions (no filtering on backend)
       const response = await paymentService.getPendingBankTransfers({ limit: 100 });
 
       console.log('Raw payments response:', response);
@@ -53,7 +52,6 @@ export default function PaymentVerificationPage() {
         transactions = response;
       }
 
-      // Process all transactions to get customer details
       const transactionsWithDetails = await Promise.all(
         transactions.map(async (payment) => {
           try {
@@ -188,7 +186,6 @@ export default function PaymentVerificationPage() {
     }
   };
 
-  // Get filtered transactions based on active tab
   const getFilteredTransactions = () => {
     if (activeTab === 'pending') {
       return allTransactions.filter((t) => t.transactionStatus === 'pending');
@@ -283,7 +280,6 @@ export default function PaymentVerificationPage() {
     }
   };
 
-  // Get status display text and color
   const getStatusDisplay = (status) => {
     switch (status) {
       case 'pending':

@@ -20,7 +20,6 @@ export const ToastProvider = ({ children }) => {
     const id = Date.now() + Math.random();
     setToasts((prev) => [...prev, { id, message, type, duration }]);
 
-    // Auto remove after duration
     setTimeout(() => {
       removeToast(id);
     }, duration);

@@ -194,7 +194,6 @@ export const invoiceService = {
       const response = await api.getBlob(`/invoices/${invoiceId}/pdf`);
       const blob = response;
 
-      // Get filename from Content-Disposition header if available
       const contentDisposition = response.headers?.get('Content-Disposition');
       let filename = `invoice-${invoiceId}.pdf`;
 
@@ -205,7 +204,6 @@ export const invoiceService = {
         }
       }
 
-      // Create download link with proper blob URL
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -214,7 +212,6 @@ export const invoiceService = {
       link.click();
       document.body.removeChild(link);
 
-      // Clean up
       setTimeout(() => {
         window.URL.revokeObjectURL(url);
       }, 100);

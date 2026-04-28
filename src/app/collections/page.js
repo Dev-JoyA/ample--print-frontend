@@ -241,16 +241,6 @@ export default function CollectionsPage() {
                   <div className="h-full overflow-hidden rounded-lg border border-dark-lighter bg-slate-900 transition-all hover:border-primary/50">
                     <div className="relative h-40 overflow-hidden bg-slate-950 sm:h-56">
                       {collection.image ? (
-                        // <img
-                        //   src={collection.image}
-                        //   alt={collection.name}
-                        //   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        //   onError={(e) => {
-                        //     console.error('Image failed to load:', collection.image);
-                        //     e.target.onerror = null;
-                        //     e.target.src = '/images/placeholder.png';
-                        //   }}
-                        // />
                         <img
                           src={`${collection.image}?t=${Date.now()}`}
                           alt={collection.name}

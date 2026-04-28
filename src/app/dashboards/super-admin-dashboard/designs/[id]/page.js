@@ -12,6 +12,7 @@ import { designService } from '@/services/designService';
 import { orderService } from '@/services/orderService';
 import { useAuthCheck } from '@/app/lib/auth';
 import { METADATA } from '@/lib/metadata';
+import { getImageUrl } from '@/lib/imageUtils';
 
 export default function SuperAdminDesignDetailPage() {
   const params = useParams();
@@ -115,15 +116,15 @@ export default function SuperAdminDesignDetailPage() {
     window.history.pushState({}, '', `/dashboards/super-admin-dashboard/designs/${version._id}`);
   };
 
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return '/images/dummy-images/image 3.png';
-    if (imagePath.startsWith('http')) return imagePath;
-    let filename = imagePath;
-    if (imagePath.includes('/')) {
-      filename = imagePath.split('/').pop();
-    }
-    return `http://localhost:4001/api/v1/attachments/download/${filename}`;
-  };
+  //   const getImageUrl = (imagePath) => {
+  //     if (!imagePath) return '/images/dummy-images/image 3.png';
+  //     if (imagePath.startsWith('http')) return imagePath;
+  //     let filename = imagePath;
+  //     if (imagePath.includes('/')) {
+  //       filename = imagePath.split('/').pop();
+  //     }
+  //     return `http://localhost:4001/api/v1/attachments/download/${filename}`;
+  //   };
 
   const downloadAllVersions = () => {
     allVersions.forEach((version, index) => {

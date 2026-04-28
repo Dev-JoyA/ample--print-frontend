@@ -62,7 +62,6 @@ const OptimizedImage = ({
     );
   }
 
-  // For non-fill mode, use width and height
   const finalWidth = width || 100;
   const finalHeight = height || 100;
 
