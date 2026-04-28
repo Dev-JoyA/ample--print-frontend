@@ -72,7 +72,6 @@ export default function CustomerDashboard() {
     try {
       if (!user?.userId) return;
 
-      // Fetch designs that are not approved (isApproved = false)
       const response = await designService.filter({
         userId: user.userId,
         isApproved: false,

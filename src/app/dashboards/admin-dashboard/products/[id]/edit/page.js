@@ -10,6 +10,7 @@ import { productService } from '@/services/productService';
 import { collectionService } from '@/services/collectionService';
 import { useAuthCheck } from '@/app/lib/auth';
 import { METADATA } from '@/lib/metadata';
+import { getImageUrl } from '@/lib/imageUtils';
 
 export default function EditProductPage() {
   const params = useParams();
@@ -276,12 +277,12 @@ export default function EditProductPage() {
     }
   };
 
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return '/placeholder-image.jpg';
-    if (imagePath.startsWith('http')) return imagePath;
-    if (imagePath.startsWith('/uploads')) return `http://localhost:4001${imagePath}`;
-    return `http://localhost:4001/uploads/${imagePath}`;
-  };
+  //   const getImageUrl = (imagePath) => {
+  //     if (!imagePath) return '/placeholder-image.jpg';
+  //     if (imagePath.startsWith('http')) return imagePath;
+  //     if (imagePath.startsWith('/uploads')) return `http://localhost:4001${imagePath}`;
+  //     return `http://localhost:4001/uploads/${imagePath}`;
+  //   };
 
   if (loading) {
     return (

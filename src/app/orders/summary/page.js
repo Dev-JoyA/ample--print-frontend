@@ -11,6 +11,7 @@ import { useAuthCheck } from '@/app/lib/auth';
 import { orderService } from '@/services/orderService';
 import { customerBriefService } from '@/services/customerBriefService';
 import { METADATA, getOrderMetadata } from '@/lib/metadata';
+import { getImageUrl } from '@/lib/imageUtils';
 
 function OrderSummaryPageContent() {
   const router = useRouter();
@@ -81,15 +82,15 @@ function OrderSummaryPageContent() {
     }
   };
 
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return null;
-    if (imagePath.startsWith('http')) return imagePath;
-    let filename = imagePath;
-    if (imagePath.includes('/')) {
-      filename = imagePath.split('/').pop();
-    }
-    return `http://localhost:4001/api/v1/attachments/download/${filename}`;
-  };
+  //   const getImageUrl = (imagePath) => {
+  //     if (!imagePath) return null;
+  //     if (imagePath.startsWith('http')) return imagePath;
+  //     let filename = imagePath;
+  //     if (imagePath.includes('/')) {
+  //       filename = imagePath.split('/').pop();
+  //     }
+  //     return `http://localhost:4001/api/v1/attachments/download/${filename}`;
+  //   };
 
   const formatCurrency = (amount) => {
     return `₦${amount?.toLocaleString() || '0'}`;

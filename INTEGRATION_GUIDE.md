@@ -26,7 +26,7 @@ Create `.env.local` (see `.env.example`):
 
 ```env
 # Backend base URL including /api/v1 (match backend PORT, e.g. 4001 or 8000)
-NEXT_PUBLIC_API_URL=http://localhost:4001/api/v1
+NEXT_PUBLIC_API_URL=https://ample-printhub-backend-latest.onrender.com
 NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=your_paystack_public_key
 ```
 

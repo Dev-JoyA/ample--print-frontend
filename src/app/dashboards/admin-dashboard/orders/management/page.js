@@ -122,7 +122,6 @@ export default function OrderManagementPage() {
       );
     }
 
-    // Approved -> Start Production
     if (order.status === 'Approved') {
       return (
         <Button
@@ -135,11 +134,7 @@ export default function OrderManagementPage() {
         </Button>
       );
     }
-
-    // InProduction -> Complete Production
     if (order.status === 'InProduction') {
-      // For deposit orders with remaining balance, go to AwaitingFinalPayment
-      // For full payment orders or deposit orders fully paid, go to Completed
       const isDepositWithBalance = isDepositOrder(order) && hasRemainingBalance(order);
       const nextStatus = isDepositWithBalance ? 'AwaitingFinalPayment' : 'Completed';
 
@@ -159,7 +154,6 @@ export default function OrderManagementPage() {
       );
     }
 
-    // Completed - Show status message based on payment type
     if (order.status === 'Completed') {
       if (isDepositOrder(order)) {
         if (hasRemainingBalance(order)) {
@@ -192,7 +186,6 @@ export default function OrderManagementPage() {
       }
     }
 
-    // AwaitingFinalPayment - Show final payment status
     if (order.status === 'AwaitingFinalPayment') {
       if (isFullyPaid(order)) {
         return (
@@ -214,7 +207,6 @@ export default function OrderManagementPage() {
       }
     }
 
-    // FinalPaid - Allow marking as complete
     if (order.status === 'FinalPaid') {
       if (isFullyPaid(order)) {
         return (
@@ -236,7 +228,6 @@ export default function OrderManagementPage() {
       }
     }
 
-    // ReadyForShipping or Shipped
     if (order.status === 'ReadyForShipping' || order.status === 'Shipped') {
       return (
         <Link href={`/dashboards/admin-dashboard/shipping?orderId=${order._id}`}>
@@ -251,7 +242,6 @@ export default function OrderManagementPage() {
       );
     }
 
-    // Delivered
     if (order.status === 'Delivered') {
       return (
         <span className="inline-flex items-center whitespace-nowrap rounded-lg border border-green-800 bg-green-900/30 px-2 py-1 text-xs font-medium text-green-400 sm:px-3 sm:text-sm">
@@ -260,7 +250,6 @@ export default function OrderManagementPage() {
       );
     }
 
-    // Cancelled
     if (order.status === 'Cancelled') {
       return (
         <span className="inline-flex items-center whitespace-nowrap rounded-lg border border-red-800 bg-red-900/30 px-2 py-1 text-xs font-medium text-red-400 sm:px-3 sm:text-sm">

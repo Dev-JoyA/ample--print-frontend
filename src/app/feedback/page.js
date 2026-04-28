@@ -12,6 +12,7 @@ import { useProtectedRoute } from '@/app/lib/auth';
 import { feedbackService } from '@/services/feedbackService';
 import { useToast } from '@/components/providers/ToastProvider';
 import { METADATA } from '@/lib/metadata';
+import { getImageUrl } from '@/lib/imageUtils';
 
 export default function CustomerFeedbackPage() {
   const router = useRouter();
@@ -200,12 +201,12 @@ export default function CustomerFeedbackPage() {
     }
   };
 
-  const getImageUrl = (path) => {
-    if (!path) return null;
-    if (path.startsWith('http')) return path;
-    let filename = path.split('/').pop();
-    return `http://localhost:4001/api/v1/attachments/download/${filename}`;
-  };
+  //   const getImageUrl = (path) => {
+  //     if (!path) return null;
+  //     if (path.startsWith('http')) return path;
+  //     let filename = path.split('/').pop();
+  //     return `http://localhost:4001/api/v1/attachments/download/${filename}`;
+  //   };
 
   const hasUnreadAdminResponse = (feedback) => {
     return feedback.adminResponse && !feedback.viewedByCustomer;

@@ -38,19 +38,6 @@ export const orderService = {
     );
   },
 
-  //   getOrdersReadyForInvoice: async (params = {}) => {
-  //     console.log("📋 Fetching orders ready for invoice");
-  //     try {
-  //       const q = new URLSearchParams(params || {}).toString();
-  //       const response = await api.get(q ? `${API_PATHS.ORDERS.READY_FOR_INVOICE}?${q}` : API_PATHS.ORDERS.READY_FOR_INVOICE);
-  //       console.log("✅ Orders ready for invoice:", response);
-  //       return response;
-  //     } catch (error) {
-  //       console.error("❌ Failed to fetch orders ready for invoice:", error);
-  //       return { orders: [], total: 0 };
-  //     }
-  //   },
-
   getOrdersReadyForInvoice: async (params = {}) => {
     console.log('📋 Fetching orders ready for invoice');
     try {

@@ -13,6 +13,7 @@ import { orderService } from '@/services/orderService';
 import { customerBriefService } from '@/services/customerBriefService';
 import { feedbackService } from '@/services/feedbackService';
 import { METADATA } from '@/lib/metadata';
+import { getImageUrl } from '@/lib/imageUtils';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -136,20 +137,16 @@ export default function AdminDashboard() {
     return 'Customer';
   };
 
-  //   const handleQuickFilter = (filter) => {
-  //     router.push(`/dashboards/admin-dashboard/orders?filter=${filter}`);
-  //   };
-
   const handleQuickFilter = () => {
     router.push(`/dashboards/admin-dashboard/customer-briefs`);
   };
 
-  const getImageUrl = (path) => {
-    if (!path) return null;
-    if (path.startsWith('http')) return path;
-    let filename = path.split('/').pop();
-    return `http://localhost:4001/api/v1/attachments/download/${filename}`;
-  };
+  //   const getImageUrl = (path) => {
+  //     if (!path) return null;
+  //     if (path.startsWith('http')) return path;
+  //     let filename = path.split('/').pop();
+  //     return `http://localhost:4001/api/v1/attachments/download/${filename}`;
+  //   };
 
   if (loading) {
     return (

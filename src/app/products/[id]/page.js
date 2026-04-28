@@ -184,7 +184,6 @@ export default function ProductDetailPage() {
       return;
     }
 
-    // Only show price alert - no validation here
     setError('');
     setShowPriceAlert(true);
   };
@@ -192,7 +191,6 @@ export default function ProductDetailPage() {
   const handlePriceAlertConfirm = () => {
     setShowPriceAlert(false);
 
-    // Check for customization AFTER price alert is acknowledged
     const hasCustomization =
       designInstructions.trim() !== '' ||
       logos.length > 0 ||
@@ -209,53 +207,12 @@ export default function ProductDetailPage() {
 
     setError('');
 
-    // Proceed with order
     if (userActiveOrders.length > 0) {
       setShowOrderModal(true);
     } else {
       handleSubmit(null);
     }
   };
-
-  //   const handleSubmitClick = () => {
-  //     if (!isAuthenticated) {
-  //       setShowAuthModal(true);
-  //       return;
-  //     }
-
-  //     setError('');
-  //     setShowPriceAlert(true);
-
-  //     const hasCustomization =
-  //       designInstructions.trim() !== '' ||
-  //       logos.length > 0 ||
-  //       imagery.length > 0 ||
-  //       voiceNote !== null ||
-  //       size.trim() !== '' ||
-  //       color.trim() !== '' ||
-  //       quantity > 0;
-
-  //     if (!hasCustomization) {
-  //       setError('Please provide at least one customization detail');
-  //       return;
-  //     }
-
-  //     if (userActiveOrders.length > 0) {
-  //       setShowOrderModal(true);
-  //     } else {
-  //       handleSubmit(null);
-  //     }
-
-  //   };
-
-  //   const handlePriceAlertConfirm = () => {
-  //   setShowPriceAlert(false);
-  //   if (userActiveOrders.length > 0) {
-  //     setShowOrderModal(true);
-  //   } else {
-  //     handleSubmit(null);
-  //   }
-  // };
 
   const handleSubmit = async (selectedOrderId) => {
     try {

@@ -65,26 +65,19 @@ export default function CustomerInvoicesPage() {
     let amount;
     let paymentType = 'full';
 
-    // For shipping invoices
     if (invoiceType === 'shipping') {
       amount = invoice.totalAmount;
       paymentType = 'shipping';
-    }
-    // For partially paid invoices
-    else if (
+    } else if (
       invoice.status === 'PartiallyPaid' ||
       (invoice.amountPaid > 0 && invoice.remainingAmount > 0)
     ) {
       amount = invoice.remainingAmount;
       paymentType = 'final';
-    }
-    // For invoices with deposit (part payment plan) and not paid yet
-    else if (invoice.depositAmount > 0 && invoice.amountPaid === 0) {
+    } else if (invoice.depositAmount > 0 && invoice.amountPaid === 0) {
       amount = invoice.depositAmount;
       paymentType = 'part';
-    }
-    // Regular full payment
-    else {
+    } else {
       amount = invoice.remainingAmount || invoice.balance || invoice.totalAmount;
       paymentType = 'full';
     }
@@ -93,24 +86,6 @@ export default function CustomerInvoicesPage() {
       `/payment?invoiceId=${invoiceId}&amount=${amount || 0}&paymentType=${paymentType}&invoiceType=${invoiceType}`
     );
   };
-
-  //   const handlePayInvoice = (invoice) => {
-  //     console.log("Pay invoice clicked - full invoice object:", invoice);
-
-  //     const invoiceId = invoice?.id || invoice?._id;
-
-  //     console.log("Extracted invoiceId:", invoiceId);
-
-  //     if (!invoiceId) {
-  //       console.error("No invoice ID found in:", invoice);
-  //       alert("Invalid invoice data - missing ID");
-  //       return;
-  //     }
-
-  //     const amount = invoice.remainingAmount || invoice.balance || invoice.totalAmount;
-
-  //     router.push(`/payment?invoiceId=${invoiceId}&amount=${amount || 0}`);
-  //   };
 
   const handleDownloadInvoice = async (invoice) => {
     try {

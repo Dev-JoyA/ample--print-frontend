@@ -215,7 +215,6 @@ export default function InvoicesPage() {
       setDownloading(invoiceId);
       const blob = await invoiceService.downloadInvoice(invoiceId);
 
-      // Create a download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -224,7 +223,6 @@ export default function InvoicesPage() {
       link.click();
       link.remove();
 
-      // Clean up the object URL
       window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Failed to download invoice:', err);

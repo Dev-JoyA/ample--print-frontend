@@ -19,7 +19,6 @@ function GoogleCallbackPageContent() {
 
     setAuthCookies(token, refresh);
 
-    // decode role?
     const userRole = params.get('role');
 
     if (userRole === 'superadmin') router.push('/dashboards/super-admin-dashboard');

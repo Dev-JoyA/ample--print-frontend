@@ -120,7 +120,6 @@ export default function CustomerBriefsPage() {
     }
   };
 
-  // FIXED: fetchConversation - properly handles array response from backend
   const fetchConversation = async (orderId, productId) => {
     try {
       setLoadingConversation(true);
@@ -129,24 +128,17 @@ export default function CustomerBriefsPage() {
       console.log('Conversation response:', response);
 
       let allMessages = [];
-
-      // Check if response.data is an array (new format)
       if (response?.data && Array.isArray(response.data)) {
         allMessages = response.data;
-      }
-      // Check if response itself is an array
-      else if (Array.isArray(response)) {
+      } else if (Array.isArray(response)) {
         allMessages = response;
-      }
-      // Old format fallback
-      else if (response?.data) {
+      } else if (response?.data) {
         const data = response.data;
         if (data.customer) allMessages.push({ ...data.customer, role: 'customer' });
         if (data.admin) allMessages.push({ ...data.admin, role: 'admin' });
         if (data.superAdmin) allMessages.push({ ...data.superAdmin, role: 'super-admin' });
       }
 
-      // Sort chronologically (oldest first)
       allMessages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
       console.log('Processed messages:', allMessages);
@@ -370,7 +362,6 @@ export default function CustomerBriefsPage() {
     return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
   };
 
-  // FIXED: getRoleBadge - case insensitive
   const getRoleBadge = (role) => {
     const roleLower = role?.toLowerCase();
     switch (roleLower) {

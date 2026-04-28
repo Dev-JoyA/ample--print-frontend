@@ -54,17 +54,6 @@ const DashboardLayout = ({ children, userRole = 'customer', showSearch = true })
 
   console.log('DashboardLayout rendering with role:', userRoleState);
 
-  //   return (
-  //     <div className="flex min-h-screen bg-slate-950">
-  //       <Sidebar userRole={userRoleState} />
-  //       <div className="flex flex-1 flex-col">
-  //         <Header showSearch={showSearch} userRole={userRoleState} />
-  //         <main className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
-  //           {children}
-  //         </main>
-  //       </div>
-  //     </div>
-  //   );
   return (
     <div className="flex min-h-screen bg-slate-950">
       <Sidebar userRole={userRoleState} />

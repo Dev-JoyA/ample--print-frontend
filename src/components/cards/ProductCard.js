@@ -22,7 +22,6 @@ const ProductCard = ({ product, onClick }) => {
   const [imageUrl, setImageUrl] = useState(null);
 
   useEffect(() => {
-    // Get the primary image
     const primaryImage = image || (images && images[0]) || null;
 
     if (primaryImage) {
@@ -30,7 +29,7 @@ const ProductCard = ({ product, onClick }) => {
       if (primaryImage.includes('/')) {
         filename = primaryImage.split('/').pop();
       }
-      // Use the proxy URL to avoid CORS
+
       const url = `/api/images/${encodeURIComponent(filename)}`;
       setImageUrl(url);
     }

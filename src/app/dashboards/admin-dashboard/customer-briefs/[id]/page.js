@@ -72,7 +72,6 @@ export default function CustomerBriefDetailPage({ params }) {
     }
   }, [resolvedParams]);
 
-  // AUTO-MARK: When admin opens customer brief, mark it as viewed by admin
   useEffect(() => {
     const autoMarkAsViewedByAdmin = async () => {
       if (!hasAutoMarked && brief?._id && !brief.viewedByAdmin) {
@@ -119,7 +118,6 @@ export default function CustomerBriefDetailPage({ params }) {
     }
   };
 
-  // FIXED: fetchConversation - handles array response from backend
   const fetchConversation = async (orderId, productId) => {
     try {
       setLoadingConversation(true);
@@ -129,20 +127,17 @@ export default function CustomerBriefDetailPage({ params }) {
 
       let allMessages = [];
 
-      // Handle the new array format from backend
       if (response?.data && Array.isArray(response.data)) {
         allMessages = response.data;
       } else if (Array.isArray(response)) {
         allMessages = response;
       } else if (response?.data) {
-        // Old format fallback
         const data = response.data;
         if (data.customer) allMessages.push({ ...data.customer, role: 'customer' });
         if (data.admin) allMessages.push({ ...data.admin, role: 'admin' });
         if (data.superAdmin) allMessages.push({ ...data.superAdmin, role: 'super-admin' });
       }
 
-      // Sort chronologically (oldest first)
       allMessages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
       setConversation(allMessages);
@@ -159,7 +154,6 @@ export default function CustomerBriefDetailPage({ params }) {
     return 'pending';
   };
 
-  // FIXED: getRoleBadge - case insensitive
   const getRoleBadge = (role) => {
     const roleLower = role?.toLowerCase();
     switch (roleLower) {

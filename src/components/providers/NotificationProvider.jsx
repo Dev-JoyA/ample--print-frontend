@@ -27,7 +27,6 @@ export const NotificationProvider = ({ children }) => {
   const socketInitialized = useRef(false);
   const { showToast } = useToast();
 
-  // Check authentication status and get user info
   useEffect(() => {
     const checkAuth = () => {
       const token = document.cookie
@@ -50,12 +49,10 @@ export const NotificationProvider = ({ children }) => {
 
     checkAuth();
 
-    // Check auth on cookie changes (every 5 seconds)
     const interval = setInterval(checkAuth, 5000);
     return () => clearInterval(interval);
   }, []);
 
-  // Load saved notifications from localStorage on mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -75,7 +72,6 @@ export const NotificationProvider = ({ children }) => {
     }
   }, []);
 
-  // Save notifications to localStorage
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(notifications));
@@ -125,7 +121,6 @@ export const NotificationProvider = ({ children }) => {
     }
   }, [isAuthenticated]);
 
-  // Add a new notification
   const addNotification = useCallback((notification) => {
     console.log('Adding notification:', notification);
 
@@ -155,7 +150,6 @@ export const NotificationProvider = ({ children }) => {
     setUnreadCount((prev) => prev + 1);
   }, []);
 
-  // Mark a single notification as read
   const markAsRead = useCallback(async (notificationId) => {
     try {
       const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(notificationId);
@@ -194,7 +188,6 @@ export const NotificationProvider = ({ children }) => {
     }
   }, []);
 
-  // Mark all notifications as read
   const markAllAsRead = useCallback(async () => {
     try {
       await notificationService.markAllAsRead();
@@ -207,7 +200,6 @@ export const NotificationProvider = ({ children }) => {
     }
   }, []);
 
-  // Clear all notifications
   const clearNotifications = useCallback(async () => {
     try {
       await notificationService.clearAll();
@@ -219,7 +211,6 @@ export const NotificationProvider = ({ children }) => {
     }
   }, []);
 
-  // Remove a single notification
   const removeNotification = useCallback(async (notificationId) => {
     try {
       const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(notificationId);
@@ -262,8 +253,6 @@ export const NotificationProvider = ({ children }) => {
       console.error('Failed to delete notification:', error);
     }
   }, []);
-
-  // ==================== CUSTOMER EVENT HANDLERS ====================
 
   const handleInvoiceCreated = useCallback(
     (data) => {
@@ -752,8 +741,6 @@ export const NotificationProvider = ({ children }) => {
     [addNotification, showToast]
   );
 
-  // ==================== ADMIN EVENT HANDLERS ====================
-
   const handleAdminNewOrder = useCallback(
     (data) => {
       console.log('📦 Admin new order:', data);
@@ -1078,7 +1065,6 @@ export const NotificationProvider = ({ children }) => {
     [addNotification, showToast]
   );
 
-  // Setup socket connection and event listeners
   useEffect(() => {
     if (!isAuthenticated) {
       console.log('Not authenticated, skipping socket connection');
@@ -1105,10 +1091,8 @@ export const NotificationProvider = ({ children }) => {
         setIsConnected(socketService.isConnected());
       }, 2000);
 
-      // ==================== REGISTER ALL LISTENERS ====================
       console.log('Registering socket listeners...');
 
-      // Customer events (user-specific)
       socketService.on('invoice-created', handleInvoiceCreated);
       socketService.on('invoice-updated', handleInvoiceUpdated);
       socketService.on('invoice-sent', handleInvoiceSent);
@@ -1134,7 +1118,6 @@ export const NotificationProvider = ({ children }) => {
       socketService.on('shipping-status-updated', handleShippingStatusUpdated);
       socketService.on('shipping-paid', handleShippingPaid);
 
-      // Admin events (room-based)
       socketService.on('new-order', handleAdminNewOrder);
       socketService.on('new-invoice', handleAdminInvoiceCreated);
       socketService.on('invoice-updated', handleAdminInvoiceUpdated);
@@ -1151,7 +1134,6 @@ export const NotificationProvider = ({ children }) => {
       socketService.on('shipping-status-updated', handleAdminShippingStatusUpdated);
       socketService.on('shipping-paid', handleAdminShippingPaid);
 
-      // System events (just log them)
       socketService.on('pending-feedback-count', (data) => {
         console.log('📊 Pending feedback count:', data);
       });
@@ -1177,7 +1159,6 @@ export const NotificationProvider = ({ children }) => {
       return () => {
         console.log('Cleaning up socket listeners');
 
-        // Customer events
         socketService.off('invoice-created', handleInvoiceCreated);
         socketService.off('invoice-updated', handleInvoiceUpdated);
         socketService.off('invoice-sent', handleInvoiceSent);
@@ -1203,7 +1184,6 @@ export const NotificationProvider = ({ children }) => {
         socketService.off('shipping-status-updated', handleShippingStatusUpdated);
         socketService.off('shipping-paid', handleShippingPaid);
 
-        // Admin events
         socketService.off('new-order', handleAdminNewOrder);
         socketService.off('new-invoice', handleAdminInvoiceCreated);
         socketService.off('invoice-updated', handleAdminInvoiceUpdated);
@@ -1220,7 +1200,6 @@ export const NotificationProvider = ({ children }) => {
         socketService.off('shipping-status-updated', handleAdminShippingStatusUpdated);
         socketService.off('shipping-paid', handleAdminShippingPaid);
 
-        // System events
         socketService.off('pending-feedback-count');
         socketService.off('order-ready-for-invoice');
         socketService.off('new-customer-brief');

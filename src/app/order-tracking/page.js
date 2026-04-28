@@ -12,6 +12,7 @@ import SEOHead from '@/components/common/SEOHead';
 import { useAuth, useAuthCheck } from '@/app/lib/auth';
 import { orderService } from '@/services/orderService';
 import { METADATA } from '@/lib/metadata';
+import { getImageUrl } from '@/lib/imageUtils';
 
 const OrderStatus = {
   Pending: 'Pending',
@@ -303,15 +304,15 @@ function OrderTrackingPageContent() {
     handleTrack();
   };
 
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return null;
-    if (imagePath.startsWith('http')) return imagePath;
-    let filename = imagePath;
-    if (imagePath.includes('/')) {
-      filename = imagePath.split('/').pop();
-    }
-    return `http://localhost:4001/api/v1/attachments/download/${filename}`;
-  };
+  //   const getImageUrl = (imagePath) => {
+  //     if (!imagePath) return null;
+  //     if (imagePath.startsWith('http')) return imagePath;
+  //     let filename = imagePath;
+  //     if (imagePath.includes('/')) {
+  //       filename = imagePath.split('/').pop();
+  //     }
+  //     return `http://localhost:4001/api/v1/attachments/download/${filename}`;
+  //   };
 
   const getCurrentStepIndex = () => {
     if (!trackedOrder) return -1;

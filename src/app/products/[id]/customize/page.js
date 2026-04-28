@@ -113,7 +113,6 @@ export default function CustomerBriefPage() {
   };
 
   const handleSubmit = async () => {
-    // In real app, submit brief data
     console.log('Submitting brief:', { productId, ...formData });
     router.push(`/orders/summary?productId=${productId}`);
   };

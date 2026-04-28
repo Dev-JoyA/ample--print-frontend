@@ -10,6 +10,7 @@ import SEOHead from '@/components/common/SEOHead';
 import { feedbackService } from '@/services/feedbackService';
 import { useAuthCheck } from '@/app/lib/auth';
 import { METADATA } from '@/lib/metadata';
+import { getImageUrl } from '@/lib/imageUtils';
 
 export default function AdminFeedbackPage() {
   const router = useRouter();
@@ -117,12 +118,12 @@ export default function AdminFeedbackPage() {
     return colors[status] || 'gray';
   };
 
-  const getImageUrl = (path) => {
-    if (!path) return null;
-    if (path.startsWith('http')) return path;
-    let filename = path.split('/').pop();
-    return `http://localhost:4001/api/v1/attachments/download/${filename}`;
-  };
+  //   const getImageUrl = (path) => {
+  //     if (!path) return null;
+  //     if (path.startsWith('http')) return path;
+  //     let filename = path.split('/').pop();
+  //     return `http://localhost:4001/api/v1/attachments/download/${filename}`;
+  //   };
 
   const getProductName = (feedback) => {
     if (feedback.designId?.productId?.name) {
