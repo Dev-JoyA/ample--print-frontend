@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import WhatsAppButton from './WhatsAppButton';
 
 const Footer = () => {
   return (
@@ -147,6 +148,7 @@ const Footer = () => {
           </div>
         </div>
       </div>
+      <WhatsAppButton />
     </footer>
   );
 };
