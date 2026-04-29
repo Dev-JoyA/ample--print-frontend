@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '../ui/Sidebar';
 import Header from '../ui/Header';
+import WhatsAppButton from '../ui/WhatsAppButton';
 
 const DashboardLayout = ({ children, userRole = 'customer', showSearch = true }) => {
   const [userRoleState, setUserRoleState] = useState(userRole);
@@ -61,6 +62,7 @@ const DashboardLayout = ({ children, userRole = 'customer', showSearch = true })
         <Header showSearch={showSearch} userRole={userRoleState} />
         <main className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6 lg:px-8">{children}</main>
       </div>
+      <WhatsAppButton />
     </div>
   );
 };
