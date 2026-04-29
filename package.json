@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "set NEXT_DISABLE_ESLINT=true && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint --no-cache",
     "format": "prettier --write ."
@@ -13,9 +13,9 @@
     "date-fns": "^4.1.0",
     "jspdf": "^4.2.0",
     "jspdf-autotable": "^5.0.7",
-    "next": "15.1.5",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "next": "^16.2.4",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
     "socket.io-client": "^4.8.3",
     "swr": "^2.4.1"
   },
@@ -24,7 +24,7 @@
     "@types/node": "25.3.3",
     "@types/react": "19.2.14",
     "eslint": "^9",
-    "eslint-config-next": "15.1.5",
+    "eslint-config-next": "^16.2.4",
     "eslint-config-prettier": "^10.1.8",
     "postcss": "^8",
     "prettier": "^3.8.3",
