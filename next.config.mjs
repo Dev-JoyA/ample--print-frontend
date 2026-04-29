@@ -124,7 +124,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'ample-print-backend.onrender.com', 
+        hostname: 'ample-print-backend.onrender.com',
         pathname: '/api/v1/attachments/download/**',
       },
       {

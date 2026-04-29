@@ -30,7 +30,7 @@ async function handleResponse(response) {
 
   if (!response.ok) {
     const err = new Error(
-      (typeof data === 'object' ? data?.message : data) || `HTTP ${response.status}`
+      (typeof data === 'object' ? data?.message || data?.error : data) || `HTTP ${response.status}`
     );
     err.status = response.status;
     err.data = data;
@@ -139,7 +139,8 @@ export const api = {
       const data = isJson ? await response.json() : await response.text();
 
       const err = new Error(
-        (typeof data === 'object' ? data?.message : data) || `HTTP ${response.status}`
+        (typeof data === 'object' ? data?.message || data?.error : data) ||
+          `HTTP ${response.status}`
       );
       err.status = response.status;
       throw err;
