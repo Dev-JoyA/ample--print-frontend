@@ -27,7 +27,7 @@
 //       },
 //       {
 //         protocol: 'https',
-//         hostname: 'https://ample-printhub-backend-latest.onrender.com',
+//         hostname: 'https://ample-print-backend.onrender.com',
 //         pathname: '/api/v1/attachments/download/**',
 //       },
 //       {
@@ -38,7 +38,7 @@
 //       },
 //       {
 //         protocol: 'https',
-//         hostname: 'https://ample-printhub-backend-latest.onrender.com',
+//         hostname: 'https://ample-print-backend.onrender.com',
 //         pathname: '/api/v1/attachments/images/**',
 //       },
 //       {
@@ -49,7 +49,7 @@
 //       },
 //       {
 //         protocol: 'https',
-//         hostname: 'https://ample-printhub-backend-latest.onrender.com',
+//         hostname: 'https://ample-print-backend.onrender.com',
 //         pathname: '/api/v1/receipts/**',
 //       },
 //       {
@@ -60,7 +60,7 @@
 //       },
 //       {
 //         protocol: 'https',
-//         hostname: 'https://ample-printhub-backend-latest.onrender.com',
+//         hostname: 'https://ample-print-backend.onrender.com',
 //         pathname: '/api/images/**',
 //       },
 //       {
@@ -71,7 +71,7 @@
 //       },
 //       {
 //         protocol: 'https',
-//         hostname: 'https://ample-printhub-backend-latest.onrender.com',
+//         hostname: 'https://ample-print-backend.onrender.com',
 //         port: '',
 //         pathname: '/api/v1/attachments/download/**',
 //       },
@@ -124,7 +124,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'ample-printhub-backend-latest.onrender.com', // removed https:// prefix
+        hostname: 'ample-print-backend.onrender.com', 
         pathname: '/api/v1/attachments/download/**',
       },
       {
@@ -135,7 +135,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'ample-printhub-backend-latest.onrender.com',
+        hostname: 'ample-print-backend.onrender.com',
         pathname: '/api/v1/attachments/images/**',
       },
       {
@@ -146,7 +146,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'ample-printhub-backend-latest.onrender.com',
+        hostname: 'ample-print-backend.onrender.com',
         pathname: '/api/v1/receipts/**',
       },
       {
@@ -157,7 +157,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'ample-printhub-backend-latest.onrender.com',
+        hostname: 'ample-print-backend.onrender.com',
         pathname: '/api/images/**',
       },
       {

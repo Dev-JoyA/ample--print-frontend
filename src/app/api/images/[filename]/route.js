@@ -5,7 +5,7 @@ export async function GET(request, { params }) {
   const backendUrl =
     process.env.NEXT_PUBLIC_API_URL ||
     'http://localhost:4001/api/v1' ||
-    'https://ample-printhub-backend-latest.onrender.com/api/v1';
+    'https://ample-print-backend.onrender.com/api/v1';
 
   try {
     const response = await fetch(`${backendUrl}/attachments/download/${filename}`, {

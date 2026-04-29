@@ -1,6 +1,6 @@
 export async function fetchRequest(request) {
   //const url = 'http://localhost:4001/contents/products';
-  const url = 'https://ample-printhub-backend-latest.onrender.com/contents/products';
+  const url = 'https://ample-print-backend.onrender.com/contents/products';
 
   const options = {
     method: 'GET',

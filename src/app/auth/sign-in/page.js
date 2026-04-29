@@ -85,8 +85,7 @@ function SignInPageContent() {
   const handleGoogleSignIn = () => {
     const apiUrl =
       process.env.NEXT_PUBLIC_API_URL ||
-      'http://localhost:4001/api/v1 ' ||
-      'https://ample-printhub-backend-latest.onrender.com/api/v1';
+      'http://localhost:4001/api/v1 ' ;
     window.location.href = `${apiUrl}/auth/google`;
   };
 
