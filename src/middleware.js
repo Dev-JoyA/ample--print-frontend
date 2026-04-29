@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
 import { COOKIE_NAMES } from './lib/constants';
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  'http://localhost:4001/api/v1' ;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4001/api/v1';
 const VERIFY_PATH = '/auth/verify-token';
 
 export async function middleware(request) {

@@ -2,9 +2,7 @@ import { NextResponse } from 'next/server';
 
 export async function GET(request, { params }) {
   const { filename } = await params;
-  const backendUrl =
-    process.env.NEXT_PUBLIC_API_URL ||
-    'http://localhost:4001/api/v1' 
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4001/api/v1';
 
   try {
     const response = await fetch(`${backendUrl}/receipts/${filename}`, {

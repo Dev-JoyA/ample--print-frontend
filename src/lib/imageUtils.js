@@ -102,13 +102,23 @@ const getBaseUrl = () => {
   return apiUrl.replace(/\/api\/v1$/, '');
 };
 
+// export const getImageUrl = (imagePath) => {
+//   if (!imagePath) return null;
+//   if (imagePath.startsWith('http')) {
+//     return imagePath.replace('http://localhost:4001', getBaseUrl());
+//   }
+//   const filename = imagePath.includes('/') ? imagePath.split('/').pop() : imagePath;
+//   return `${getBaseUrl()}/uploads/${encodeURIComponent(filename)}`;
+// };
+
 export const getImageUrl = (imagePath) => {
   if (!imagePath) return null;
-  if (imagePath.startsWith('http')) {
-    return imagePath.replace('http://localhost:4001', getBaseUrl());
-  }
-  const filename = imagePath.includes('/') ? imagePath.split('/').pop() : imagePath;
-  return `${getBaseUrl()}/uploads/${encodeURIComponent(filename)}`;
+  if (imagePath.startsWith('http')) return imagePath;
+  const base = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4001/api/v1').replace(
+    /\/api\/v1$/,
+    ''
+  );
+  return `${base}/uploads/${imagePath.split('/').pop()}`;
 };
 
 export const getDownloadUrl = (filePath) => {
