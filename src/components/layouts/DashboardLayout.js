@@ -8,6 +8,7 @@ import WhatsAppButton from '../ui/WhatsAppButton';
 const DashboardLayout = ({ children, userRole = 'customer', showSearch = true }) => {
   const [userRoleState, setUserRoleState] = useState(userRole);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); 
 
   useEffect(() => {
     const token = document.cookie
@@ -42,7 +43,16 @@ const DashboardLayout = ({ children, userRole = 'customer', showSearch = true })
       setIsAuthenticated(false);
       setUserRoleState('guest');
     }
+    setIsLoading(false); 
   }, [userRole]);
+
+  if (isLoading) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-slate-950">
+      <div className="text-white">Loading...</div>
+    </div>
+  );
+}
 
   if (!isAuthenticated) {
     return (
@@ -62,7 +72,7 @@ const DashboardLayout = ({ children, userRole = 'customer', showSearch = true })
         <Header showSearch={showSearch} userRole={userRoleState} />
         <main className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6 lg:px-8">{children}</main>
       </div>
-      {/* <WhatsAppButton /> */}
+      <WhatsAppButton />
     </div>
   );
 };
