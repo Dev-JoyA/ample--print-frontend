@@ -11,6 +11,7 @@ import { METADATA, getCollectionMetadata } from '@/lib/metadata';
 import { collectionService } from '@/services/collectionService';
 import { productService } from '@/services/productService';
 import { getImageUrl, getProductImageUrl } from '@/lib/imageUtils';
+import WhatsAppButton from '@/components/ui/WhatsAppButton';
 
 export default function ProductListPage() {
   const params = useParams();
@@ -347,6 +348,7 @@ export default function ProductListPage() {
             )}
           </div>
         </div>
+        <WhatsAppButton />
       </div>
     </DashboardLayout>
   );
