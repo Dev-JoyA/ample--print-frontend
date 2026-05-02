@@ -8,7 +8,7 @@ import WhatsAppButton from '../ui/WhatsAppButton';
 const DashboardLayout = ({ children, userRole = 'customer', showSearch = true }) => {
   const [userRoleState, setUserRoleState] = useState(userRole);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); 
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const token = document.cookie
@@ -43,16 +43,16 @@ const DashboardLayout = ({ children, userRole = 'customer', showSearch = true })
       setIsAuthenticated(false);
       setUserRoleState('guest');
     }
-    setIsLoading(false); 
+    setIsLoading(false);
   }, [userRole]);
 
   if (isLoading) {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950">
-      <div className="text-white">Loading...</div>
-    </div>
-  );
-}
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-950">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (

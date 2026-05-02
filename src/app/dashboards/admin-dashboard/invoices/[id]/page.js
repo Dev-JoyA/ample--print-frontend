@@ -297,15 +297,41 @@ export default function InvoiceDetailPage() {
     doc.save(`Invoice-${invoice?.invoiceNumber || 'draft'}.pdf`);
   };
 
-  const handleDownloadInvoice = async () => {
+  //   const handleDownloadInvoice = async () => {
+  //     try {
+  //       setDownloading(true);
+  //       generatePDF();
+  //     } catch (err) {
+  //       console.error('Failed to generate PDF:', err);
+  //       alert('Failed to generate PDF');
+  //     } finally {
+  //       setDownloading(false);
+  //     }
+  //   };
+
+  const handleDownloadInvoice = async (invoiceId) => {
     try {
-      setDownloading(true);
-      generatePDF();
+      setDownloading(invoiceId);
+      const blob = await invoiceService.downloadInvoice(invoiceId);
+
+      // Check if blob is valid
+      if (!blob || blob.size === 0) {
+        throw new Error('Empty PDF received');
+      }
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `invoice-${invoiceId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error('Failed to generate PDF:', err);
-      alert('Failed to generate PDF');
+      console.error('Failed to download invoice:', err);
+      alert(err.message || 'Failed to download invoice. Please try again.');
     } finally {
-      setDownloading(false);
+      setDownloading(null);
     }
   };
 

@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button';
 import StatusBadge from '@/components/ui/StatusBadge';
 import SEOHead from '@/components/common/SEOHead';
 import { invoiceService } from '@/services/invoiceService';
+import { profileService } from '@/services/profileService';
 import { METADATA, getInvoiceMetadata } from '@/lib/metadata';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -21,6 +22,8 @@ export default function CustomerInvoiceDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [downloading, setDownloading] = useState(false);
+  const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
 
   useEffect(() => {
     fetchInvoice();
@@ -41,6 +44,46 @@ export default function CustomerInvoiceDetailPage() {
         setError('Invoice data not found');
       } else {
         setInvoice(invoiceData);
+
+        let userId = null;
+        if (invoiceData.orderId?.userId) {
+          if (typeof invoiceData.orderId.userId === 'object') {
+            userId = invoiceData.orderId.userId._id || invoiceData.orderId.userId;
+          } else {
+            userId = invoiceData.orderId.userId;
+          }
+        } else if (invoiceData.userId) {
+          if (typeof invoiceData.userId === 'object') {
+            userId = invoiceData.userId._id || invoiceData.userId;
+          } else {
+            userId = invoiceData.userId;
+          }
+        }
+
+        if (userId) {
+          try {
+            const profileResponse = await profileService.getUserById(userId.toString());
+            const userData = profileResponse?.user || profileResponse?.data || profileResponse;
+
+            if (userData) {
+              const firstName = userData.firstName || '';
+              const lastName = userData.lastName || '';
+              const fullName = `${firstName} ${lastName}`.trim();
+              setCustomerName(fullName || userData.email?.split('@')[0] || 'Customer');
+              setCustomerEmail(userData.email || '');
+            } else {
+              setCustomerName('Customer');
+              setCustomerEmail('');
+            }
+          } catch (err) {
+            console.error('Failed to fetch customer profile:', err);
+            setCustomerName('Customer');
+            setCustomerEmail('');
+          }
+        } else {
+          setCustomerName('Customer');
+          setCustomerEmail('');
+        }
       }
     } catch (err) {
       console.error('Failed to fetch invoice:', err);
@@ -89,21 +132,26 @@ export default function CustomerInvoiceDetailPage() {
     doc.text('Bill To:', 20, 55);
     doc.setFontSize(11);
     doc.setTextColor(50, 50, 50);
-
-    const customerName = invoice?.userId?.email?.split('@')[0] || 'Customer';
-    doc.text(customerName, 20, 65);
+    doc.text(customerName || 'Customer', 20, 65);
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
-    doc.text(invoice?.userId?.email || '', 20, 72);
+    doc.text(customerEmail || '', 20, 72);
 
     const tableColumn = ['Description', 'Quantity', 'Unit Price', 'Total'];
     const tableRows =
-      invoice?.items?.map((item) => [
-        item.description,
-        item.quantity.toString(),
-        `₦${item.unitPrice?.toLocaleString() || '0'}`,
-        `₦${item.total?.toLocaleString() || '0'}`,
-      ]) || [];
+      invoice?.items?.map((item) => {
+        let description = item.description;
+        let hasDesignFee = item.needsDesignAssistance && item.designFee > 0;
+
+        return [
+          hasDesignFee
+            ? `${description} (includes ₦${item.designFee?.toLocaleString()} design fee)`
+            : description,
+          item.quantity.toString(),
+          `₦${item.unitPrice?.toLocaleString() || '0'}`,
+          `₦${item.total?.toLocaleString() || '0'}`,
+        ];
+      }) || [];
 
     autoTable(doc, {
       startY: 85,
@@ -131,7 +179,7 @@ export default function CustomerInvoiceDetailPage() {
     const summaryY = finalY + 15;
 
     doc.setFillColor(245, 245, 245);
-    doc.rect(120, summaryY - 5, 70, 55, 'F');
+    doc.rect(120, summaryY - 5, 70, 65, 'F');
 
     doc.setFontSize(11);
     doc.setTextColor(0, 0, 0);
@@ -175,7 +223,7 @@ export default function CustomerInvoiceDetailPage() {
       align: 'right',
     });
 
-    const paymentY = summaryY + 70;
+    const paymentY = summaryY + 80;
 
     doc.setFillColor(240, 248, 255);
     doc.rect(20, paymentY - 5, 170, 35, 'F');
@@ -325,29 +373,41 @@ export default function CustomerInvoiceDetailPage() {
 
             <div className="rounded-lg bg-slate-800/30 p-4">
               <h3 className="mb-2 font-medium text-white">Bill To:</h3>
-              <p className="font-medium text-white">
-                {invoice.userId?.email?.split('@')[0] || 'Customer'}
-              </p>
-              <p className="text-xs text-gray-400 sm:text-sm">{invoice.userId?.email}</p>
+              <p className="font-medium text-white">{customerName || 'Customer'}</p>
+              {customerEmail && <p className="text-xs text-gray-400 sm:text-sm">{customerEmail}</p>}
             </div>
 
             <div>
               <h3 className="mb-4 font-medium text-white">Items</h3>
               <div className="space-y-3">
                 {invoice.items?.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex flex-col justify-between gap-2 rounded-lg bg-slate-800/30 p-3 sm:flex-row sm:items-center"
-                  >
-                    <div>
-                      <p className="font-medium text-white">{item.description}</p>
-                      <p className="text-xs text-gray-400 sm:text-sm">
-                        {item.quantity} × {formatCurrency(item.unitPrice)}
+                  <div key={index} className="rounded-lg bg-slate-800/30 p-3">
+                    <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                      <div>
+                        <p className="font-medium text-white">{item.description}</p>
+                        <p className="text-xs text-gray-400 sm:text-sm">
+                          {item.quantity} × {formatCurrency(item.unitPrice)}
+                        </p>
+                      </div>
+                      <p className="font-bold text-primary sm:text-right">
+                        {formatCurrency(item.total)}
                       </p>
                     </div>
-                    <p className="font-bold text-primary sm:text-right">
-                      {formatCurrency(item.total)}
-                    </p>
+
+                    {item.needsDesignAssistance && item.designFee > 0 && (
+                      <div className="mt-2 border-l-2 border-yellow-500/30 pl-4">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-400">Printing:</span>
+                          <span className="text-gray-300">
+                            {formatCurrency(item.printingCost || item.total - item.designFee)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-yellow-400">Design Fee:</span>
+                          <span className="text-yellow-400">{formatCurrency(item.designFee)}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
