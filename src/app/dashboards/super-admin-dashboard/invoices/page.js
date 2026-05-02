@@ -215,6 +215,11 @@ export default function InvoicesPage() {
       setDownloading(invoiceId);
       const blob = await invoiceService.downloadInvoice(invoiceId);
 
+      // Check if blob is valid
+      if (!blob || blob.size === 0) {
+        throw new Error('Empty PDF received');
+      }
+
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -222,15 +227,36 @@ export default function InvoicesPage() {
       document.body.appendChild(link);
       link.click();
       link.remove();
-
       window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Failed to download invoice:', err);
-      alert('Failed to download invoice. Please try again.');
+      alert(err.message || 'Failed to download invoice. Please try again.');
     } finally {
       setDownloading(null);
     }
   };
+
+  //   const handleDownloadInvoice = async (invoiceId) => {
+  //     try {
+  //       setDownloading(invoiceId);
+  //       const blob = await invoiceService.downloadInvoice(invoiceId);
+
+  //       const url = window.URL.createObjectURL(blob);
+  //       const link = document.createElement('a');
+  //       link.href = url;
+  //       link.setAttribute('download', `invoice-${invoiceId}.pdf`);
+  //       document.body.appendChild(link);
+  //       link.click();
+  //       link.remove();
+
+  //       window.URL.revokeObjectURL(url);
+  //     } catch (err) {
+  //       console.error('Failed to download invoice:', err);
+  //       alert('Failed to download invoice. Please try again.');
+  //     } finally {
+  //       setDownloading(null);
+  //     }
+  //   };
 
   const getStatusColor = (status) => {
     const colors = {

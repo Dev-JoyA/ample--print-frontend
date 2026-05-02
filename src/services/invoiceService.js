@@ -189,34 +189,62 @@ export const invoiceService = {
     }
   },
 
+  //   downloadInvoice: async (invoiceId) => {
+  //     try {
+  //       const response = await api.getBlob(`/invoices/${invoiceId}/pdf`);
+  //       const blob = response;
+
+  //       const contentDisposition = response.headers?.get('Content-Disposition');
+  //       let filename = `invoice-${invoiceId}.pdf`;
+
+  //       if (contentDisposition) {
+  //         const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+  //         if (match && match[1]) {
+  //           filename = match[1].replace(/['"]/g, '');
+  //         }
+  //       }
+
+  //       const url = window.URL.createObjectURL(blob);
+  //       const link = document.createElement('a');
+  //       link.href = url;
+  //       link.download = filename;
+  //       document.body.appendChild(link);
+  //       link.click();
+  //       document.body.removeChild(link);
+
+  //       setTimeout(() => {
+  //         window.URL.revokeObjectURL(url);
+  //       }, 100);
+
+  //       return true;
+  //     } catch (error) {
+  //       console.error('Failed to download invoice:', error);
+  //       throw error;
+  //     }
+  //   },
   downloadInvoice: async (invoiceId) => {
     try {
-      const response = await api.getBlob(`/invoices/${invoiceId}/pdf`);
-      const blob = response;
+      const response = await fetch(`${API_BASE_URL}${API_PATHS.INVOICES.PDF(invoiceId)}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      });
 
-      const contentDisposition = response.headers?.get('Content-Disposition');
-      let filename = `invoice-${invoiceId}.pdf`;
-
-      if (contentDisposition) {
-        const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-        if (match && match[1]) {
-          filename = match[1].replace(/['"]/g, '');
-        }
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to download invoice');
       }
 
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const blob = await response.blob();
 
-      setTimeout(() => {
-        window.URL.revokeObjectURL(url);
-      }, 100);
+      // Verify it's a PDF
+      if (blob.type !== 'application/pdf') {
+        console.error('Received non-PDF file:', blob.type);
+        throw new Error('Invalid file format received');
+      }
 
-      return true;
+      return blob;
     } catch (error) {
       console.error('Failed to download invoice:', error);
       throw error;

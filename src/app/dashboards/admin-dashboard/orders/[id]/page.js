@@ -12,7 +12,9 @@ import { orderService } from '@/services/orderService';
 import { invoiceService } from '@/services/invoiceService';
 import { shippingService } from '@/services/shippingService';
 import { customerBriefService } from '@/services/customerBriefService';
+import { profileService } from '@/services/profileService';
 import { METADATA } from '@/lib/metadata';
+import { getImageUrl } from '@/lib/imageUtils';
 
 export default function AdminOrderDetailPage() {
   const router = useRouter();
@@ -24,11 +26,12 @@ export default function AdminOrderDetailPage() {
   const [order, setOrder] = useState(null);
   const [invoice, setInvoice] = useState(null);
   const [shipping, setShipping] = useState(null);
+  const [customerProfile, setCustomerProfile] = useState(null);
   const [itemsWithBriefs, setItemsWithBriefs] = useState([]);
   const [error, setError] = useState('');
   const [updating, setUpdating] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
-  const [expandedBrief, setExpandedBrief] = useState(null);
+  const [expandedProductBrief, setExpandedProductBrief] = useState(null);
 
   useEffect(() => {
     if (orderId) {
@@ -42,42 +45,50 @@ export default function AdminOrderDetailPage() {
 
       const orderResponse = await orderService.getById(orderId);
       const orderData = orderResponse?.order || orderResponse?.data || orderResponse;
+
+      if (!orderData) throw new Error('Order not found');
+
       setOrder(orderData);
 
-      if (orderData?.invoiceId) {
-        try {
-          const invoiceId =
-            typeof orderData.invoiceId === 'object'
-              ? orderData.invoiceId._id || orderData.invoiceId
-              : orderData.invoiceId;
+      // Fetch customer profile
+      if (orderData?.userId) {
+        const rawUserId =
+          typeof orderData.userId === 'object'
+            ? orderData.userId._id || orderData.userId
+            : orderData.userId;
+        const userIdStr = rawUserId?.toString ? rawUserId.toString() : rawUserId;
 
-          if (invoiceId && typeof invoiceId === 'string') {
-            const invoiceResponse = await invoiceService.getById(invoiceId);
-            const invoiceData = invoiceResponse?.data || invoiceResponse;
-            setInvoice(invoiceData);
+        if (userIdStr) {
+          try {
+            const profileResponse = await profileService.getUserById(userIdStr);
+            const userData = profileResponse?.user || profileResponse?.data || profileResponse;
+            if (userData) setCustomerProfile(userData);
+          } catch (err) {
+            console.error('Failed to fetch customer profile:', err);
           }
-        } catch (err) {
-          console.error('Failed to fetch invoice:', err);
         }
       }
 
-      if (orderData?.shippingId) {
-        try {
-          const shippingId =
-            typeof orderData.shippingId === 'object'
-              ? orderData.shippingId._id || orderData.shippingId
-              : orderData.shippingId;
-
-          if (shippingId && typeof shippingId === 'string') {
-            const shippingResponse = await shippingService.getById(shippingId);
-            const shippingData = shippingResponse?.data || shippingResponse;
-            setShipping(shippingData);
-          }
-        } catch (err) {
-          console.error('Failed to fetch shipping:', err);
-        }
+      // Fetch invoice by orderId directly
+      try {
+        const invoiceResponse = await invoiceService.getByOrderId(orderId);
+        const invoiceData = invoiceResponse?.data || invoiceResponse?.invoice || invoiceResponse;
+        if (invoiceData && invoiceData._id) setInvoice(invoiceData);
+      } catch (err) {
+        console.error('No invoice found for order:', err);
       }
 
+      // Fetch shipping by orderId directly
+      try {
+        const shippingResponse = await shippingService.getByOrderId(orderId);
+        const shippingData =
+          shippingResponse?.data || shippingResponse?.shipping || shippingResponse;
+        if (shippingData && shippingData._id) setShipping(shippingData);
+      } catch (err) {
+        console.error('No shipping found for order:', err);
+      }
+
+      // Fetch briefs per item
       if (orderData?.items) {
         const itemsWithBriefsData = await Promise.all(
           orderData.items.map(async (item) => {
@@ -89,19 +100,41 @@ export default function AdminOrderDetailPage() {
               );
               const briefData = briefResponse?.data || briefResponse;
 
+              let customerBrief = null;
+              let adminBrief = null;
+              let allMessages = [];
+
+              if (Array.isArray(briefData)) {
+                allMessages = briefData;
+                customerBrief = briefData.find((b) => b.role === 'customer');
+                adminBrief = briefData.find((b) => b.role === 'admin' || b.role === 'super-admin');
+              } else if (briefData?.customer) {
+                customerBrief = briefData.customer;
+                adminBrief = briefData.admin || briefData.superAdmin;
+                allMessages = [customerBrief, adminBrief].filter(Boolean);
+              }
+
+              allMessages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
               return {
                 ...item,
-                hasBrief: !!briefData?.customer,
-                hasAdminResponse: !!briefData?.admin,
-                briefId: briefData?.customer?._id,
+                hasBrief: !!customerBrief,
+                hasAdminResponse: !!adminBrief,
+                briefId: customerBrief?._id,
+                customerBrief,
+                adminBrief,
+                allMessages,
                 briefConversation: briefData,
               };
-            } catch (err) {
+            } catch {
               return {
                 ...item,
                 hasBrief: false,
                 hasAdminResponse: false,
                 briefId: null,
+                customerBrief: null,
+                adminBrief: null,
+                allMessages: [],
                 briefConversation: null,
               };
             }
@@ -130,9 +163,7 @@ export default function AdminOrderDetailPage() {
     }
   };
 
-  const formatCurrency = (amount) => {
-    return `₦${amount?.toLocaleString() || '0'}`;
-  };
+  const formatCurrency = (amount) => `₦${amount?.toLocaleString() || '0'}`;
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -146,38 +177,54 @@ export default function AdminOrderDetailPage() {
   };
 
   const getCustomerName = () => {
-    if (!order) return 'Customer';
-    if (order.userId?.fullname) return order.userId.fullname;
-    if (order.userId?.email) return order.userId.email.split('@')[0];
+    if (customerProfile?.firstName || customerProfile?.lastName) {
+      return `${customerProfile.firstName || ''} ${customerProfile.lastName || ''}`.trim();
+    }
+    if (customerProfile?.fullname) return customerProfile.fullname;
+    const userId = order?.userId;
+    if (typeof userId === 'object') {
+      if (userId?.fullname) return userId.fullname;
+      if (userId?.email) return userId.email.split('@')[0];
+    }
     return 'Customer';
   };
 
   const getCustomerEmail = () => {
-    return order?.userId?.email || 'N/A';
+    if (customerProfile?.email) return customerProfile.email;
+    const userId = order?.userId;
+    if (typeof userId === 'object' && userId?.email) return userId.email;
+    return 'N/A';
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      Pending: 'yellow',
-      OrderReceived: 'blue',
-      FilesUploaded: 'purple',
-      AwaitingInvoice: 'orange',
-      InvoiceSent: 'red',
-      DesignUploaded: 'indigo',
-      UnderReview: 'yellow',
-      Approved: 'green',
-      InProduction: 'blue',
-      Completed: 'green',
-      Shipped: 'teal',
-      Delivered: 'green',
-      Cancelled: 'red',
-    };
-    return colors[status] || 'gray';
+  const getRoleBadge = (role) => {
+    const roleLower = role?.toLowerCase();
+    switch (roleLower) {
+      case 'customer':
+        return (
+          <span className="rounded-full bg-blue-600/20 px-2 py-1 text-xs font-medium text-blue-400">
+            Customer
+          </span>
+        );
+      case 'admin':
+        return (
+          <span className="rounded-full bg-green-600/20 px-2 py-1 text-xs font-medium text-green-400">
+            Admin
+          </span>
+        );
+      case 'super-admin':
+      case 'superadmin':
+        return (
+          <span className="rounded-full bg-purple-600/20 px-2 py-1 text-xs font-medium text-purple-400">
+            Super Admin
+          </span>
+        );
+      default:
+        return null;
+    }
   };
 
   const getNextStatusAction = () => {
     if (!order) return null;
-
     const actions = {
       Approved: { label: 'Start Production', status: 'InProduction', color: 'primary' },
       InProduction: { label: 'Complete Production', status: 'Completed', color: 'success' },
@@ -188,11 +235,24 @@ export default function AdminOrderDetailPage() {
       ReadyForShipping: { label: 'Mark Shipped', status: 'Shipped', color: 'primary' },
       Shipped: { label: 'Mark Delivered', status: 'Delivered', color: 'success' },
     };
-
     return actions[order.status] || null;
   };
 
   const nextAction = getNextStatusAction();
+
+  const renderAttachment = (url, label) => {
+    if (!url) return null;
+    return (
+      <a
+        href={getImageUrl(url)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"
+      >
+        <span>📎</span> {label}
+      </a>
+    );
+  };
 
   if (loading) {
     return (
@@ -285,63 +345,44 @@ export default function AdminOrderDetailPage() {
 
           <div className="mb-6 overflow-x-auto border-b border-gray-800">
             <nav className="flex min-w-max gap-4 sm:gap-6">
-              <button
-                onClick={() => setActiveTab('details')}
-                className={`border-b-2 px-1 pb-4 text-xs font-medium transition sm:text-sm ${
-                  activeTab === 'details'
-                    ? 'border-primary text-white'
-                    : 'border-transparent text-gray-400 hover:text-gray-300'
-                }`}
-              >
-                Order Details
-              </button>
-              <button
-                onClick={() => setActiveTab('briefs')}
-                className={`border-b-2 px-1 pb-4 text-xs font-medium transition sm:text-sm ${
-                  activeTab === 'briefs'
-                    ? 'border-primary text-white'
-                    : 'border-transparent text-gray-400 hover:text-gray-300'
-                }`}
-              >
-                Customer Briefs
-                {itemsWithBriefs.some((i) => i.hasBrief) && (
-                  <span className="ml-1 rounded-full bg-primary/20 px-1.5 py-0.5 text-xs text-primary sm:ml-2 sm:px-2">
-                    {itemsWithBriefs.filter((i) => i.hasBrief).length}
-                  </span>
-                )}
-              </button>
-              <button
-                onClick={() => setActiveTab('shipping')}
-                className={`border-b-2 px-1 pb-4 text-xs font-medium transition sm:text-sm ${
-                  activeTab === 'shipping'
-                    ? 'border-primary text-white'
-                    : 'border-transparent text-gray-400 hover:text-gray-300'
-                }`}
-                disabled={!shipping}
-              >
-                Shipping Info
-                {shipping && (
-                  <span className="ml-1 rounded-full bg-primary/20 px-1.5 py-0.5 text-xs text-primary sm:ml-2 sm:px-2">
-                    Active
-                  </span>
-                )}
-              </button>
-              <button
-                onClick={() => setActiveTab('invoice')}
-                className={`border-b-2 px-1 pb-4 text-xs font-medium transition sm:text-sm ${
-                  activeTab === 'invoice'
-                    ? 'border-primary text-white'
-                    : 'border-transparent text-gray-400 hover:text-gray-300'
-                }`}
-                disabled={!invoice}
-              >
-                Invoice
-                {invoice && (
-                  <span className="ml-1 rounded-full bg-primary/20 px-1.5 py-0.5 text-xs text-primary sm:ml-2 sm:px-2">
-                    {invoice.status}
-                  </span>
-                )}
-              </button>
+              {[
+                { key: 'details', label: 'Order Details' },
+                {
+                  key: 'briefs',
+                  label: 'Customer Briefs',
+                  badge: itemsWithBriefs.filter((i) => i.hasBrief).length || null,
+                },
+                {
+                  key: 'shipping',
+                  label: 'Shipping Info',
+                  badge: shipping ? shipping.status : null,
+                  disabled: !shipping,
+                },
+                {
+                  key: 'invoice',
+                  label: 'Invoice',
+                  badge: invoice ? invoice.status : null,
+                  disabled: !invoice,
+                },
+              ].map(({ key, label, badge, disabled }) => (
+                <button
+                  key={key}
+                  onClick={() => !disabled && setActiveTab(key)}
+                  disabled={disabled}
+                  className={`border-b-2 px-1 pb-4 text-xs font-medium transition sm:text-sm ${
+                    activeTab === key
+                      ? 'border-primary text-white'
+                      : 'border-transparent text-gray-400 hover:text-gray-300'
+                  } disabled:cursor-not-allowed disabled:opacity-40`}
+                >
+                  {label}
+                  {badge && (
+                    <span className="ml-1 rounded-full bg-primary/20 px-1.5 py-0.5 text-xs text-primary sm:ml-2 sm:px-2">
+                      {badge}
+                    </span>
+                  )}
+                </button>
+              ))}
             </nav>
           </div>
 
@@ -441,11 +482,13 @@ export default function AdminOrderDetailPage() {
                       {item.hasBrief && (
                         <div className="mt-3 border-t border-gray-700 pt-3">
                           <button
-                            onClick={() => setExpandedBrief(expandedBrief === index ? null : index)}
+                            onClick={() =>
+                              setExpandedProductBrief(expandedProductBrief === index ? null : index)
+                            }
                             className="flex items-center gap-2 text-sm text-blue-400 transition hover:text-blue-300"
                           >
                             <span>📋</span>
-                            <span>View Customization Brief</span>
+                            <span>View Full Conversation</span>
                             {item.hasAdminResponse && (
                               <span className="rounded-full bg-green-900/30 px-2 py-0.5 text-xs text-green-400">
                                 Admin Responded
@@ -453,22 +496,47 @@ export default function AdminOrderDetailPage() {
                             )}
                           </button>
 
-                          {expandedBrief === index && item.briefConversation?.customer && (
-                            <div className="mt-3 rounded-lg bg-slate-900/50 p-3">
-                              <p className="mb-2 text-xs text-gray-400">Customer Request:</p>
-                              <p className="mb-3 text-sm text-white">
-                                {item.briefConversation.customer.description || 'No description'}
-                              </p>
-                              {item.briefConversation.customer.image && (
-                                <a
-                                  href={item.briefConversation.customer.image}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-xs text-blue-400 hover:text-blue-300"
+                          {expandedProductBrief === index && item.allMessages.length > 0 && (
+                            <div className="mt-4 max-h-96 space-y-4 overflow-y-auto">
+                              {item.allMessages.map((msg, idx) => (
+                                <div
+                                  key={idx}
+                                  className={`flex ${msg.role === 'customer' ? 'justify-start' : 'justify-end'}`}
                                 >
-                                  📷 View Reference Image
-                                </a>
-                              )}
+                                  <div
+                                    className={`max-w-[85%] rounded-xl p-3 ${msg.role === 'customer' ? 'border border-blue-800/50 bg-blue-900/20' : 'border border-green-800/50 bg-green-900/20'}`}
+                                  >
+                                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                                      {getRoleBadge(msg.role)}
+                                      <span className="text-xs text-gray-500">
+                                        {formatDate(msg.createdAt)}
+                                      </span>
+                                      {msg.hasOwnDesign === true && (
+                                        <span className="text-xs text-green-400">
+                                          ✓ Has own design
+                                        </span>
+                                      )}
+                                      {msg.hasOwnDesign === false && (
+                                        <span className="text-xs text-yellow-400">
+                                          ✏️ Needs design assistance
+                                        </span>
+                                      )}
+                                    </div>
+                                    {msg.description && (
+                                      <p className="mb-2 whitespace-pre-wrap text-sm text-white">
+                                        {msg.description}
+                                      </p>
+                                    )}
+                                    <div className="flex flex-wrap gap-2">
+                                      {msg.image && renderAttachment(msg.image, 'Image')}
+                                      {msg.logo && renderAttachment(msg.logo, 'Logo')}
+                                      {msg.voiceNote &&
+                                        renderAttachment(msg.voiceNote, 'Voice Note')}
+                                      {msg.video && renderAttachment(msg.video, 'Video')}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           )}
                         </div>
@@ -503,67 +571,44 @@ export default function AdminOrderDetailPage() {
                       <h3 className="mb-4 text-base font-semibold text-white sm:text-lg">
                         {item.productName}
                       </h3>
-
-                      {item.briefConversation?.customer && (
-                        <div className="mb-6">
-                          <div className="mb-3 flex flex-wrap items-center gap-2">
-                            <span className="rounded-full bg-blue-900/30 px-2 py-1 text-xs font-medium text-blue-400">
-                              Customer
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              {formatDate(item.briefConversation.customer.createdAt)}
-                            </span>
-                          </div>
-                          <div className="rounded-lg bg-slate-800/30 p-4">
-                            <p className="mb-3 whitespace-pre-wrap text-sm text-white">
-                              {item.briefConversation.customer.description ||
-                                'No description provided'}
-                            </p>
-
-                            <div className="flex flex-wrap gap-2">
-                              {item.briefConversation.customer.image && (
-                                <a
-                                  href={item.briefConversation.customer.image}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"
-                                >
-                                  <span>📷</span> Reference Image
-                                </a>
+                      <div className="max-h-96 space-y-4 overflow-y-auto">
+                        {item.allMessages.map((msg, idx) => (
+                          <div
+                            key={idx}
+                            className={`flex ${msg.role === 'customer' ? 'justify-start' : 'justify-end'}`}
+                          >
+                            <div
+                              className={`max-w-[85%] rounded-xl p-3 ${msg.role === 'customer' ? 'border border-blue-800/50 bg-blue-900/20' : 'border border-green-800/50 bg-green-900/20'}`}
+                            >
+                              <div className="mb-2 flex flex-wrap items-center gap-2">
+                                {getRoleBadge(msg.role)}
+                                <span className="text-xs text-gray-500">
+                                  {formatDate(msg.createdAt)}
+                                </span>
+                                {msg.hasOwnDesign === true && (
+                                  <span className="text-xs text-green-400">✓ Has own design</span>
+                                )}
+                                {msg.hasOwnDesign === false && (
+                                  <span className="text-xs text-yellow-400">
+                                    ✏️ Needs design assistance
+                                  </span>
+                                )}
+                              </div>
+                              {msg.description && (
+                                <p className="mb-2 whitespace-pre-wrap text-sm text-white">
+                                  {msg.description}
+                                </p>
                               )}
-                              {item.briefConversation.customer.logo && (
-                                <a
-                                  href={item.briefConversation.customer.logo}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center gap-1 text-xs text-purple-400 hover:text-purple-300"
-                                >
-                                  <span>🎨</span> Logo
-                                </a>
-                              )}
+                              <div className="flex flex-wrap gap-2">
+                                {msg.image && renderAttachment(msg.image, 'Image')}
+                                {msg.logo && renderAttachment(msg.logo, 'Logo')}
+                                {msg.voiceNote && renderAttachment(msg.voiceNote, 'Voice Note')}
+                                {msg.video && renderAttachment(msg.video, 'Video')}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )}
-
-                      {item.briefConversation?.admin && (
-                        <div>
-                          <div className="mb-3 flex flex-wrap items-center gap-2">
-                            <span className="rounded-full bg-green-900/30 px-2 py-1 text-xs font-medium text-green-400">
-                              Admin
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              {formatDate(item.briefConversation.admin.createdAt)}
-                            </span>
-                          </div>
-                          <div className="rounded-lg bg-slate-800/30 p-4">
-                            <p className="whitespace-pre-wrap text-sm text-white">
-                              {item.briefConversation.admin.description ||
-                                'No response description'}
-                            </p>
-                          </div>
-                        </div>
-                      )}
+                        ))}
+                      </div>
                     </div>
                   ))
               )}
@@ -575,21 +620,15 @@ export default function AdminOrderDetailPage() {
               <h2 className="mb-4 text-base font-semibold text-white sm:text-lg">
                 Shipping Information
               </h2>
-
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
                 <div>
                   <p className="mb-1 text-xs text-gray-400 sm:text-sm">Shipping Method</p>
                   <span
-                    className={`inline-block rounded-full px-3 py-1 text-xs font-medium sm:text-sm ${
-                      shipping.shippingMethod === 'pickup'
-                        ? 'border border-purple-700 bg-purple-900/50 text-purple-400'
-                        : 'border border-blue-700 bg-blue-900/50 text-blue-400'
-                    }`}
+                    className={`inline-block rounded-full px-3 py-1 text-xs font-medium sm:text-sm ${shipping.shippingMethod === 'pickup' ? 'border border-purple-700 bg-purple-900/50 text-purple-400' : 'border border-blue-700 bg-blue-900/50 text-blue-400'}`}
                   >
                     {shipping.shippingMethod === 'pickup' ? 'Pickup' : 'Delivery'}
                   </span>
                 </div>
-
                 <div>
                   <p className="mb-1 text-xs text-gray-400 sm:text-sm">Shipping Status</p>
                   <span
@@ -613,7 +652,6 @@ export default function AdminOrderDetailPage() {
                     <p className="text-sm text-white sm:text-base">{shipping.recipientName}</p>
                     <p className="text-xs text-gray-400 sm:text-sm">{shipping.recipientPhone}</p>
                   </div>
-
                   {shipping.address && (
                     <div className="mt-4">
                       <p className="mb-1 text-xs text-gray-400 sm:text-sm">Delivery Address</p>
@@ -638,6 +676,12 @@ export default function AdminOrderDetailPage() {
                   <p className="font-mono text-sm text-white">{shipping.trackingNumber}</p>
                   {shipping.carrier && (
                     <p className="mt-1 text-xs text-gray-400">Carrier: {shipping.carrier}</p>
+                  )}
+                  {shipping.driverName && (
+                    <p className="text-xs text-gray-400">Driver: {shipping.driverName}</p>
+                  )}
+                  {shipping.driverPhone && (
+                    <p className="text-xs text-gray-400">Driver Phone: {shipping.driverPhone}</p>
                   )}
                 </div>
               )}

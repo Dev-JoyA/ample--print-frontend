@@ -12,6 +12,7 @@ import { orderService } from '@/services/orderService';
 import { productService } from '@/services/productService';
 import { paymentService } from '@/services/paymentService';
 import { bankAccountService } from '@/services/bankAccountService';
+import { getImageUrl } from '@/lib/imageUtils';
 import { METADATA } from '@/lib/metadata';
 
 function PaymentPageContent() {
@@ -223,19 +224,12 @@ function PaymentPageContent() {
 
   const formatCurrency = (amount) => `₦${amount?.toLocaleString() || '0'}`;
 
-  const getProductImageUrl = (imagePath) => {
-    if (!imagePath) return '/images/dummy-images/image 3.png';
-    if (imagePath.startsWith('http')) return imagePath;
-    const filename = imagePath.includes('/') ? imagePath.split('/').pop() : imagePath;
-    return `http://localhost:4001/api/v1/attachments/download/${filename}`;
-  };
-
   const getProductImage = (item) => {
     const productId = item.productId?._id || item.productId;
     const product = products[productId];
-    if (product?.image) return getProductImageUrl(product.image);
-    if (product?.images?.length > 0) return getProductImageUrl(product.images[0]);
-    return '/images/dummy-images/image 3.png';
+    if (product?.image) return getImageUrl(product.image);
+    if (product?.images?.length > 0) return getImageUrl(product.images[0]);
+    return '/images/placeholder.png';
   };
 
   const hasDeposit = order?.requiredPaymentType === 'part';
@@ -587,7 +581,7 @@ function PaymentPageContent() {
                       className="flex gap-3 rounded-lg border border-gray-800 bg-[#0F0F0F] p-3"
                     >
                       <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-gray-800 sm:h-16 sm:w-16">
-                        <Image
+                        <img
                           src={getProductImage(item)}
                           alt={item.productName}
                           width={64}
