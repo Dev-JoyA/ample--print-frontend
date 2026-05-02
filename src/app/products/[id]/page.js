@@ -2317,6 +2317,7 @@ ${new Date().toLocaleString()}
           </div>
         </div>
       </DashboardLayout>
+      <WhatsAppButton />
     </>
   );
 }
