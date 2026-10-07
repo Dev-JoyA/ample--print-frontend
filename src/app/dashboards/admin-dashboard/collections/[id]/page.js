@@ -9,6 +9,9 @@ import SEOHead from '@/components/common/SEOHead';
 import { METADATA } from '@/lib/metadata';
 import { collectionService } from '@/services/collectionService';
 import { useAuthCheck } from '@/app/lib/auth';
+import { faBoxOpen, faPenToSquare } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faComment, faComments, faFileLines} from '@fortawesome/free-regular-svg-icons';
 
 export default function CollectionDetailPage() {
   const params = useParams();
@@ -100,7 +103,9 @@ export default function CollectionDetailPage() {
         <div className="mt-6 grid grid-cols-1 gap-4 sm:mt-8 sm:gap-6 md:grid-cols-3">
           <Link href={`/dashboards/admin-dashboard/collections/${collectionId}/products`}>
             <div className="cursor-pointer rounded-lg border border-gray-800 bg-slate-900 p-4 transition hover:border-red-600 sm:p-6">
-              <div className="mb-3 text-3xl sm:mb-4 sm:text-4xl">📦</div>
+              <div className="mb-3 text-3xl sm:mb-4 sm:text-4xl">
+                <FontAwesomeIcon icon={faBoxOpen} />
+              </div>
               <h3 className="mb-2 text-lg font-bold text-white sm:text-xl">Manage Products</h3>
               <p className="text-xs text-gray-400 sm:text-sm">
                 View, edit, or add products to this collection
@@ -110,7 +115,9 @@ export default function CollectionDetailPage() {
 
           <Link href={`/dashboards/admin-dashboard/products/create?collectionId=${collectionId}`}>
             <div className="cursor-pointer rounded-lg border border-gray-800 bg-slate-900 p-4 transition hover:border-green-600 sm:p-6">
-              <div className="mb-3 text-3xl sm:mb-4 sm:text-4xl">➕</div>
+              <div className="mb-3 text-3xl sm:mb-4 sm:text-4xl">
+                <FontAwesomeIcon icon={faPlus} />
+              </div>
               <h3 className="mb-2 text-lg font-bold text-white sm:text-xl">Add New Product</h3>
               <p className="text-xs text-gray-400 sm:text-sm">
                 Create a new product in this collection
@@ -120,7 +127,9 @@ export default function CollectionDetailPage() {
 
           <Link href={`/dashboards/admin-dashboard/collections/${collectionId}/edit`}>
             <div className="cursor-pointer rounded-lg border border-gray-800 bg-slate-900 p-4 transition hover:border-blue-600 sm:p-6">
-              <div className="mb-3 text-3xl sm:mb-4 sm:text-4xl">✏️</div>
+              <div className="mb-3 text-3xl sm:mb-4 sm:text-4xl">
+                <FontAwesomeIcon icon={faPenToSquare} />
+              </div>
               <h3 className="mb-2 text-lg font-bold text-white sm:text-xl">Edit Collection</h3>
               <p className="text-xs text-gray-400 sm:text-sm">Update collection name or settings</p>
             </div>

@@ -12,6 +12,8 @@ import { customerBriefService } from '@/services/customerBriefService';
 import { profileService } from '@/services/profileService';
 import { socketService } from '@/services/socketService';
 import { METADATA } from '@/lib/metadata';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFileInvoice, faImage, faMusic } from '@fortawesome/free-solid-svg-icons';
 
 export default function ReadyForInvoicePage() {
   const router = useRouter();
@@ -289,7 +291,7 @@ export default function ReadyForInvoicePage() {
 
           {filteredOrders.length === 0 ? (
             <div className="rounded-xl border border-gray-800 bg-slate-900/30 py-16 text-center">
-              <div className="mb-4 text-6xl">📄</div>
+              <div className="mb-4 text-6xl"><FontAwesomeIcon icon={faFileInvoice} /></div>
               <h3 className="mb-2 text-xl font-semibold text-white">
                 {searchTerm ? 'No matching orders found' : 'No orders ready for invoice'}
               </h3>
@@ -430,13 +432,15 @@ export default function ReadyForInvoicePage() {
                                 {item.briefs.customer.description || 'No description'}
                               </p>
                               {item.briefs.customer.image && (
-                                <span className="mt-1 inline-block text-xs text-blue-400">
-                                  📷 Has image
+                                <span className="mt-1 inline-block text-xs text-gray-400">
+                                  <FontAwesomeIcon icon={faImage} />
+                                  Has image
                                 </span>
                               )}
                               {item.briefs.customer.voiceNote && (
-                                <span className="ml-2 inline-block text-xs text-green-400">
-                                  🎤 Has voice note
+                                <span className="ml-2 inline-block text-xs text-gray-400">
+                                  <FontAwesomeIcon icon={faMusic} />
+                                  Has voice note
                                 </span>
                               )}
                             </div>

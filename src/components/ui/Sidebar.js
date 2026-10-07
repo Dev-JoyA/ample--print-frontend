@@ -6,6 +6,24 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { COOKIE_NAMES } from '@/lib/constants';
 import { authService } from '@/services/authService';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faChartBar,
+  faBell,
+  faFolder,
+  faCircleCheck,
+  faFileLines,
+  faClock,
+  faClipboardList,
+  faBox,
+  faPalette,
+  faUserGroup,
+  faMoneyBill1,
+  faBank,
+  faHourglassHalf,
+  faArrowRightFromBracket,
+  faMoneyCheckDollar,
+} from '@fortawesome/free-solid-svg-icons';
 
 const Sidebar = ({ userRole = 'customer' }) => {
   const pathname = usePathname();
@@ -51,48 +69,80 @@ const Sidebar = ({ userRole = 'customer' }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const customerNavItems = [
-    { name: 'Dashboard', href: '/dashboards', icon: '📊' },
-    { name: 'Notifications', href: '/notifications', icon: '➕' },
-    { name: 'Collections', href: '/collections', icon: '📁' },
-    { name: 'Design Approval', href: '/design-approval', icon: '✓' },
-    { name: 'Invoices', href: '/invoices', icon: '📄' },
-    { name: 'Order Tracking', href: '/order-tracking', icon: '🕐' },
-    { name: 'Order History', href: '/order-history', icon: '🔄' },
-  ];
+ const customerNavItems = [
+  { name: 'Dashboard', href: '/dashboards', icon: faChartBar },
+  { name: 'Notifications', href: '/notifications', icon: faBell },
+  { name: 'Collections', href: '/collections', icon: faFolder },
+  { name: 'Design Approval', href: '/design-approval', icon: faCircleCheck },
+  { name: 'Invoices', href: '/invoices', icon: faFileLines },
+  { name: 'Order Tracking', href: '/order-tracking', icon: faClock },
+  { name: 'Order History', href: '/order-history', icon: faClipboardList },
+];
 
-  const adminNavItems = [
-    { name: 'Dashboard', href: '/dashboards/admin-dashboard', icon: '📊' },
-    { name: 'Orders', href: '/dashboards/admin-dashboard/orders', icon: '📦' },
-    { name: 'Customer Briefs', href: '/dashboards/admin-dashboard/customer-briefs', icon: '📝' },
-    { name: 'Design Upload', href: '/dashboards/admin-dashboard/design-upload', icon: '🎨' },
-    { name: 'Notifications', href: '/notifications', icon: '➕' },
-    { name: 'Collections', href: '/dashboards/admin-dashboard/collections', icon: '➕' },
-    { name: 'Products', href: '/dashboards/admin-dashboard/products/create', icon: '➕' },
-  ];
+ const adminNavItems = [
+  { name: 'Dashboard', href: '/dashboards/admin-dashboard', icon: faChartBar },
+  { name: 'Orders', href: '/dashboards/admin-dashboard/orders', icon: faBox },
+  {
+    name: 'Customer Briefs',
+    href: '/dashboards/admin-dashboard/customer-briefs',
+    icon: faFileLines,
+  },
+  {
+    name: 'Design Upload',
+    href: '/dashboards/admin-dashboard/design-upload',
+    icon: faPalette,
+  },
+  { name: 'Notifications', href: '/notifications', icon: faBell },
+  {
+    name: 'Collections',
+    href: '/dashboards/admin-dashboard/collections',
+    icon: faFolder,
+  },
+  {
+    name: 'Products',
+    href: '/dashboards/admin-dashboard/products/create',
+    icon: faBox,
+  },
+];
 
   const superAdminNavItems = [
-    { name: 'Dashboard', href: '/dashboards/super-admin-dashboard', icon: '📊' },
-    {
-      name: 'Admin Management',
-      href: '/dashboards/super-admin-dashboard/admin-management',
-      icon: '👥',
-    },
-    { name: 'Invoices', href: '/dashboards/super-admin-dashboard/invoices', icon: '📄' },
-    { name: 'Notifications', href: '/notifications', icon: '➕' },
-    { name: 'Discounts', href: '/dashboards/super-admin-dashboard/discounts', icon: '💰' },
-    {
-      name: 'Payment Verification',
-      href: '/dashboards/super-admin-dashboard/payment-verification',
-      icon: '✅',
-    },
-    {
-      name: 'Financial Records',
-      href: '/dashboards/super-admin-dashboard/financial-records',
-      icon: '📊',
-    },
-    { name: 'Bank Accounts', href: '/dashboards/super-admin-dashboard/bank-accounts', icon: '🏦' },
-  ];
+  {
+    name: 'Dashboard',
+    href: '/dashboards/super-admin-dashboard',
+    icon: faChartBar,
+  },
+  {
+    name: 'Admin Management',
+    href: '/dashboards/super-admin-dashboard/admin-management',
+    icon: faUserGroup,
+  },
+  {
+    name: 'Invoices',
+    href: '/dashboards/super-admin-dashboard/invoices',
+    icon: faFileLines,
+  },
+  { name: 'Notifications', href: '/notifications', icon: faBell },
+  {
+    name: 'Discounts',
+    href: '/dashboards/super-admin-dashboard/discounts',
+    icon: faMoneyBill1,
+  },
+  {
+    name: 'Payment Verification',
+    href: '/dashboards/super-admin-dashboard/payment-verification',
+    icon: faCircleCheck,
+  },
+  {
+    name: 'Financial Records',
+    href: '/dashboards/super-admin-dashboard/financial-records',
+    icon: faChartBar,
+  },
+  {
+    name: 'Bank Accounts',
+    href: '/dashboards/super-admin-dashboard/bank-accounts',
+    icon: faBank,
+  },
+];
 
   const getNavItems = () => {
     console.log('Getting nav items for role:', effectiveRole);
@@ -183,7 +233,9 @@ const Sidebar = ({ userRole = 'customer' }) => {
                   : 'text-gray-300 hover:bg-dark-light hover:text-white'
               }`}
             >
-              <span className="text-base sm:text-xl">{item.icon}</span>
+              <span className="text-base sm:text-xl">
+                <FontAwesomeIcon icon={item.icon} />
+              </span>
               <span className="font-medium">{item.name}</span>
             </Link>
           );
@@ -198,7 +250,11 @@ const Sidebar = ({ userRole = 'customer' }) => {
             isLoggingOut ? 'cursor-not-allowed opacity-50' : ''
           }`}
         >
-          <span className="text-base sm:text-xl">{isLoggingOut ? '⏳' : '🚪'}</span>
+         <span className="text-base sm:text-xl">
+            <FontAwesomeIcon
+                icon={isLoggingOut ? faHourglassHalf : faArrowRightFromBracket}
+            />
+          </span>
           <span className="font-medium">{isLoggingOut ? 'Logging out...' : 'Log Out'}</span>
         </button>
       </div>

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Button from '../ui/Button';
+import { faDownload } from '@fortawesome/free-solid-svg-icons';
 
 const InvoiceCard = ({
   invoice,
@@ -216,8 +217,8 @@ const InvoiceCard = ({
             size="sm"
             onClick={() => onDownload(invoice)}
             className="w-full sm:flex-1"
-            icon="📥"
-          >
+            icon= {<FontAwesomeIcon icon={faDownload} className="mr-2"/>}
+            >
             Download
           </Button>
         </div>

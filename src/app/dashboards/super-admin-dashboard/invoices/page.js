@@ -10,6 +10,8 @@ import { invoiceService } from '@/services/invoiceService';
 import { profileService } from '@/services/profileService';
 import { socketService } from '@/services/socketService';
 import { METADATA } from '@/lib/metadata';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFileInvoice } from '@fortawesome/free-solid-svg-icons';
 
 export default function InvoicesPage() {
   const router = useRouter();
@@ -481,7 +483,9 @@ export default function InvoicesPage() {
 
           {filteredInvoices.length === 0 ? (
             <div className="rounded-xl border border-gray-800 bg-slate-900/30 py-16 text-center">
-              <div className="mb-4 text-6xl">📄</div>
+              <div className="mb-4 text-6xl">
+                <FontAwesomeIcon icon={faFileInvoice} />
+              </div>
               <h3 className="mb-2 text-xl font-semibold text-white">
                 {searchTerm ? 'No matching invoices found' : 'No invoices found'}
               </h3>

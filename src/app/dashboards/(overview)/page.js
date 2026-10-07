@@ -18,6 +18,9 @@ import { invoiceService } from '@/services/invoiceService';
 import { designService } from '@/services/designService';
 import { customerBriefService } from '@/services/customerBriefService';
 import { useToast } from '@/components/providers/ToastProvider';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faComment, faComments, faFileLines} from '@fortawesome/free-regular-svg-icons';
+import { faBoxOpen, faFileInvoice , faTruck, faPalette, faStore, faClipboardList} from '@fortawesome/free-solid-svg-icons';
 
 const EDITABLE_ORDER_STATUSES = ['Pending', 'OrderReceived', 'FilesUploaded'];
 
@@ -286,7 +289,7 @@ export default function CustomerDashboard() {
 
   const getWelcomeName = () => {
     if (userName) {
-      return userName.split(' ')[0];
+      return (userName.split(' ')[0])[0].toUpperCase() + (userName.split(' ')[0]).slice(1);
     } else if (user?.email) {
       return user.email.split('@')[0];
     } else {
@@ -363,7 +366,7 @@ export default function CustomerDashboard() {
               className="w-full gap-2 sm:w-auto"
               onClick={() => setShowFeedbackModal(true)}
             >
-              <span>💬</span>
+             <FontAwesomeIcon icon={faComment} />
               Send Feedback
             </Button>
             <Link href="/collections" className="w-full sm:w-auto">
@@ -407,32 +410,32 @@ export default function CustomerDashboard() {
           </div>
         )}
 
-        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-6">
-          <Link href="/order-history?filter=active" className="block cursor-pointer">
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-6 items-stretch">
+          <Link href="/order-history?filter=active" className="block cursor-pointer h-full">
             <SummaryCard
               title="Active Orders"
               value={stats.activeOrders.toString()}
-              icon="📦"
+              icon={<FontAwesomeIcon icon={faBoxOpen} />}
               color="blue"
               subtitle="In progress"
             />
           </Link>
 
-          <Link href="/invoices?filter=pending" className="block cursor-pointer">
+          <Link href="/invoices?filter=pending" className="block cursor-pointer h-full">
             <SummaryCard
               title="Pending Invoices"
               value={stats.pendingInvoices.toString()}
-              icon="📄"
+              icon={<FontAwesomeIcon icon={faFileInvoice} />}
               color="red"
               subtitle="Awaiting payment"
             />
           </Link>
 
-          <Link href="/shipping/orders" className="block cursor-pointer">
+          <Link href="/shipping/orders" className="block cursor-pointer h-full">
             <SummaryCard
               title="Ready for Shipping"
               value={stats.readyForShipping.toString()}
-              icon="🚚"
+              icon={<FontAwesomeIcon icon={faTruck} />}
               color="orange"
               subtitle={`${stats.readyForShipping} order${stats.readyForShipping !== 1 ? 's' : ''} ready`}
             />
@@ -442,17 +445,17 @@ export default function CustomerDashboard() {
             <SummaryCard
               title="Designs to Review"
               value={stats.designsForApproval.toString()}
-              icon="🎨"
+              icon={<FontAwesomeIcon icon={faPalette} />}
               color="green"
               subtitle="Awaiting approval"
             />
           </Link>
 
-          <Link href="/briefs/responses" className="relative block cursor-pointer">
+          <Link href="/briefs/responses" className="relative block cursor-pointer h-full">
             <SummaryCard
               title="Brief Responses"
               value={stats.pendingBriefResponses.toString()}
-              icon="📝"
+              icon={<FontAwesomeIcon icon={faFileLines} />}
               color="purple"
               subtitle="Need your attention"
             />
@@ -463,11 +466,11 @@ export default function CustomerDashboard() {
             )}
           </Link>
 
-          <Link href="/feedback" className="relative block cursor-pointer">
+          <Link href="/feedback" className="relative block cursor-pointer h-full">
             <SummaryCard
               title="My Feedback"
               value={stats.totalFeedback.toString()}
-              icon="💬"
+              icon={<FontAwesomeIcon icon={faComments} />}
               color="teal"
               subtitle="View all your feedback"
             />
@@ -712,7 +715,9 @@ export default function CustomerDashboard() {
         <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 md:grid-cols-4">
           <Link href="/collections">
             <div className="cursor-pointer rounded-lg border border-blue-800 bg-gradient-to-br from-blue-900/30 to-blue-950/30 p-3 transition hover:border-blue-600 sm:p-4">
-              <div className="mb-2 text-2xl sm:text-3xl">🛍️</div>
+              <div className="mb-2 text-2xl sm:text-3xl">
+                <FontAwesomeIcon icon={faStore} />
+                </div>
               <h4 className="text-sm font-medium text-white sm:text-base">Browse Products</h4>
               <p className="mt-1 hidden text-xs text-gray-400 sm:block">Explore our collection</p>
             </div>
@@ -720,7 +725,9 @@ export default function CustomerDashboard() {
 
           <Link href="/order-history">
             <div className="cursor-pointer rounded-lg border border-purple-800 bg-gradient-to-br from-purple-900/30 to-purple-950/30 p-3 transition hover:border-purple-600 sm:p-4">
-              <div className="mb-2 text-2xl sm:text-3xl">📋</div>
+              <div className="mb-2 text-2xl sm:text-3xl">
+                <FontAwesomeIcon icon={faClipboardList} />
+                </div>
               <h4 className="text-sm font-medium text-white sm:text-base">Order History</h4>
               <p className="mt-1 hidden text-xs text-gray-400 sm:block">View all your orders</p>
             </div>
@@ -728,7 +735,9 @@ export default function CustomerDashboard() {
 
           <Link href="/invoices">
             <div className="cursor-pointer rounded-lg border border-green-800 bg-gradient-to-br from-green-900/30 to-green-950/30 p-3 transition hover:border-green-600 sm:p-4">
-              <div className="mb-2 text-2xl sm:text-3xl">📄</div>
+              <div className="mb-2 text-2xl sm:text-3xl">
+                <FontAwesomeIcon icon={faFileInvoice} />
+                </div>
               <h4 className="text-sm font-medium text-white sm:text-base">All Invoices</h4>
               <p className="mt-1 hidden text-xs text-gray-400 sm:block">View and manage invoices</p>
             </div>
@@ -736,7 +745,9 @@ export default function CustomerDashboard() {
 
           <Link href="/feedback">
             <div className="cursor-pointer rounded-lg border border-teal-800 bg-gradient-to-br from-teal-900/30 to-teal-950/30 p-3 transition hover:border-teal-600 sm:p-4">
-              <div className="mb-2 text-2xl sm:text-3xl">💬</div>
+              <div className="mb-2 text-2xl sm:text-3xl">
+                <FontAwesomeIcon icon={faComment} />
+              </div>
               <h4 className="text-sm font-medium text-white sm:text-base">My Feedback</h4>
               <p className="mt-1 hidden text-xs text-gray-400 sm:block">
                 View your feedback history

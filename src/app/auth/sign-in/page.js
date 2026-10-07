@@ -245,7 +245,7 @@ function SignInPageContent() {
 
             <p className="mt-4 flex justify-center font-carlito text-xs text-gray-600 sm:mt-6 sm:text-sm">
               Don't have an account?{' '}
-              <Link href="/auth/sign-up" className="ml-1 text-[#FF676A] hover:underline">
+              <Link href="/auth/sign-up" className="ml-1 text-red-600 hover:underline">
                 Sign up
               </Link>
             </p>

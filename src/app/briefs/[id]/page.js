@@ -300,7 +300,7 @@ export default function BriefResponseDetailPage({ params }) {
     return (
       <DashboardLayout userRole="customer">
         <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-          <div className="mb-4 text-5xl">😕</div>
+          <div className="mb-4 text-5xl"></div>
           <p className="mb-6 text-gray-400">
             {error || "This brief doesn't exist or has been removed."}
           </p>

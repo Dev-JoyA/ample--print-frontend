@@ -12,6 +12,7 @@ import { orderService } from '@/services/orderService';
 import { useAuth, useAuthCheck } from '@/app/lib/auth';
 import { METADATA } from '@/lib/metadata';
 import { getImageUrl } from '@/lib/imageUtils';
+import { faBox } from '@fortawesome/free-solid-svg-icons';
 
 const OrderStatus = {
   Pending: 'Pending',
@@ -599,7 +600,9 @@ export default function OrderHistoryPage() {
             </div>
           ) : (
             <div className="rounded-xl border border-gray-800 bg-slate-900/30 py-16 text-center">
-              <div className="mb-4 text-6xl">📦</div>
+              <div className="mb-4 text-6xl">
+                <FontAwesomeIcon icon={faBox} className="mx-auto" />
+              </div>
               <p className="mb-2 text-lg text-gray-400">No orders found</p>
               <p className="mb-6 text-sm text-gray-500">
                 {searchTerm || filterStatus !== 'all'

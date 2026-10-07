@@ -10,6 +10,7 @@ import SEOHead from '@/components/common/SEOHead';
 import { useAuthCheck } from '@/app/lib/auth';
 import { orderService } from '@/services/orderService';
 import { METADATA } from '@/lib/metadata';
+import { faBox, faTruck } from '@fortawesome/free-solid-svg-icons';
 
 export default function ReadyForShippingPage() {
   const router = useRouter();
@@ -85,7 +86,7 @@ export default function ReadyForShippingPage() {
         <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
           <div className="mb-6 flex flex-col items-start gap-3 sm:mb-8 sm:flex-row sm:items-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-500/20 sm:h-14 sm:w-14">
-              <span className="text-2xl sm:text-3xl">🚚</span>
+              <FontAwesomeIcon icon={faTruck} />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white sm:text-3xl sm:text-4xl">
@@ -105,7 +106,9 @@ export default function ReadyForShippingPage() {
 
           {orders.length === 0 ? (
             <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-8 text-center sm:p-12">
-              <div className="mb-4 text-5xl sm:text-6xl">📦</div>
+              <div className="mb-4 text-5xl sm:text-6xl">
+                <FontAwesomeIcon icon={faBox} className="mx-auto" />
+              </div>
               <h3 className="mb-2 text-lg font-semibold text-white sm:text-xl">
                 No orders ready for shipping
               </h3>

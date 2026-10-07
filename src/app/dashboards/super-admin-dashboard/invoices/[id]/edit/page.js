@@ -12,6 +12,9 @@ import { orderService } from '@/services/orderService';
 import { customerBriefService } from '@/services/customerBriefService';
 import { discountService } from '@/services/discountService';
 import { METADATA } from '@/lib/metadata';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye } from '@fortawesome/free-regular-svg-icons';
+import { faFile, faImage, faVideoCamera } from '@fortawesome/free-solid-svg-icons';
 
 export default function EditInvoicePage() {
   const params = useParams();
@@ -245,7 +248,7 @@ export default function EditInvoicePage() {
           rel="noopener noreferrer"
           className="group flex items-center gap-2 rounded bg-slate-700/50 p-2 transition hover:bg-slate-700"
         >
-          <span className="text-blue-400">📷</span>
+          <FontAwesomeIcon icon={faImage}  />
           <span className="text-xs text-gray-300 group-hover:text-white">{label}</span>
         </a>
       );
@@ -253,7 +256,7 @@ export default function EditInvoicePage() {
       return (
         <div className="flex flex-col gap-1 rounded bg-slate-700/50 p-2">
           <div className="flex items-center gap-2">
-            <span className="text-green-400">🎤</span>
+            <FontAwesomeIcon icon="fa-solid fa-music"  />
             <span className="text-xs text-gray-300">{label}</span>
           </div>
           <audio controls className="mt-1 h-8 w-full">
@@ -266,7 +269,7 @@ export default function EditInvoicePage() {
       return (
         <div className="flex flex-col gap-1 rounded bg-slate-700/50 p-2">
           <div className="flex items-center gap-2">
-            <span className="text-red-400">🎥</span>
+            <FontAwesomeIcon icon={faVideoCamera}  />
             <span className="text-xs text-gray-300">{label}</span>
           </div>
           <video controls className="mt-1 max-h-40 w-full rounded">
@@ -283,7 +286,7 @@ export default function EditInvoicePage() {
           rel="noopener noreferrer"
           className="group flex items-center gap-2 rounded bg-slate-700/50 p-2 transition hover:bg-slate-700"
         >
-          <span className="text-gray-400">📎</span>
+          <FontAwesomeIcon icon={faFile} />
           <span className="text-xs text-gray-300 group-hover:text-white">{label}</span>
         </a>
       );
@@ -404,7 +407,8 @@ export default function EditInvoicePage() {
                         onClick={() => handleViewBrief(item)}
                         className="mt-3 flex items-center gap-1 rounded-full bg-blue-900/30 px-3 py-1.5 text-xs text-blue-400 transition hover:bg-blue-900/50"
                       >
-                        <span>📋</span> View Customization Brief
+                        <FontAwesomeIcon icon={faEye}  /> 
+                        View Customization Brief
                         {item.hasAdminResponse && (
                           <span className="ml-1 whitespace-nowrap text-green-400">
                             (Has Response)
@@ -676,7 +680,7 @@ export default function EditInvoicePage() {
                             {briefConversation.admin.designId && (
                               <Link href={`/designs/${briefConversation.admin.designId}`}>
                                 <span className="group flex cursor-pointer items-center gap-2 rounded bg-slate-700/50 p-2 transition hover:bg-slate-700">
-                                  <span className="text-purple-400">🎨</span>
+                                  <FontAwesomeIcon icon={faEye}  />
                                   <span className="text-xs text-gray-300 group-hover:text-white">
                                     View Full Design
                                   </span>

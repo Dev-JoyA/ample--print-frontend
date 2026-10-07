@@ -12,6 +12,8 @@ import { profileService } from '@/services/profileService';
 import { METADATA } from '@/lib/metadata';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
 export default function InvoiceDetailPage() {
   const params = useParams();
@@ -511,7 +513,8 @@ export default function InvoiceDetailPage() {
 
             <div className="rounded-lg border border-red-800 bg-red-900/20 p-3">
               <p className="text-xs font-medium text-red-400 sm:text-sm">
-                ⚠️ IMPORTANT: Invoice is subject to change
+                <FontAwesomeIcon icon={faExclamationTriangle} className="mr-2" />
+                IMPORTANT: Invoice is subject to change
               </p>
             </div>
 

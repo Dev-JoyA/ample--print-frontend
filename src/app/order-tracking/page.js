@@ -13,6 +13,9 @@ import { useAuth, useAuthCheck } from '@/app/lib/auth';
 import { orderService } from '@/services/orderService';
 import { METADATA } from '@/lib/metadata';
 import { getImageUrl } from '@/lib/imageUtils';
+import { faCheck, faExclamationTriangle, faFileAlt, faFileInvoiceDollar, faPalette, faSearch, faTimes, faTruck } from '@fortawesome/free-solid-svg-icons';
+import { faCogs } from '@fortawesome/free-solid-svg-icons/faCogs';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 const OrderStatus = {
   Pending: 'Pending',
@@ -82,27 +85,27 @@ const getStatusPhases = (order) => {
     {
       name: 'Order Placement',
       statuses: [OrderStatus.Pending, OrderStatus.OrderReceived],
-      icon: '📋',
+      icon: <FontAwesomeIcon icon={faCheck} />,
       color: 'blue',
     },
     {
       name: 'Brief & Invoice',
       statuses: [OrderStatus.FilesUploaded, OrderStatus.AwaitingInvoice, OrderStatus.InvoiceSent],
-      icon: '📄',
+      icon: <FontAwesomeIcon icon={faFileAlt} />,
       color: 'purple',
     },
   ];
 
   const paymentPhase = {
     name: order?.requiredPaymentType === 'part' ? 'Initial Deposit' : 'Payment',
-    icon: '💰',
+    icon: <FontAwesomeIcon icon={faFileInvoiceDollar} />,
     color: order?.requiredPaymentType === 'part' ? 'yellow' : 'blue',
     statuses: [],
   };
 
   const finalPaymentPhase = {
     name: 'Final Payment',
-    icon: '💳',
+    icon: <FontAwesomeIcon icon={faFileInvoiceDollar} />,
     color: 'green',
     statuses: [],
   };
@@ -121,28 +124,28 @@ const getStatusPhases = (order) => {
   const designPhase = {
     name: 'Design & Approval',
     statuses: [OrderStatus.DesignUploaded, OrderStatus.UnderReview, OrderStatus.Approved],
-    icon: '🎨',
+    icon: <FontAwesomeIcon icon={faPalette} />,
     color: 'indigo',
   };
 
   const productionPhase = {
     name: 'Production',
     statuses: [OrderStatus.InProduction, OrderStatus.Completed],
-    icon: '⚙️',
+    icon: <FontAwesomeIcon icon={faCogs} />,
     color: 'yellow',
   };
 
   const shippingPhase = {
     name: 'Shipping & Delivery',
     statuses: [OrderStatus.ReadyForShipping, OrderStatus.Shipped, OrderStatus.Delivered],
-    icon: '🚚',
+    icon: <FontAwesomeIcon icon={faTruck} />,
     color: 'orange',
   };
 
   const cancelledPhase = {
     name: 'Cancelled',
     statuses: [OrderStatus.Cancelled],
-    icon: '❌',
+    icon: <FontAwesomeIcon icon={faTimes} />,
     color: 'red',
   };
 
@@ -277,13 +280,13 @@ function OrderTrackingPageContent() {
       }
 
       if (foundOrder) {
-        console.log('✅ Order found via my-orders:', foundOrder);
+        console.log('Order found via my-orders:', foundOrder);
         setTrackedOrder(foundOrder);
       } else {
         setError('Order not found. Please check the order number and try again.');
       }
     } catch (err) {
-      console.error('❌ Failed to track order:', err);
+      console.error('Failed to track order:', err);
 
       if (err.userMessage) {
         setError(err.userMessage);
@@ -476,7 +479,9 @@ function OrderTrackingPageContent() {
 
               {isCancelled && (
                 <div className="rounded-xl border border-red-800 bg-red-900/20 p-6 text-center">
-                  <div className="mb-4 text-5xl">❌</div>
+                  <div className="mb-4 text-5xl">
+                    <FontAwesomeIcon icon={faTimes} className="mx-auto text-red-400" />
+                  </div>
                   <h3 className="mb-2 text-xl font-bold text-white">Order Cancelled</h3>
                   <p className="text-gray-400">
                     This order has been cancelled. Please contact support for more information.
@@ -837,7 +842,9 @@ function OrderTrackingPageContent() {
 
           {!trackedOrder && !loading && !error && !searchAttempted && (
             <div className="rounded-xl border border-gray-800 bg-slate-900/30 py-16 text-center">
-              <div className="mb-4 text-6xl">🔍</div>
+              <div className="mb-4 text-6xl">
+                <FontAwesomeIcon icon={faSearch} className="mx-auto text-gray-400" />
+              </div>
               <p className="mb-2 text-lg text-gray-400">
                 Enter an order number to track your order
               </p>
@@ -850,7 +857,9 @@ function OrderTrackingPageContent() {
 
           {!trackedOrder && !loading && error && searchAttempted && (
             <div className="rounded-xl border border-gray-800 bg-slate-900/30 py-16 text-center">
-              <div className="mb-4 text-6xl">❓</div>
+              <div className="mb-4 text-6xl">
+                <FontAwesomeIcon icon={faExclamationTriangle} className="mx-auto text-red-400" />
+              </div>
               <p className="mb-2 text-lg text-gray-400">No order found</p>
               <p className="mx-auto max-w-md text-sm text-gray-500">
                 We couldn't find an order with that number. Please check the number and try again,

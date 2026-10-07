@@ -10,6 +10,9 @@ import SEOHead from '@/components/common/SEOHead';
 import { useAuthCheck } from '@/app/lib/auth';
 import { orderService } from '@/services/orderService';
 import { METADATA } from '@/lib/metadata';
+import { faBox, faBoxOpen, faCancel, faCheck, faExclamationCircle, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import { faClock } from '@fortawesome/free-regular-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 export default function OrderManagementPage() {
   const router = useRouter();
@@ -159,7 +162,8 @@ export default function OrderManagementPage() {
         if (hasRemainingBalance(order)) {
           return (
             <span className="inline-flex items-center whitespace-nowrap rounded-lg border border-yellow-800 bg-yellow-900/30 px-2 py-1 text-xs font-medium text-yellow-400 sm:px-3 sm:text-sm">
-              ⚠️ Balance: {formatCurrency(order.remainingBalance)} - Should be AwaitingFinalPayment
+              <FontAwesomeIcon icon={faExclamationCircle} className="h-3 w-3" />
+              Balance: {formatCurrency(order.remainingBalance)} - Should be AwaitingFinalPayment
             </span>
           );
         } else {
@@ -173,13 +177,15 @@ export default function OrderManagementPage() {
         if (isFullyPaid(order)) {
           return (
             <span className="inline-flex items-center whitespace-nowrap rounded-lg border border-green-800 bg-green-900/30 px-2 py-1 text-xs font-medium text-green-400 sm:px-3 sm:text-sm">
-              ✓ Fully Paid - Ready for Shipping
+              <FontAwesomeIcon icon={faCheck} className="h-3 w-3" />
+              Fully Paid - Ready for Shipping
             </span>
           );
         } else {
           return (
             <span className="inline-flex items-center whitespace-nowrap rounded-lg border border-yellow-800 bg-yellow-900/30 px-2 py-1 text-xs font-medium text-yellow-400 sm:px-3 sm:text-sm">
-              ⏳ Awaiting Full Payment
+              <FontAwesomeIcon icon={faClock} className="h-3 w-3" />
+              Awaiting Full Payment
             </span>
           );
         }
@@ -201,7 +207,8 @@ export default function OrderManagementPage() {
       } else {
         return (
           <span className="inline-flex items-center whitespace-nowrap rounded-lg border border-yellow-800 bg-yellow-900/30 px-2 py-1 text-xs font-medium text-yellow-400 sm:px-3 sm:text-sm">
-            ⏳ Balance: {formatCurrency(order.remainingBalance)}
+            <FontAwesomeIcon icon={faClock} className="h-3 w-3" />
+            Balance: {formatCurrency(order.remainingBalance)}
           </span>
         );
       }
@@ -222,7 +229,8 @@ export default function OrderManagementPage() {
       } else {
         return (
           <span className="inline-flex items-center whitespace-nowrap rounded-lg border border-red-800 bg-red-900/30 px-2 py-1 text-xs font-medium text-red-400 sm:px-3 sm:text-sm">
-            ⚠️ Payment Error
+            <FontAwesomeIcon icon={faExclamationTriangle} className="h-3 w-3" />
+            Payment Error
           </span>
         );
       }
@@ -245,7 +253,8 @@ export default function OrderManagementPage() {
     if (order.status === 'Delivered') {
       return (
         <span className="inline-flex items-center whitespace-nowrap rounded-lg border border-green-800 bg-green-900/30 px-2 py-1 text-xs font-medium text-green-400 sm:px-3 sm:text-sm">
-          ✓ Delivered
+          <FontAwesomeIcon icon={faCheck} className="h-3 w-3" />
+          Delivered
         </span>
       );
     }
@@ -253,7 +262,8 @@ export default function OrderManagementPage() {
     if (order.status === 'Cancelled') {
       return (
         <span className="inline-flex items-center whitespace-nowrap rounded-lg border border-red-800 bg-red-900/30 px-2 py-1 text-xs font-medium text-red-400 sm:px-3 sm:text-sm">
-          ✗ Cancelled
+          <FontAwesomeIcon icon={faCancel} className="h-3 w-3" />
+          Cancelled
         </span>
       );
     }
@@ -269,7 +279,7 @@ export default function OrderManagementPage() {
     if (order.status === 'Completed') {
       if (isDepositOrder(order)) {
         if (hasRemainingBalance(order)) {
-          return `⚠️ ERROR: Deposit order with balance ${formatCurrency(order.remainingBalance)} should be in AwaitingFinalPayment status`;
+          return ` ERROR: Deposit order with balance ${formatCurrency(order.remainingBalance)} should be in AwaitingFinalPayment status`;
         } else {
           return `Fully paid: ${formatCurrency(order.totalAmount)} - Customer can select shipping`;
         }
@@ -417,7 +427,9 @@ export default function OrderManagementPage() {
 
           {filteredOrders.length === 0 ? (
             <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-8 text-center sm:p-12">
-              <div className="mb-3 text-4xl opacity-50 sm:text-5xl">📋</div>
+              <div className="mb-3 text-4xl opacity-50 sm:text-5xl">
+                <FontAwesomeIcon  icon={faBox} className="mx-auto" />
+              </div>
               <h3 className="mb-1 text-lg font-semibold text-white sm:text-xl">No orders found</h3>
               <p className="text-xs text-gray-400 sm:text-sm">
                 {activeTab === 'all'
@@ -435,7 +447,7 @@ export default function OrderManagementPage() {
                   <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
                     <div className="flex items-center gap-2 sm:gap-3">
                       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 sm:h-10 sm:w-10">
-                        <span className="text-base sm:text-xl">📦</span>
+                        <FontAwesomeIcon icon={faBoxOpen} className="mx-auto" />
                       </div>
                       <div>
                         <div className="flex flex-wrap items-center gap-2">

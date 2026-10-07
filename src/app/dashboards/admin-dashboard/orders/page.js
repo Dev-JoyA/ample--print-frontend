@@ -11,6 +11,7 @@ import SEOHead from '@/components/common/SEOHead';
 import { orderService } from '@/services/orderService';
 import { useAuthCheck } from '@/app/lib/auth';
 import { METADATA } from '@/lib/metadata';
+import { faBox } from '@fortawesome/free-solid-svg-icons';
 
 function AdminOrdersPageContent() {
   const router = useRouter();
@@ -467,7 +468,9 @@ function AdminOrdersPageContent() {
 
             {!loading && orders.length === 0 && (
               <div className="rounded-xl border border-gray-800 bg-slate-900/30 py-12 text-center sm:py-16">
-                <div className="mb-4 text-5xl sm:text-6xl">📦</div>
+                <div className="mb-4 text-5xl sm:text-6xl">
+                    <FontAwesomeIcon icon={faBox} className="mx-auto" />
+                </div>
                 <h3 className="mb-2 text-lg font-semibold text-white sm:text-xl">
                   No orders found
                 </h3>

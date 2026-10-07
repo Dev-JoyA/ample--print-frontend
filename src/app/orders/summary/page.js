@@ -12,6 +12,7 @@ import { orderService } from '@/services/orderService';
 import { customerBriefService } from '@/services/customerBriefService';
 import { METADATA, getOrderMetadata } from '@/lib/metadata';
 import { getImageUrl } from '@/lib/imageUtils';
+import { faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
 
 function OrderSummaryPageContent() {
   const router = useRouter();
@@ -138,7 +139,9 @@ function OrderSummaryPageContent() {
         <DashboardLayout userRole="customer">
           <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
             <div className="rounded-xl border border-red-700 bg-red-900/30 p-8 text-center">
-              <div className="mb-4 text-6xl">😕</div>
+              <div className="mb-4 text-6xl">
+                <FontAwesomeIcon icon={faExclamationCircle} className="mx-auto text-red-600" />
+              </div>
               <h2 className="mb-2 text-2xl font-bold text-white">Order Not Found</h2>
               <p className="mb-6 text-gray-400">{error || 'Unable to load order summary'}</p>
               <Button variant="primary" onClick={() => router.push('/collections')}>

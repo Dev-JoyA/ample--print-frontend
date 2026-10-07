@@ -1,5 +1,6 @@
 'use client';
 
+import { faBox } from '@fortawesome/free-solid-svg-icons';
 import StatusBadge from '../ui/StatusBadge';
 
 const OrderCard = ({ order, onClick }) => {
@@ -11,7 +12,7 @@ const OrderCard = ({ order, onClick }) => {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3 sm:gap-4">
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/20 text-lg sm:h-12 sm:w-12 sm:text-xl">
-            📦
+            <FontAwesomeIcon icon={faBox} className="text-primary" />
           </div>
 
           <div>

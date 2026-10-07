@@ -12,6 +12,9 @@ import { paymentService } from '@/services/paymentService';
 import { orderService } from '@/services/orderService';
 import { profileService } from '@/services/profileService';
 import { METADATA } from '@/lib/metadata';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBank, faChain, faCheck, faExchange, faFileInvoice, faMoneyBillWave } from '@fortawesome/free-solid-svg-icons';
+import { faClock, faHourglass } from '@fortawesome/free-regular-svg-icons';
 
 export default function FinancialRecordsPage() {
   const router = useRouter();
@@ -57,11 +60,8 @@ export default function FinancialRecordsPage() {
         limit: 1000,
       };
 
-      console.log('🔍 Filtering invoices with:', filterParams);
-
       const invoicesResponse = await invoiceService.filter(filterParams);
-      console.log('📄 Filtered invoices response:', invoicesResponse);
-
+     
       const invoices = invoicesResponse?.invoices || [];
 
       const pendingTransfersResponse = await paymentService.getPendingBankTransfers({ limit: 100 });
@@ -418,7 +418,7 @@ export default function FinancialRecordsPage() {
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-lg border border-gray-800 bg-slate-900 p-4">
-              <p className="text-sm text-gray-400">💰 Total Revenue</p>
+              <p className="text-sm text-gray-400"><FontAwesomeIcon icon={faMoneyBillWave} /> Total Revenue</p>
               <p className="text-2xl font-bold text-green-400">
                 {formatCurrency(financialData.summary.totalRevenue)}
               </p>
@@ -428,7 +428,7 @@ export default function FinancialRecordsPage() {
             </div>
 
             <div className="rounded-lg border border-gray-800 bg-slate-900 p-4">
-              <p className="text-sm text-gray-400">⏳ Part Payments Due</p>
+              <p className="text-sm text-gray-400"><FontAwesomeIcon icon={faHourglass} /> Part Payments Due</p>
               <p className="text-2xl font-bold text-yellow-400">
                 {formatCurrency(financialData.summary.partPaymentsDue)}
               </p>
@@ -438,7 +438,7 @@ export default function FinancialRecordsPage() {
             </div>
 
             <div className="rounded-lg border border-gray-800 bg-slate-900 p-4">
-              <p className="text-sm text-gray-400">📋 Pending Amount</p>
+              <p className="text-sm text-gray-400"><FontAwesomeIcon icon={faClock} /> Pending Amount</p>
               <p className="text-2xl font-bold text-blue-400">
                 {formatCurrency(financialData.summary.pendingAmount)}
               </p>
@@ -448,7 +448,7 @@ export default function FinancialRecordsPage() {
             </div>
 
             <div className="rounded-lg border border-gray-800 bg-slate-900 p-4">
-              <p className="text-sm text-gray-400">🏦 Bank Transfers</p>
+              <p className="text-sm text-gray-400"><FontAwesomeIcon icon={faBank} /> Bank Transfers</p>
               <p className="text-2xl font-bold text-purple-400">
                 {financialData.summary.bankTransferPending}
               </p>
@@ -811,8 +811,8 @@ export default function FinancialRecordsPage() {
             <Link href="/dashboards/super-admin-dashboard/invoices">
               <div className="cursor-pointer rounded-lg border border-gray-800 bg-slate-900 p-4 transition hover:border-gray-700">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-900/30">
-                    <span className="text-xl">📄</span>
+                  <div className="flex h-10 w-10 items-center justify-center ">
+                    <FontAwesomeIcon icon={faFileInvoice} className="text-xl" />
                   </div>
                   <div>
                     <h3 className="font-medium text-white">View All Invoices</h3>
@@ -825,8 +825,8 @@ export default function FinancialRecordsPage() {
             <Link href="/dashboards/super-admin-dashboard/transactions">
               <div className="cursor-pointer rounded-lg border border-gray-800 bg-slate-900 p-4 transition hover:border-gray-700">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-900/30">
-                    <span className="text-xl">💸</span>
+                  <div className="flex h-10 w-10 items-center justify-center">
+                    <FontAwesomeIcon icon={faExchange} className="text-xl" />
                   </div>
                   <div>
                     <h3 className="font-medium text-white">View All Transactions</h3>
@@ -839,8 +839,8 @@ export default function FinancialRecordsPage() {
             <Link href="/dashboards/super-admin-dashboard/payment-verification">
               <div className="cursor-pointer rounded-lg border border-gray-800 bg-slate-900 p-4 transition hover:border-gray-700">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-900/30">
-                    <span className="text-xl">✓</span>
+                  <div className="flex h-10 w-10 items-center justify-center">
+                    <FontAwesomeIcon icon={faCheck} className="text-xl" />
                   </div>
                   <div>
                     <h3 className="font-medium text-white">Verify Payments</h3>

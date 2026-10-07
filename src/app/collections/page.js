@@ -99,7 +99,7 @@ export default function CollectionsPage() {
   const PublicLayout = ({ children }) => (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
       <Header showSearch={true} />
-      <main className="px-4 py-8 sm:px-6 sm:py-12 lg:px-8">{children}</main>
+      <main className="px-3rem py-8 sm:px-6 sm:py-12 lg:px-8">{children}</main>
       <Footer />
     </div>
   );
