@@ -11,6 +11,8 @@ import { feedbackService } from '@/services/feedbackService';
 import { useAuthCheck } from '@/app/lib/auth';
 import { METADATA } from '@/lib/metadata';
 import { getImageUrl } from '@/lib/imageUtils';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faClipboard, faComment, faFile, faPaperclip } from '@fortawesome/free-solid-svg-icons';
 
 export default function AdminFeedbackPage() {
   const router = useRouter();
@@ -220,7 +222,9 @@ export default function AdminFeedbackPage() {
 
           {feedbacks.length === 0 ? (
             <div className="rounded-xl border border-gray-800 bg-slate-900/30 py-16 text-center">
-              <div className="mb-4 text-6xl">💬</div>
+              <div className="mb-4 text-6xl">
+                <FontAwesomeIcon icon={faComment} className="text-gray-500" />
+              </div>
               <h3 className="mb-2 text-xl font-semibold text-white">No feedback found</h3>
               <p className="text-gray-400">
                 {filter === 'all'
@@ -297,7 +301,7 @@ export default function AdminFeedbackPage() {
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-1 rounded-lg bg-slate-700 p-2 transition hover:bg-slate-600"
                               >
-                                <span className="text-blue-400">📎</span>
+                                <FontAwesomeIcon icon={faPaperclip}  />
                                 <span className="text-xs text-gray-300">Attachment {idx + 1}</span>
                               </a>
                             ))}

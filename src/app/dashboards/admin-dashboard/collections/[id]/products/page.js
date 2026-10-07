@@ -11,6 +11,9 @@ import { collectionService } from '@/services/collectionService';
 import { productService } from '@/services/productService';
 import { useAuthCheck } from '@/app/lib/auth';
 import { getImageUrl } from '@/lib/imageUtils';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faComment, faComments, faFileLines} from '@fortawesome/free-regular-svg-icons';
+import { faBoxOpen } from '@fortawesome/free-solid-svg-icons';
 
 export default function Page() {
   const params = useParams();
@@ -208,7 +211,9 @@ export default function Page() {
 
             {products.length === 0 ? (
               <div className="rounded-2xl border border-gray-800 bg-slate-900/50 p-12 text-center backdrop-blur-sm sm:p-16">
-                <div className="mb-6 text-6xl opacity-50 sm:text-8xl">📦</div>
+                <div className="mb-6 text-6xl opacity-50 sm:text-8xl">
+                    <FontAwesomeIcon icon={faBoxOpen} />
+                </div>
                 <h3 className="mb-3 text-xl font-semibold text-white sm:text-2xl">
                   No products yet
                 </h3>
@@ -248,7 +253,9 @@ export default function Page() {
                           </div>
                         ) : (
                           <div className="flex h-full w-full items-center justify-center">
-                            <span className="text-5xl text-gray-700 sm:text-6xl">📦</span>
+                            <span className="text-5xl text-gray-700 sm:text-6xl">
+                                <FontAwesomeIcon icon={faBoxOpen} />
+                            </span>
                           </div>
                         )}
 

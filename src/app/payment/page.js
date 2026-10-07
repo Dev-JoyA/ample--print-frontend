@@ -14,6 +14,8 @@ import { paymentService } from '@/services/paymentService';
 import { bankAccountService } from '@/services/bankAccountService';
 import { getImageUrl } from '@/lib/imageUtils';
 import { METADATA } from '@/lib/metadata';
+import { faBank, faCreditCard, faLock, faUpload } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 function PaymentPageContent() {
   const router = useRouter();
@@ -338,7 +340,7 @@ function PaymentPageContent() {
                       <div
                         className={`mb-3 flex h-14 w-14 items-center justify-center rounded-xl sm:h-16 sm:w-16 ${paymentMethod === 'paystack' ? 'bg-[#2D6BFF]/20' : 'bg-gray-800'}`}
                       >
-                        <span className="text-2xl sm:text-3xl">💳</span>
+                        <FontAwesomeIcon icon={faCreditCard} className="text-2xl sm:text-3xl" />
                       </div>
                       <h3 className="text-sm font-semibold text-white sm:text-base">Paystack</h3>
                       <p className="mb-2 text-xs text-gray-400 sm:mb-3 sm:text-sm">
@@ -365,7 +367,7 @@ function PaymentPageContent() {
                       <div
                         className={`mb-3 flex h-14 w-14 items-center justify-center rounded-xl sm:h-16 sm:w-16 ${paymentMethod === 'bank' ? 'bg-[#2D6BFF]/20' : 'bg-gray-800'}`}
                       >
-                        <span className="text-2xl sm:text-3xl">🏦</span>
+                        <FontAwesomeIcon icon={faBank} className="text-2xl sm:text-3xl" />
                       </div>
                       <h3 className="text-sm font-semibold text-white sm:text-base">
                         Bank Transfer
@@ -425,7 +427,7 @@ function PaymentPageContent() {
                       />
                       <label htmlFor="receipt-upload" className="cursor-pointer">
                         <div className="flex flex-col items-center gap-2">
-                          <span className="text-3xl sm:text-4xl">📎</span>
+                          <FontAwesomeIcon icon={faUpload} className="text-2xl text-gray-400" />
                           <span className="text-sm font-medium text-[#2D6BFF]">
                             Click to upload
                           </span>
@@ -687,7 +689,8 @@ function PaymentPageContent() {
                 </div>
 
                 <p className="mt-4 text-center text-xs text-gray-500">
-                  🔒 Secure payment. Your information is encrypted
+                    <FontAwesomeIcon icon={faLock} className="mr-1" />
+                   Secure payment. Your information is encrypted
                 </p>
               </div>
             </div>

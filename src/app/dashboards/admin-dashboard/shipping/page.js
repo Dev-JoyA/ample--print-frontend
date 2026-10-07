@@ -12,6 +12,9 @@ import { shippingService } from '@/services/shippingService';
 import { orderService } from '@/services/orderService';
 import { invoiceService } from '@/services/invoiceService';
 import { METADATA } from '@/lib/metadata';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheckCircle, faFileInvoiceDollar, faTruck } from '@fortawesome/free-solid-svg-icons';
+import { faClock } from '@fortawesome/free-regular-svg-icons';
 
 export default function AdminShippingPage() {
   const router = useRouter();
@@ -300,7 +303,8 @@ export default function AdminShippingPage() {
                   disabled={isUpdating}
                   className="w-full text-sm"
                 >
-                  📋 Add Tracking
+                  <FontAwesomeIcon icon={faTruck} className="mr-2" />
+                   Add Tracking
                 </Button>
                 <Button
                   variant="success"
@@ -377,7 +381,8 @@ export default function AdminShippingPage() {
                     disabled={isUpdating}
                     className="w-full text-sm"
                   >
-                    📋 Add Tracking
+                    <FontAwesomeIcon icon={faTruck} className="mr-2" />
+                    Add Tracking
                   </Button>
                   <Button
                     variant="success"
@@ -386,7 +391,7 @@ export default function AdminShippingPage() {
                     disabled={isUpdating}
                     className="w-full text-sm"
                   >
-                    {isUpdating ? 'Processing...' : '🚚 Mark Shipped'}
+                    {isUpdating ? 'Processing...' : ' Mark Shipped'}
                   </Button>
                   <Button
                     variant="success"
@@ -395,7 +400,7 @@ export default function AdminShippingPage() {
                     disabled={isUpdating}
                     className="w-full text-sm"
                   >
-                    {isUpdating ? 'Processing...' : '✅ Mark Delivered'}
+                    {isUpdating ? 'Processing...' : ' Mark Delivered'}
                   </Button>
                 </>
               )}
@@ -408,7 +413,7 @@ export default function AdminShippingPage() {
                   disabled={isUpdating}
                   className="w-full text-sm"
                 >
-                  {isUpdating ? 'Processing...' : '✅ Mark Delivered'}
+                  {isUpdating ? 'Processing...' : ' Mark Delivered'}
                 </Button>
               )}
             </>
@@ -437,11 +442,11 @@ export default function AdminShippingPage() {
   };
 
   const tabs = [
-    { id: 'all', label: 'All Shipping', icon: '📦' },
-    { id: 'needing-invoice', label: 'Awaiting Processing', icon: '💰' },
-    { id: 'pending', label: 'Pending', icon: '⏳' },
-    { id: 'shipped', label: 'Shipped', icon: '🚚' },
-    { id: 'delivered', label: 'Delivered', icon: '✅' },
+    { id: 'all', label: 'All Shipping', icon: <FontAwesomeIcon icon={faTruck} /> },
+    { id: 'needing-invoice', label: 'Awaiting Processing', icon: <FontAwesomeIcon icon={faFileInvoiceDollar} /> },
+    { id: 'pending', label: 'Pending', icon: <FontAwesomeIcon icon={faClock} /> },
+    { id: 'shipped', label: 'Shipped', icon: <FontAwesomeIcon icon={faTruck} /> },
+    { id: 'delivered', label: 'Delivered', icon: <FontAwesomeIcon icon={faCheckCircle} /> },
   ];
 
   if (loading) {
@@ -543,7 +548,9 @@ export default function AdminShippingPage() {
 
           {shippingRecords.length === 0 ? (
             <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-12 text-center sm:p-16">
-              <div className="mb-4 text-5xl opacity-50 sm:text-7xl">🚚</div>
+              <div className="mb-4 text-5xl opacity-50 sm:text-7xl">
+                <FontAwesomeIcon icon={faTruck} className="mx-auto" />
+              </div>
               <h3 className="mb-2 text-xl font-semibold text-white sm:text-2xl">
                 No shipping records found
               </h3>

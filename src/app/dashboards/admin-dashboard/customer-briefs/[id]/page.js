@@ -12,6 +12,8 @@ import { useAuthCheck } from '@/app/lib/auth';
 import { customerBriefService } from '@/services/customerBriefService';
 import { designService } from '@/services/designService';
 import { getImageUrl, getDownloadUrl, getAudioUrl, getProductImageUrl } from '@/lib/imageUtils';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faComments, faDownload, faExclamationCircle, faFile, faImage, faMicrophone, faPalette, faVideoCamera } from '@fortawesome/free-solid-svg-icons';
 
 export default function CustomerBriefDetailPage({ params }) {
   const router = useRouter();
@@ -396,7 +398,7 @@ export default function CustomerBriefDetailPage({ params }) {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/20 text-xl sm:h-12 sm:w-12 sm:text-2xl">
-                  📝
+                  <FontAwesomeIcon icon={faFile} />
                 </div>
                 <div>
                   <div className="mb-1 flex flex-wrap items-center gap-2 sm:gap-3">
@@ -420,10 +422,10 @@ export default function CustomerBriefDetailPage({ params }) {
                   <p className="text-[10px] text-gray-400 sm:text-xs">Files</p>
                   <p className="text-base font-bold text-white sm:text-lg">
                     {[
-                      brief.image && '📷',
-                      brief.voiceNote && '🎤',
-                      brief.video && '🎥',
-                      brief.logo && '🎨',
+                      brief.image && <FontAwesomeIcon key="image" icon={faImage} />,
+                      brief.voiceNote && <FontAwesomeIcon key="voice" icon={faMicrophone} />,
+                      brief.video && <FontAwesomeIcon key="video" icon={faVideoCamera} />,
+                      brief.logo && <FontAwesomeIcon key="logo" icon={faPalette} />,
                     ].filter(Boolean).length || 0}
                   </p>
                 </div>
@@ -444,7 +446,9 @@ export default function CustomerBriefDetailPage({ params }) {
           {!brief.viewedByAdmin && (
             <div className="mb-6 rounded-lg border border-blue-700 bg-blue-900/30 p-3 sm:p-4">
               <div className="flex items-center gap-2 text-blue-400">
-                <span className="text-sm">👁️</span>
+                <span className="text-sm">
+                    <FontAwesomeIcon icon={faExclamationCircle} />
+                </span>
                 <span className="text-sm font-medium">Auto-marked as viewed by admin</span>
               </div>
             </div>
@@ -456,7 +460,9 @@ export default function CustomerBriefDetailPage({ params }) {
                 <div className={`h-1 bg-${statusColors[status]}-500`}></div>
                 <div className="p-4 sm:p-6">
                   <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-white sm:text-lg">
-                    <span className="text-primary">📋</span>
+                    <span className="text-primary">
+                        <FontAwesomeIcon icon={faFile} />
+                    </span>
                     Customer Request
                   </h2>
 
@@ -483,7 +489,7 @@ export default function CustomerBriefDetailPage({ params }) {
                               onClick={() => setPreviewImage(getImageUrl(brief.image))}
                               className="group flex w-full items-center gap-3 rounded-lg bg-slate-800/50 px-3 py-2 transition hover:bg-slate-800 sm:px-4 sm:py-3"
                             >
-                              <span className="text-xl sm:text-2xl">🖼️</span>
+                              <FontAwesomeIcon icon={faImages} className="text-xl sm:text-2xl" />
                               <div className="flex-1 text-left">
                                 <p className="text-xs text-white sm:text-sm">Reference Image</p>
                                 <p className="text-[10px] text-gray-500 sm:text-xs">
@@ -497,7 +503,7 @@ export default function CustomerBriefDetailPage({ params }) {
                           {brief.voiceNote && (
                             <div className="rounded-lg bg-slate-800/50 px-3 py-2 sm:px-4 sm:py-3">
                               <div className="mb-2 flex items-center gap-2 sm:gap-3">
-                                <span className="text-xl sm:text-2xl">🎤</span>
+                                <FontAwesomeIcon icon={faMicrophone} className="text-xl sm:text-2xl" />
                                 <span className="text-xs text-white sm:text-sm">Voice Note</span>
                               </div>
                               <audio controls className="h-8 w-full">
@@ -511,7 +517,7 @@ export default function CustomerBriefDetailPage({ params }) {
                               onClick={() => setPreviewVideo(getImageUrl(brief.video))}
                               className="group flex w-full items-center gap-3 rounded-lg bg-slate-800/50 px-3 py-2 transition hover:bg-slate-800 sm:px-4 sm:py-3"
                             >
-                              <span className="text-xl sm:text-2xl">🎥</span>
+                              <FontAwesomeIcon icon={faVideoCamera} className="text-xl sm:text-2xl" />
                               <div className="flex-1 text-left">
                                 <p className="text-xs text-white sm:text-sm">Video Reference</p>
                                 <p className="text-[10px] text-gray-500 sm:text-xs">
@@ -527,7 +533,7 @@ export default function CustomerBriefDetailPage({ params }) {
                               onClick={() => setPreviewImage(getImageUrl(brief.logo))}
                               className="group flex w-full items-center gap-3 rounded-lg bg-slate-800/50 px-3 py-2 transition hover:bg-slate-800 sm:px-4 sm:py-3"
                             >
-                              <span className="text-xl sm:text-2xl">🎨</span>
+                              <FontAwesomeIcon icon={faPalette} className="text-xl sm:text-2xl" />
                               <div className="flex-1 text-left">
                                 <p className="text-xs text-white sm:text-sm">Logo</p>
                                 <p className="text-[10px] text-gray-500 sm:text-xs">
@@ -549,7 +555,9 @@ export default function CustomerBriefDetailPage({ params }) {
               <div className="overflow-hidden rounded-xl border border-gray-800 bg-slate-900/50 backdrop-blur-sm">
                 <div className="border-b border-gray-800 p-4 sm:p-6">
                   <h2 className="flex items-center gap-2 text-base font-semibold text-white sm:text-lg">
-                    <span className="text-primary">💬</span>
+                    <span className="text-primary">
+                      <FontAwesomeIcon icon={faComments} />
+                    </span>
                     Conversation History
                   </h2>
                 </div>
@@ -599,7 +607,7 @@ export default function CustomerBriefDetailPage({ params }) {
                                     onClick={() => setPreviewImage(getImageUrl(msg.image))}
                                     className="inline-flex items-center gap-1 rounded-lg bg-slate-700/50 px-2 py-1 text-xs text-blue-400 transition hover:bg-slate-700 sm:px-3 sm:py-1.5 sm:text-sm"
                                   >
-                                    <span>🖼️</span>
+                                    <FontAwesomeIcon icon={faImage}  />
                                     View Image
                                   </button>
                                   <a
@@ -607,7 +615,7 @@ export default function CustomerBriefDetailPage({ params }) {
                                     download
                                     className="inline-flex items-center gap-1 rounded-lg bg-slate-700/50 px-2 py-1 text-xs text-gray-300 transition hover:bg-slate-700 sm:px-3 sm:py-1.5 sm:text-sm"
                                   >
-                                    <span>⬇️</span>
+                                    <FontAwesomeIcon icon={faDownload} />
                                     Download
                                   </a>
                                 </div>
@@ -615,7 +623,7 @@ export default function CustomerBriefDetailPage({ params }) {
 
                               {msg.voiceNote && (
                                 <div className="flex flex-wrap items-center gap-2 rounded-lg bg-slate-700/50 px-2 py-1 sm:px-3 sm:py-1.5">
-                                  <span className="text-green-400">🎤</span>
+                                  <FontAwesomeIcon icon={faMicrophone}  />
                                   <audio controls className="h-8 max-w-[150px] sm:max-w-[200px]">
                                     <source src={getAudioUrl(msg.voiceNote)} />
                                   </audio>
@@ -647,7 +655,7 @@ export default function CustomerBriefDetailPage({ params }) {
                                     onClick={() => setPreviewVideo(getImageUrl(msg.video))}
                                     className="inline-flex items-center gap-1 rounded-lg bg-slate-700/50 px-2 py-1 text-xs text-red-400 transition hover:bg-slate-700 sm:px-3 sm:py-1.5 sm:text-sm"
                                   >
-                                    <span>🎥</span>
+                                    <FontAwesomeIcon icon={faVideoCamera} />
                                     View Video
                                   </button>
                                   <a
@@ -655,7 +663,7 @@ export default function CustomerBriefDetailPage({ params }) {
                                     download
                                     className="inline-flex items-center gap-1 rounded-lg bg-slate-700/50 px-2 py-1 text-xs text-gray-300 transition hover:bg-slate-700 sm:px-3 sm:py-1.5 sm:text-sm"
                                   >
-                                    <span>⬇️</span>
+                                    <FontAwesomeIcon icon={faDownload} />
                                     Download
                                   </a>
                                 </div>
@@ -667,7 +675,7 @@ export default function CustomerBriefDetailPage({ params }) {
                                     onClick={() => setPreviewImage(getImageUrl(msg.logo))}
                                     className="inline-flex items-center gap-1 rounded-lg bg-slate-700/50 px-2 py-1 text-xs text-purple-400 transition hover:bg-slate-700 sm:px-3 sm:py-1.5 sm:text-sm"
                                   >
-                                    <span>🎨</span>
+                                    <FontAwesomeIcon icon={faPalette} />
                                     View Logo
                                   </button>
                                   <a
@@ -675,7 +683,7 @@ export default function CustomerBriefDetailPage({ params }) {
                                     download
                                     className="inline-flex items-center gap-1 rounded-lg bg-slate-700/50 px-2 py-1 text-xs text-gray-300 transition hover:bg-slate-700 sm:px-3 sm:py-1.5 sm:text-sm"
                                   >
-                                    <span>⬇️</span>
+                                    <FontAwesomeIcon icon={faDownload} />
                                     Download
                                   </a>
                                 </div>
@@ -696,7 +704,7 @@ export default function CustomerBriefDetailPage({ params }) {
               <div className="overflow-hidden rounded-xl border border-gray-800 bg-slate-900/50 backdrop-blur-sm">
                 <div className="border-b border-gray-800 p-4 sm:p-6">
                   <h2 className="flex items-center gap-2 text-base font-semibold text-white sm:text-lg">
-                    <span className="text-primary">✏️</span>
+                    <FontAwesomeIcon icon={faComments} className="text-primary" />
                     Your Response
                   </h2>
                 </div>
@@ -716,7 +724,7 @@ export default function CustomerBriefDetailPage({ params }) {
                         onClick={startRecording}
                         className="flex items-center gap-2 rounded-lg bg-red-600/20 px-3 py-2 text-sm text-red-400 transition hover:bg-red-600/30 sm:px-4"
                       >
-                        <span>🎤</span>
+                        <FontAwesomeIcon icon={faMicrophone} />
                         <span>Record Voice Note</span>
                       </button>
                     ) : isRecording ? (
@@ -744,7 +752,7 @@ export default function CustomerBriefDetailPage({ params }) {
                     ) : (
                       audioBlob && (
                         <div className="flex flex-wrap items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 sm:gap-3 sm:px-4">
-                          <span className="text-green-400">🎤</span>
+                          <FontAwesomeIcon icon={faMicrophone}  />
                           <audio
                             controls
                             src={audioUrl}
@@ -788,7 +796,7 @@ export default function CustomerBriefDetailPage({ params }) {
                         htmlFor="image-upload"
                         className="flex cursor-pointer items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm transition hover:bg-slate-700"
                       >
-                        <span className="text-blue-400">🖼️</span>
+                        <FontAwesomeIcon icon={faImage} />
                         <span>Add Images</span>
                       </label>
                     </div>
@@ -806,7 +814,7 @@ export default function CustomerBriefDetailPage({ params }) {
                         htmlFor="logo-upload"
                         className="flex cursor-pointer items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm transition hover:bg-slate-700"
                       >
-                        <span className="text-purple-400">🎨</span>
+                        <FontAwesomeIcon icon={faPalette} className="text-purple-400" />
                         <span>Add Logo</span>
                       </label>
                     </div>
@@ -819,7 +827,7 @@ export default function CustomerBriefDetailPage({ params }) {
                           key={index}
                           className="flex items-center gap-2 rounded-lg bg-slate-700 px-2 py-1 sm:px-3 sm:py-1.5"
                         >
-                          <span className="text-blue-400">🖼️</span>
+                          <FontAwesomeIcon icon={faImage} className="text-blue-400" />
                           <span className="max-w-[100px] truncate text-xs text-gray-300 sm:max-w-[150px] sm:text-sm">
                             {file.name}
                           </span>
@@ -846,7 +854,7 @@ export default function CustomerBriefDetailPage({ params }) {
 
                       {responseFiles.logo && (
                         <div className="flex items-center gap-2 rounded-lg bg-slate-700 px-2 py-1 sm:px-3 sm:py-1.5">
-                          <span className="text-purple-400">🎨</span>
+                          <FontAwesomeIcon icon={faPalette}  />
                           <span className="max-w-[100px] truncate text-xs text-gray-300 sm:max-w-[150px] sm:text-sm">
                             {responseFiles.logo.name}
                           </span>

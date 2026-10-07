@@ -86,11 +86,14 @@ const Page = () => {
             />
           </div>
 
-          {error && (
-            <div className="rounded-lg border border-red-700 bg-red-900/50 p-3 text-sm text-red-200">
-              {error}
-            </div>
-          )}
+          {error &&
+            !error.toLowerCase().includes('email') &&
+            !error.toLowerCase().includes('phone') &&
+            !error.toLowerCase().includes('password') && (
+                <div className="rounded-lg border border-red-700 bg-red-900/50 p-3 text-sm text-red-200">
+                {error}
+                </div>
+            )}
 
           <div>
             <div>
@@ -169,6 +172,11 @@ const Page = () => {
                       required
                       disabled={loading}
                     />
+                    {error?.toLowerCase().includes('email') && (
+                    <p className="mt-1 text-xs text-red-400">
+                        {error}
+                    </p>
+                    )}
                   </div>
                   <div className="flex flex-col">
                     <label className="text-xs font-bold sm:text-sm" htmlFor="phoneNumber">
@@ -185,6 +193,11 @@ const Page = () => {
                       required
                       disabled={loading}
                     />
+                     {error?.toLowerCase().includes('phone') && (
+                    <p className="mt-1 text-xs text-red-400">
+                        {error}
+                    </p>
+                    )}
                   </div>
                   <div className="flex flex-col">
                     <label className="text-xs font-bold sm:text-sm" htmlFor="userName">
@@ -260,6 +273,11 @@ const Page = () => {
                         )}
                       </button>
                     </div>
+                     {error?.toLowerCase().includes('password') && (
+                    <p className="mt-1 text-xs text-red-400">
+                        {error}
+                    </p>
+                    )}
                   </div>
                   <div className="flex flex-col md:col-span-2">
                     <label className="text-xs font-bold sm:text-sm" htmlFor="address">
@@ -316,7 +334,7 @@ const Page = () => {
 
             <p className="mt-4 flex justify-center font-carlito text-xs text-gray-600 sm:mt-6 sm:text-sm">
               Already have an account?{' '}
-              <Link href="/auth/sign-in" className="ml-1 text-[#FF676A] hover:underline">
+              <Link href="/auth/sign-in" className="ml-1 text-red-600 hover:underline">
                 Sign in
               </Link>
             </p>

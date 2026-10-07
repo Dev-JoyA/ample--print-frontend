@@ -11,6 +11,8 @@ import { customerBriefService } from '@/services/customerBriefService';
 import { orderService } from '@/services/orderService';
 import { METADATA } from '@/lib/metadata';
 import { getImageUrl, getAudioUrl, getDownloadUrl, getProductImageUrl } from '@/lib/imageUtils';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheckCircle, faDownload, faExclamationTriangle, faFile, faImage, faImages, faMicrophone, faPalette, faVideoCamera } from '@fortawesome/free-solid-svg-icons';
 
 export default function CustomerBriefsPage() {
   useAuthCheck();
@@ -47,9 +49,9 @@ export default function CustomerBriefsPage() {
   const timerRef = useRef(null);
 
   const statusColors = {
-    pending: 'blue',
+    pending: 'yellow',
     responded: 'green',
-    viewed: 'purple',
+    viewed: 'blue',
   };
 
   useEffect(() => {
@@ -430,17 +432,17 @@ export default function CustomerBriefsPage() {
                   <p className="text-xs text-gray-400">Total</p>
                   <p className="text-lg font-bold text-white sm:text-xl">{stats.total}</p>
                 </div>
-                <div className="rounded-lg bg-blue-600/20 px-3 py-2 sm:px-4">
-                  <p className="text-xs text-blue-400">Pending</p>
-                  <p className="text-lg font-bold text-blue-400 sm:text-xl">{stats.pending}</p>
+                <div className="rounded-lg bg-yellow-600/20 px-3 py-2 sm:px-4">
+                  <p className="text-xs text-yellow-400">Pending</p>
+                  <p className="text-lg font-bold text-yellow-400 sm:text-xl">{stats.pending}</p>
                 </div>
                 <div className="rounded-lg bg-green-600/20 px-3 py-2 sm:px-4">
                   <p className="text-xs text-green-400">Responded</p>
                   <p className="text-lg font-bold text-green-400 sm:text-xl">{stats.responded}</p>
                 </div>
-                <div className="rounded-lg bg-purple-600/20 px-3 py-2 sm:px-4">
-                  <p className="text-xs text-purple-400">Viewed</p>
-                  <p className="text-lg font-bold text-purple-400 sm:text-xl">{stats.viewed}</p>
+                <div className="rounded-lg bg-blue-600/20 px-3 py-2 sm:px-4">
+                  <p className="text-xs text-blue-400">Viewed</p>
+                  <p className="text-lg font-bold text-blue-400 sm:text-xl">{stats.viewed}</p>
                 </div>
               </div>
             </div>
@@ -452,7 +454,7 @@ export default function CustomerBriefsPage() {
                     onClick={() => setActiveTab('pending')}
                     className={`whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition sm:px-4 sm:text-sm ${
                       activeTab === 'pending'
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-yellow-600 text-white'
                         : 'text-gray-400 hover:text-white'
                     }`}
                   >
@@ -472,7 +474,7 @@ export default function CustomerBriefsPage() {
                     onClick={() => setActiveTab('viewed')}
                     className={`whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition sm:px-4 sm:text-sm ${
                       activeTab === 'viewed'
-                        ? 'bg-purple-600 text-white'
+                        ? 'bg-blue-600 text-white'
                         : 'text-gray-400 hover:text-white'
                     }`}
                   >
@@ -498,7 +500,7 @@ export default function CustomerBriefsPage() {
                       : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
                   }`}
                 >
-                  <span>📎</span>
+                  <FontAwesomeIcon icon={filterHasFiles ? faCheckCircle : faFile} />
                   Has Files ({stats.hasFiles})
                 </button>
 
@@ -616,7 +618,7 @@ export default function CustomerBriefsPage() {
                         <div className="mb-3 flex items-start justify-between">
                           <div className="flex items-center gap-2">
                             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20 text-lg">
-                              📝
+                              <FontAwesomeIcon icon={faFile} />
                             </div>
                             <div>
                               <span className="font-mono text-xs text-primary">#{orderNumber}</span>
@@ -651,22 +653,26 @@ export default function CustomerBriefsPage() {
                           <div className="mb-4 flex flex-wrap gap-2">
                             {brief.image && (
                               <span className="inline-flex items-center gap-1 rounded-full bg-blue-600/10 px-2 py-1 text-xs text-blue-400">
-                                🖼️ Image
+                                <FontAwesomeIcon icon={faImage} />
+                                Image
                               </span>
                             )}
                             {brief.voiceNote && (
                               <span className="inline-flex items-center gap-1 rounded-full bg-green-600/10 px-2 py-1 text-xs text-green-400">
-                                🎤 Voice
+                                <FontAwesomeIcon icon={faMicrophone} />
+                                Voice
                               </span>
                             )}
                             {brief.video && (
                               <span className="inline-flex items-center gap-1 rounded-full bg-red-600/10 px-2 py-1 text-xs text-red-400">
-                                🎥 Video
+                                <FontAwesomeIcon icon={faVideoCamera} />
+                                Video
                               </span>
                             )}
                             {brief.logo && (
                               <span className="inline-flex items-center gap-1 rounded-full bg-purple-600/10 px-2 py-1 text-xs text-purple-400">
-                                🎨 Logo
+                                <FontAwesomeIcon icon={faPalette} />
+                                Logo
                               </span>
                             )}
                           </div>
@@ -714,7 +720,7 @@ export default function CustomerBriefsPage() {
             ) : (
               !loading && (
                 <div className="rounded-xl border border-gray-800 bg-slate-900/30 py-16 text-center">
-                  <div className="mb-4 text-6xl">📝</div>
+                  <div className="mb-4 text-6xl"><FontAwesomeIcon icon={faExclamationTriangle} /></div>
                   <h3 className="mb-2 text-xl font-semibold text-white">No briefs found</h3>
                   <p className="text-gray-400">
                     {searchTerm
@@ -823,7 +829,7 @@ export default function CustomerBriefsPage() {
                                   onClick={() => setPreviewImage(getImageUrl(msg.image))}
                                   className="inline-flex items-center gap-1 rounded-lg bg-slate-700/50 px-3 py-1.5 text-sm text-blue-400 transition hover:bg-slate-700"
                                 >
-                                  <span>🖼️</span>
+                                  <FontAwesomeIcon icon={faImage} />
                                   View Image
                                 </button>
                                 <a
@@ -831,7 +837,7 @@ export default function CustomerBriefsPage() {
                                   download
                                   className="inline-flex items-center gap-1 rounded-lg bg-slate-700/50 px-3 py-1.5 text-sm text-gray-300 transition hover:bg-slate-700"
                                 >
-                                  <span>⬇️</span>
+                                  <FontAwesomeIcon icon={faDownload} />
                                   Download
                                 </a>
                               </div>
@@ -839,7 +845,7 @@ export default function CustomerBriefsPage() {
 
                             {msg.voiceNote && (
                               <div className="flex flex-wrap items-center gap-2 rounded-lg bg-slate-700/50 px-3 py-1.5">
-                                <span className="text-green-400">🎤</span>
+                                <span className="text-green-400"><FontAwesomeIcon icon={faMicrophone} /></span>
                                 <audio controls className="h-8 max-w-[150px] sm:max-w-[200px]">
                                   <source src={getAudioUrl(msg.voiceNote)} />
                                 </audio>
@@ -871,7 +877,7 @@ export default function CustomerBriefsPage() {
                                   onClick={() => setPreviewVideo(getImageUrl(msg.video))}
                                   className="inline-flex items-center gap-1 rounded-lg bg-slate-700/50 px-3 py-1.5 text-sm text-red-400 transition hover:bg-slate-700"
                                 >
-                                  <span>🎥</span>
+                                  <FontAwesomeIcon icon={faVideoCamera} />
                                   View Video
                                 </button>
                                 <a
@@ -879,7 +885,7 @@ export default function CustomerBriefsPage() {
                                   download
                                   className="inline-flex items-center gap-1 rounded-lg bg-slate-700/50 px-3 py-1.5 text-sm text-gray-300 transition hover:bg-slate-700"
                                 >
-                                  <span>⬇️</span>
+                                  <FontAwesomeIcon icon={faDownload} />
                                   Download
                                 </a>
                               </div>
@@ -891,7 +897,7 @@ export default function CustomerBriefsPage() {
                                   onClick={() => setPreviewImage(getImageUrl(msg.logo))}
                                   className="inline-flex items-center gap-1 rounded-lg bg-slate-700/50 px-3 py-1.5 text-sm text-purple-400 transition hover:bg-slate-700"
                                 >
-                                  <span>🎨</span>
+                                  <FontAwesomeIcon icon={faPalette} />
                                   View Logo
                                 </button>
                                 <a
@@ -899,7 +905,7 @@ export default function CustomerBriefsPage() {
                                   download
                                   className="inline-flex items-center gap-1 rounded-lg bg-slate-700/50 px-3 py-1.5 text-sm text-gray-300 transition hover:bg-slate-700"
                                 >
-                                  <span>⬇️</span>
+                                  <FontAwesomeIcon icon={faDownload} />
                                   Download
                                 </a>
                               </div>
@@ -957,7 +963,7 @@ export default function CustomerBriefsPage() {
                   ) : (
                     audioBlob && (
                       <div className="flex flex-wrap items-center gap-3 rounded-lg bg-slate-800 px-4 py-2">
-                        <span className="text-green-400">🎤</span>
+                        <span className="text-green-400"><FontAwesomeIcon icon={faMicrophone} /></span>
                         <audio
                           controls
                           src={audioUrl}
@@ -1001,7 +1007,7 @@ export default function CustomerBriefsPage() {
                       htmlFor="image-upload"
                       className="flex cursor-pointer items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm transition hover:bg-slate-700"
                     >
-                      <span className="text-blue-400">🖼️</span>
+                      <span className="text-blue-400"><FontAwesomeIcon icon={faImages} /></span>
                       <span>Add Images</span>
                     </label>
                   </div>
@@ -1019,7 +1025,7 @@ export default function CustomerBriefsPage() {
                       htmlFor="logo-upload"
                       className="flex cursor-pointer items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm transition hover:bg-slate-700"
                     >
-                      <span className="text-purple-400">🎨</span>
+                      <span className="text-purple-400"><FontAwesomeIcon icon={faPalette} /></span>
                       <span>Add Logo</span>
                     </label>
                   </div>
@@ -1034,7 +1040,7 @@ export default function CustomerBriefsPage() {
                         key={index}
                         className="flex items-center gap-2 rounded-lg bg-slate-700 px-3 py-1.5"
                       >
-                        <span className="text-blue-400">🖼️</span>
+                        <span className="text-blue-400"><FontAwesomeIcon icon={faImages} /></span>
                         <span className="max-w-[100px] truncate text-sm text-gray-300 sm:max-w-[150px]">
                           {file.name}
                         </span>
@@ -1061,7 +1067,7 @@ export default function CustomerBriefsPage() {
 
                     {responseFiles.logo && (
                       <div className="flex items-center gap-2 rounded-lg bg-slate-700 px-3 py-1.5">
-                        <span className="text-purple-400">🎨</span>
+                        <span className="text-purple-400"><FontAwesomeIcon icon={faPalette} /></span>
                         <span className="max-w-[100px] truncate text-sm text-gray-300 sm:max-w-[150px]">
                           {responseFiles.logo.name}
                         </span>

@@ -13,6 +13,7 @@ import { orderService } from '@/services/orderService';
 import { customerBriefService } from '@/services/customerBriefService';
 import { METADATA, getOrderMetadata } from '@/lib/metadata';
 import { getImageUrl } from '@/lib/imageUtils';
+import { faBox, faCheck, faClipboard, faCogs, faExclamationCircle, faPalette, faThumbsUp } from '@fortawesome/free-solid-svg-icons';
 
 export default function OrderDetailPage() {
   const params = useParams();
@@ -175,7 +176,9 @@ export default function OrderDetailPage() {
         <DashboardLayout userRole={user?.role}>
           <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
             <div className="rounded-xl border border-red-700 bg-red-900/30 p-8 text-center">
-              <div className="mb-4 text-6xl">😕</div>
+              <div className="mb-4 text-6xl">
+                <FontAwesomeIcon icon={faExclamationCircle} className="mx-auto text-red-600" />
+              </div>
               <h2 className="mb-2 text-2xl font-bold text-white">Order Not Found</h2>
               <p className="mb-6 text-gray-400">
                 {error || "The order you're looking for doesn't exist."}
@@ -293,14 +296,14 @@ export default function OrderDetailPage() {
                   >
                     <span className="text-3xl">
                       {order.status === 'Delivered'
-                        ? '✅'
+                        ? <FontAwesomeIcon icon={faCheck} className="mx-auto" />
                         : order.status === 'InProduction'
-                          ? '⚙️'
+                          ? <FontAwesomeIcon icon={faCogs} className="mx-auto" />
                           : order.status === 'DesignUploaded'
-                            ? '🎨'
+                            ? <FontAwesomeIcon icon={faPalette} className="mx-auto" />
                             : order.status === 'Approved'
-                              ? '👍'
-                              : '📋'}
+                              ? <FontAwesomeIcon icon={faThumbsUp} className="mx-auto" />
+                              : <FontAwesomeIcon icon={faClipboard} className="mx-auto" />}
                     </span>
                   </div>
                   <div>
@@ -391,7 +394,7 @@ export default function OrderDetailPage() {
                       >
                         <div className="flex flex-col gap-4 sm:flex-row">
                           <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-slate-800 text-4xl">
-                            📦
+                            <FontAwesomeIcon icon={faBox} className="mx-auto text-gray-400" />
                           </div>
 
                           <div className="flex-1">
@@ -826,12 +829,12 @@ export default function OrderDetailPage() {
                       >
                         <span className="text-base sm:text-lg">
                           {order.status === 'Delivered'
-                            ? '✅'
+                            ? <FontAwesomeIcon icon={faCheck} className="mx-auto" />
                             : order.status === 'InProduction'
-                              ? '⚙️'
+                              ? <FontAwesomeIcon icon={faCogs} className="mx-auto" />
                               : order.status === 'DesignUploaded'
-                                ? '🎨'
-                                : '📋'}
+                                ? <FontAwesomeIcon icon={faPalette} className="mx-auto" />
+                                : <FontAwesomeIcon icon={faClipboard} className="mx-auto" />}
                         </span>
                       </div>
                       <div className="flex-1">

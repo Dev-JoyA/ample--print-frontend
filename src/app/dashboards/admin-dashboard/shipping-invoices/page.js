@@ -9,6 +9,7 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import SEOHead from '@/components/common/SEOHead';
 import { shippingService } from '@/services/shippingService';
 import { METADATA } from '@/lib/metadata';
+import { faFileInvoiceDollar } from '@fortawesome/free-solid-svg-icons';
 
 export default function ShippingInvoicesPage() {
   const router = useRouter();
@@ -89,7 +90,9 @@ export default function ShippingInvoicesPage() {
 
           {shippingRecords.length === 0 ? (
             <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-8 text-center sm:p-12">
-              <div className="mb-4 text-5xl sm:text-6xl">📦</div>
+              <div className="mb-4 text-5xl sm:text-6xl">
+                <FontAwesomeIcon icon={faFileInvoiceDollar} className="mx-auto" />
+              </div>
               <h3 className="mb-2 text-lg font-semibold text-white sm:text-xl">
                 No shipping needs invoice
               </h3>

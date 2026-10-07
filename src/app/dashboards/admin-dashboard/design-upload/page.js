@@ -10,6 +10,8 @@ import { orderService } from '@/services/orderService';
 import { designService } from '@/services/designService';
 import { feedbackService } from '@/services/feedbackService';
 import { METADATA } from '@/lib/metadata';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faComment } from '@fortawesome/free-solid-svg-icons';
 
 function DesignUploadPageContent() {
   const router = useRouter();
@@ -186,17 +188,11 @@ function DesignUploadPageContent() {
       });
       formData.append('productId', productId);
       formData.append('description', `Design for ${design.productName}`);
-      console.log('🔍 Debug Info:');
-      console.log('- Order ID being sent:', selectedOrder);
-      console.log('- Product ID being sent:', productId);
-      console.log('- Number of files:', design.files.length);
-      console.log('- API URL:', `/design/orders/${selectedOrder}`);
+     
       const response = await designService.upload(selectedOrder, formData);
-      console.log('✅ Upload response:', response);
       if (feedbackIdParam) {
         try {
           await feedbackService.updateStatus(feedbackIdParam, 'Resolved');
-          console.log('✅ Feedback marked as resolved');
         } catch (fbErr) {
           console.error('Failed to update feedback status:', fbErr);
         }
@@ -294,7 +290,9 @@ function DesignUploadPageContent() {
             {feedbackInfo && (
               <div className="mt-4 rounded-lg border border-yellow-800 bg-yellow-900/20 p-4">
                 <div className="flex items-start gap-3">
-                  <div className="text-xl text-yellow-400">💬</div>
+                  <div className="text-xl text-yellow-400">
+                    <FontAwesomeIcon icon={faComment} />
+                  </div>
                   <div>
                     <h3 className="mb-1 font-semibold text-white">
                       Responding to Customer Feedback

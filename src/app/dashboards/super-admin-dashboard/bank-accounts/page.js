@@ -8,6 +8,8 @@ import Input from '@/components/ui/Input';
 import SEOHead from '@/components/common/SEOHead';
 import { useAuthCheck } from '@/app/lib/auth';
 import { api } from '@/lib/api';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBank } from '@fortawesome/free-solid-svg-icons';
 
 export default function BankAccountsPage() {
   useAuthCheck();
@@ -227,7 +229,9 @@ export default function BankAccountsPage() {
 
           {bankAccounts.length === 0 ? (
             <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-12 text-center">
-              <div className="mb-4 text-5xl">🏦</div>
+              <div className="mb-4 text-5xl">
+                <FontAwesomeIcon icon={faBank} />
+              </div>
               <h3 className="mb-2 text-lg font-semibold text-white">No Bank Accounts</h3>
               <p className="text-sm text-gray-400">
                 Add a bank account to start collecting payments

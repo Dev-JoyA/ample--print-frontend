@@ -53,7 +53,7 @@ const Footer = () => {
             <ul className="space-y-2 text-xs text-gray-400 sm:text-sm">
               <li>
                 <Link
-                  href="/collections/brand-essentials"
+                  href="/collections"
                   className="transition-colors hover:text-primary"
                 >
                   Business Cards
@@ -61,7 +61,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="/collections/marketing"
+                  href="/collections"
                   className="transition-colors hover:text-primary"
                 >
                   Flyers & Brochures
@@ -69,14 +69,14 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="/collections/large-format"
+                  href="/collections"
                   className="transition-colors hover:text-primary"
                 >
                   Banners & Posters
                 </Link>
               </li>
               <li>
-                <Link href="/collections/stickers" className="transition-colors hover:text-primary">
+                <Link href="/collections" className="transition-colors hover:text-primary">
                   Custom Stickers
                 </Link>
               </li>

@@ -14,6 +14,9 @@ import { customerBriefService } from '@/services/customerBriefService';
 import { feedbackService } from '@/services/feedbackService';
 import { METADATA } from '@/lib/metadata';
 import { getImageUrl } from '@/lib/imageUtils';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBox, faClipboardList, faComments } from '@fortawesome/free-solid-svg-icons';
+import { faCheckCircle, faTruck } from '@fortawesome/free-regular-svg-icons';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -198,8 +201,8 @@ export default function AdminDashboard() {
               <SummaryCard
                 title="Total Orders"
                 value={stats.totalOrders.toString()}
-                icon="📦"
-                color="blue"
+                icon={<FontAwesomeIcon icon={faBox} />}
+                color="text-gray-400"
               />
             </div>
 
@@ -208,8 +211,8 @@ export default function AdminDashboard() {
               <SummaryCard
                 title="Pending Briefs"
                 value={stats.pendingBriefs.toString()}
-                icon="📝"
-                color="yellow"
+                icon={<FontAwesomeIcon icon={faClipboardList} />}
+                color="text-gray-400"
                 subtitle="Orders awaiting brief response"
               />
             </div>
@@ -221,8 +224,8 @@ export default function AdminDashboard() {
               <SummaryCard
                 title="Pending Feedback"
                 value={stats.pendingFeedback.toString()}
-                icon="💬"
-                color="orange"
+                icon={<FontAwesomeIcon icon={faComments} />}
+                color="text-gray-400"
                 subtitle={`${stats.rejectedDesigns} design rejections`}
               />
             </div>
@@ -231,8 +234,8 @@ export default function AdminDashboard() {
               <SummaryCard
                 title="Ready to Ship"
                 value={stats.readyForShipping.toString()}
-                icon="📬"
-                color="teal"
+                icon={<FontAwesomeIcon icon={faTruck} />}
+                color="text-gray-400"
                 subtitle="Orders ready for shipping"
               />
             </div>
@@ -241,8 +244,8 @@ export default function AdminDashboard() {
               <SummaryCard
                 title="Delivered"
                 value={stats.completedOrders.toString()}
-                icon="✅"
-                color="green"
+                icon={<FontAwesomeIcon icon={faCheckCircle} />}
+                color="text-gray-400"
                 subtitle="Orders delivered"
               />
             </div>
@@ -251,9 +254,11 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
             <div
               onClick={() => router.push('/dashboards/admin-dashboard/orders/management')}
-              className="cursor-pointer rounded-lg border border-purple-800 bg-gradient-to-br from-purple-900/30 to-purple-950/30 p-5 transition hover:border-purple-600 sm:p-6"
+              className="cursor-pointer rounded-md border border-purple-800 bg-gradient-to-br from-gray-900/30 to-purple-950/30 p-5 transition hover:border-purple-600 sm:p-6"
             >
-              <div className="mb-3 text-3xl sm:text-4xl">🎨</div>
+              <div className="mb-3 text-3xl sm:text-4xl">
+                <FontAwesomeIcon icon={faBox} />
+              </div>
               <h3 className="text-base font-bold text-white sm:text-lg">Order Management</h3>
               <p className="mt-2 text-xs text-gray-400 sm:text-sm">
                 {stats.designReady} orders with approved designs ready for production
@@ -263,9 +268,11 @@ export default function AdminDashboard() {
 
             <div
               onClick={() => router.push('/dashboards/admin-dashboard/shipping')}
-              className="cursor-pointer rounded-lg border border-teal-800 bg-gradient-to-br from-teal-900/30 to-teal-950/30 p-5 transition hover:border-teal-600 sm:p-6"
+              className="cursor-pointer rounded-md border border-teal-800 bg-gradient-to-br from-gray-900/30 to-teal-950/30 p-5 transition hover:border-teal-600 sm:p-6"
             >
-              <div className="mb-3 text-3xl sm:text-4xl">🚚</div>
+              <div className="mb-3 text-3xl sm:text-4xl">
+                <FontAwesomeIcon icon={faTruck} />
+                </div>
               <h3 className="text-base font-bold text-white sm:text-lg">Shipping Management</h3>
               <p className="mt-2 text-xs text-gray-400 sm:text-sm">
                 Manage deliveries, pickups, and shipping invoices
@@ -275,22 +282,26 @@ export default function AdminDashboard() {
 
             <div
               onClick={() => router.push('/dashboards/admin-dashboard/feedback')}
-              className="cursor-pointer rounded-lg border border-orange-800 bg-gradient-to-br from-orange-900/30 to-orange-950/30 p-5 transition hover:border-orange-600 sm:p-6"
+              className="cursor-pointer rounded-md border border-sky-800 bg-gradient-to-br from-gray-900/30 to-sky-950/30 p-5 transition hover:border-sky-600 sm:p-6"
             >
-              <div className="mb-3 text-3xl sm:text-4xl">💬</div>
+              <div className="mb-3 text-3xl sm:text-4xl">
+                <FontAwesomeIcon icon={faComments} />
+                </div>
               <h3 className="text-base font-bold text-white sm:text-lg">Customer Feedback</h3>
               <p className="mt-2 text-xs text-gray-400 sm:text-sm">
                 {stats.pendingFeedback} pending responses • {stats.rejectedDesigns} design
                 rejections
               </p>
-              <span className="mt-2 block text-xs text-orange-400">View feedback →</span>
+              <span className="mt-2 block text-xs text-sky-400">View feedback →</span>
             </div>
 
             <div
               onClick={() => router.push('/dashboards/admin-dashboard/design-upload')}
-              className="cursor-pointer rounded-lg border border-blue-800 bg-gradient-to-br from-blue-900/30 to-blue-950/30 p-5 transition hover:border-blue-600 sm:p-6"
+              className="cursor-pointer rounded-md border border-blue-800 bg-gradient-to-br from-blue-900/30 to-blue-950/30 p-5 transition hover:border-blue-600 sm:p-6"
             >
-              <div className="mb-3 text-3xl sm:text-4xl">🎨</div>
+              <div className="mb-3 text-3xl sm:text-4xl">
+                <FontAwesomeIcon icon={faClipboardList} />
+              </div>
               <h3 className="text-base font-bold text-white sm:text-lg">Upload Design</h3>
               <p className="mt-2 text-xs text-gray-400 sm:text-sm">
                 Upload designs for paid orders or respond to rejections

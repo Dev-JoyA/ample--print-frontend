@@ -13,6 +13,8 @@ import { feedbackService } from '@/services/feedbackService';
 import { useToast } from '@/components/providers/ToastProvider';
 import { METADATA } from '@/lib/metadata';
 import { getImageUrl } from '@/lib/imageUtils';
+import { faCheckCircle, faClock, faEye, faPaperclip, faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 export default function CustomerFeedbackPage() {
   const router = useRouter();
@@ -176,13 +178,13 @@ export default function CustomerFeedbackPage() {
   const getStatusIcon = (status) => {
     switch (status) {
       case 'Pending':
-        return '⏳';
+        return <FontAwesomeIcon icon={faClock} className="text-yellow-400" />;
       case 'Reviewed':
-        return '👀';
+        return <FontAwesomeIcon icon={faEye} className="text-blue-400" />;
       case 'Resolved':
-        return '✅';
+        return <FontAwesomeIcon icon={faCheckCircle} className="text-green-400" />;
       default:
-        return '📝';
+        return <FontAwesomeIcon icon={faQuestionCircle} className="text-gray-400" />;
     }
   };
 
@@ -328,7 +330,9 @@ export default function CustomerFeedbackPage() {
 
           {feedbacks.length === 0 ? (
             <div className="rounded-xl border border-gray-800 bg-slate-900/30 p-16 text-center">
-              <div className="mb-4 text-7xl opacity-50">💬</div>
+              <div className="mb-4 text-7xl opacity-50">
+                <FontAwesomeIcon icon={faQuestionCircle} className="mx-auto" />
+              </div>
               <h3 className="mb-2 text-2xl font-semibold text-white">No feedback found</h3>
               <p className="mb-6 text-lg text-gray-400">
                 {filter === 'all'
@@ -406,7 +410,7 @@ export default function CustomerFeedbackPage() {
 
                       {feedback.attachment && feedback.attachment.length > 0 && (
                         <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
-                          <span>📎</span>
+                          <FontAwesomeIcon icon={faPaperclip} className="text-gray-400" />
                           <span>{feedback.attachment.length} attachment(s)</span>
                         </div>
                       )}

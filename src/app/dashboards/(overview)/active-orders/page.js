@@ -11,6 +11,9 @@ import SEOHead from '@/components/common/SEOHead';
 import { METADATA } from '@/lib/metadata';
 import { useProtectedRoute } from '@/app/lib/auth';
 import { orderService } from '@/services/orderService';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faComment, faComments, faFileLines} from '@fortawesome/free-regular-svg-icons';
+import { faBoxOpen } from '@fortawesome/free-solid-svg-icons';
 
 const OrderStatus = {
   Pending: 'Pending',
@@ -338,7 +341,9 @@ export default function ActiveOrdersPage() {
               </>
             ) : (
               <>
-                <div className="mb-4 text-5xl sm:text-6xl">📦</div>
+                <div className="mb-4 text-5xl sm:text-6xl">
+                  <FontAwesomeIcon icon={faBoxOpen} />
+                </div>
                 <h3 className="mb-2 text-lg font-semibold text-white sm:text-xl">
                   No Active Orders
                 </h3>

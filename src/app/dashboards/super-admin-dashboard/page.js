@@ -12,6 +12,9 @@ import { invoiceService } from '@/services/invoiceService';
 import { paymentService } from '@/services/paymentService';
 import { adminService } from '@/services/adminService';
 import { METADATA } from '@/lib/metadata';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faComment, faComments, faFileLines} from '@fortawesome/free-regular-svg-icons';
+import { faBoxOpen, faFileInvoice , faTruck, faPalette, faStore, faClipboardList, faBarChart, faBank, faSackDollar, faPlus, faMoneyCheckDollar, faFileCircleQuestion, faUserGroup} from '@fortawesome/free-solid-svg-icons';
 
 export default function SuperAdminDashboard() {
   useAuthCheck();
@@ -265,7 +268,7 @@ export default function SuperAdminDashboard() {
                 target="_blank"
                 className="inline-block"
               >
-                <Button variant="primary" size="md" icon="📊">
+                <Button variant="primary" size="md" icon={<FontAwesomeIcon icon={faBarChart} />}>
                   Generate Report
                 </Button>
               </Link>
@@ -282,7 +285,7 @@ export default function SuperAdminDashboard() {
             <SummaryCard
               title="Total Revenue"
               value={formatCurrency(stats.totalRevenue)}
-              icon="💰"
+              icon={<FontAwesomeIcon icon={faSackDollar} />}
               color="green"
               subtitle="All time revenue"
             />
@@ -290,7 +293,7 @@ export default function SuperAdminDashboard() {
               <SummaryCard
                 title="Pending Invoices"
                 value={stats.pendingInvoices.toString()}
-                icon="📄"
+                icon={<FontAwesomeIcon icon={faFileInvoice} />}
                 color="yellow"
                 subtitle="Awaiting invoice generation"
               />
@@ -299,7 +302,7 @@ export default function SuperAdminDashboard() {
               <SummaryCard
                 title="Unverified Payments"
                 value={stats.unverifiedPayments.toString()}
-                icon="⏳"
+                icon={<FontAwesomeIcon icon={faFileCircleQuestion} />}
                 color="red"
                 subtitle="Need attention"
               />
@@ -308,7 +311,7 @@ export default function SuperAdminDashboard() {
               <SummaryCard
                 title="Total Orders"
                 value={stats.totalOrders.toString()}
-                icon="📦"
+                icon={<FontAwesomeIcon icon={faBoxOpen} />}
                 color="blue"
                 subtitle={`${stats.paidOrders} paid, ${stats.partPaidOrders} partial`}
               />
@@ -320,7 +323,7 @@ export default function SuperAdminDashboard() {
               <SummaryCard
                 title="Active Admins"
                 value={stats.activeAdmins.toString()}
-                icon="👥"
+                icon={<FontAwesomeIcon icon={faUserGroup} />}
                 color="purple"
                 subtitle="Currently managing system"
               />
@@ -337,7 +340,7 @@ export default function SuperAdminDashboard() {
                       variant="secondary"
                       size="md"
                       className="w-full justify-start"
-                      icon="➕"
+                      icon={<FontAwesomeIcon icon={faPlus} />}
                     >
                       Create New Admin
                     </Button>
@@ -352,7 +355,7 @@ export default function SuperAdminDashboard() {
                       variant="secondary"
                       size="md"
                       className="w-full justify-start"
-                      icon="🏷️"
+                      icon={<FontAwesomeIcon icon={faMoneyCheckDollar} />}
                     >
                       Manage Discounts
                     </Button>
@@ -362,7 +365,7 @@ export default function SuperAdminDashboard() {
                       variant="secondary"
                       size="md"
                       className="w-full justify-start"
-                      icon="📄"
+                      icon={<FontAwesomeIcon icon={faFileInvoice} />}
                     >
                       Generate Invoice
                     </Button>
@@ -372,7 +375,7 @@ export default function SuperAdminDashboard() {
                       variant="secondary"
                       size="md"
                       className="w-full justify-start"
-                      icon="🚚"
+                      icon={<FontAwesomeIcon icon={faTruck} />}
                     >
                       Shipping Invoices
                     </Button>
@@ -505,7 +508,7 @@ export default function SuperAdminDashboard() {
                       key={invoice.id}
                       href={`/dashboards/super-admin-dashboard/invoices/${invoice.id}`}
                     >
-                      <div className="flex cursor-pointer items-center justify-between rounded-lg bg-slate-800 p-3 transition hover:bg-slate-700">
+                      <div className="flex h-full cursor-pointer flex-col items-center justify-between rounded-lg bg-slate-800 p-3 transition hover:bg-slate-700">
                         <div>
                           <p className="font-medium text-white">{invoice.number}</p>
                           <p className="text-sm text-gray-400">{invoice.customer}</p>
@@ -532,10 +535,10 @@ export default function SuperAdminDashboard() {
             </div>
           </div>
 
-          <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-            <Link href="/dashboards/super-admin-dashboard/admin-management">
-              <div className="group cursor-pointer rounded-lg border border-purple-800 bg-gradient-to-br from-purple-900/50 to-purple-950/50 p-6 transition hover:border-purple-600">
-                <div className="mb-3 text-4xl">👥</div>
+          <div className="mt-8 grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <Link href="/dashboards/super-admin-dashboard/admin-management" className="block h-full">
+              <div className="group flex h-full cursor-pointer flex-col cursor-pointer rounded-lg border border-purple-800 bg-gradient-to-br from-purple-900/50 to-purple-950/50 p-6 transition hover:border-purple-600">
+                <div className="mb-3 text-4xl">{<FontAwesomeIcon icon={faUserGroup} />}</div>
                 <h3 className="text-lg font-bold text-white transition group-hover:text-purple-400">
                   Admin Management
                 </h3>
@@ -546,9 +549,9 @@ export default function SuperAdminDashboard() {
               </div>
             </Link>
 
-            <Link href="/dashboards/super-admin-dashboard/discounts">
-              <div className="group cursor-pointer rounded-lg border border-blue-800 bg-gradient-to-br from-blue-900/50 to-blue-950/50 p-6 transition hover:border-blue-600">
-                <div className="mb-3 text-4xl">🏷️</div>
+            <Link href="/dashboards/super-admin-dashboard/discounts" className="block h-full">
+              <div className="group flex h-full cursor-pointer flex-col cursor-pointer rounded-lg border border-blue-800 bg-gradient-to-br from-blue-900/50 to-blue-950/50 p-6 transition hover:border-blue-600">
+                <div className="mb-3 text-4xl">{<FontAwesomeIcon icon={faMoneyCheckDollar} />}</div>
                 <h3 className="text-lg font-bold text-white transition group-hover:text-blue-400">
                   Discounts
                 </h3>
@@ -556,9 +559,9 @@ export default function SuperAdminDashboard() {
               </div>
             </Link>
 
-            <Link href="/dashboards/super-admin-dashboard/invoices">
-              <div className="group cursor-pointer rounded-lg border border-green-800 bg-gradient-to-br from-green-900/50 to-green-950/50 p-6 transition hover:border-green-600">
-                <div className="mb-3 text-4xl">📄</div>
+            <Link href="/dashboards/super-admin-dashboard/invoices" className="block h-full">
+              <div className="group flex h-full cursor-pointer flex-col cursor-pointer rounded-lg border border-green-800 bg-gradient-to-br from-green-900/50 to-green-950/50 p-6 transition hover:border-green-600">
+                <div className="mb-3 text-4xl">{<FontAwesomeIcon icon={faFileInvoice} />}</div>
                 <h3 className="text-lg font-bold text-white transition group-hover:text-green-400">
                   Invoices
                 </h3>
@@ -568,7 +571,7 @@ export default function SuperAdminDashboard() {
             </Link>
 
             <Link href="/dashboards/super-admin-dashboard/payment-verification">
-              <div className="group cursor-pointer rounded-lg border border-red-800 bg-gradient-to-br from-red-900/50 to-red-950/50 p-6 transition hover:border-red-600">
+              <div className="group flex h-full cursor-pointer flex-col rounded-lg border border-red-800 bg-gradient-to-br from-red-900/50 to-red-950/50 p-6 transition hover:border-red-600">
                 <div className="mb-3 text-4xl">✓</div>
                 <h3 className="text-lg font-bold text-white transition group-hover:text-red-400">
                   Payment Verification

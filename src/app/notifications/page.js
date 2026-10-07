@@ -8,6 +8,24 @@ import { useNotifications } from '@/components/providers/NotificationProvider';
 import { formatDistanceToNow } from 'date-fns';
 import Button from '@/components/ui/Button';
 import { METADATA } from '@/lib/metadata';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faBox,
+  faFileLines,
+  faReply,
+  faPalette,
+  faArrowsRotate,
+  faFileInvoiceDollar,
+  faComment,
+  faTrash,
+  faCircleCheck,
+  faCircleXmark,
+  faTruck,
+  faCommentDots,
+  faReceipt,
+  faBell,
+} from '@fortawesome/free-solid-svg-icons';
+import { faBellSlash } from '@fortawesome/free-regular-svg-icons';
 
 export default function NotificationsPage() {
   const router = useRouter();
@@ -51,31 +69,47 @@ export default function NotificationsPage() {
   }, [fetchHistoricalNotifications]);
 
   const getNotificationIcon = (type) => {
-    const iconMap = {
-      'new-order': '📦',
-      'new-brief': '📝',
-      'brief-response': '📬',
-      'admin-brief-response': '📬',
-      'design-uploaded': '🎨',
-      designUploaded: '🎨',
-      'status-update': '🔄',
-      'order-status-updated': '🔄',
-      'invoice-ready': '💰',
-      'order-ready-for-invoice': '💰',
-      'feedback-response': '💬',
-      'feedback-status-updated': '💬',
-      'brief-deleted': '🗑️',
-      'payment-verified': '✅',
-      'payment-rejected': '❌',
-      'shipping-updated': '🚚',
-      'order-shipped': '📬',
-      'order-delivered': '✅',
-      'new-feedback': '💭',
-      'new-customer-brief': '📝',
-      'payment-receipt-uploaded': '🧾',
-    };
-    return iconMap[type] || '🔔';
+  const iconMap = {
+    'new-order': faBox,
+
+    'new-brief': faFileLines,
+
+    'brief-response': faReply,
+    'admin-brief-response': faReply,
+
+    'design-uploaded': faPalette,
+    designUploaded: faPalette,
+
+    'status-update': faArrowsRotate,
+    'order-status-updated': faArrowsRotate,
+
+    'invoice-ready': faFileInvoiceDollar,
+    'order-ready-for-invoice': faFileInvoiceDollar,
+
+    'feedback-response': faComment,
+    'feedback-status-updated': faComment,
+
+    'brief-deleted': faTrash,
+
+    'payment-verified': faCircleCheck,
+
+    'payment-rejected': faCircleXmark,
+
+    'shipping-updated': faTruck,
+
+    'order-shipped': faBox,
+
+    'order-delivered': faCircleCheck,
+
+    'new-feedback': faCommentDots,
+
+    'new-customer-brief': faFileLines,
+
+    'payment-receipt-uploaded': faReceipt,
   };
+
+  return iconMap[type] || faBell;
+};
 
   const getNotificationTitle = (type) => {
     const titleMap = {
@@ -261,7 +295,9 @@ export default function NotificationsPage() {
             </div>
           ) : !error && filteredNotifications.length === 0 ? (
             <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-12 text-center">
-              <div className="mb-4 text-6xl opacity-50">🔔</div>
+              <div className="mb-4 text-6xl opacity-50">
+                <FontAwesomeIcon icon={faBellSlash} />
+              </div>
               <h3 className="mb-2 text-xl font-semibold text-white">No notifications</h3>
               <p className="text-gray-400">
                 {filter === 'unread'
@@ -291,13 +327,12 @@ export default function NotificationsPage() {
                     }`}
                   >
                     <div className="flex gap-4">
-                      <div
-                        className={`h-12 w-12 flex-shrink-0 rounded-full ${getNotificationBgColor(notification.type)} flex items-center justify-center sm:h-14 sm:w-14`}
-                      >
-                        <span className="text-xl sm:text-2xl">
-                          {getNotificationIcon(notification.type)}
-                        </span>
-                      </div>
+                      <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center sm:h-14 sm:w-14">
+                        <FontAwesomeIcon
+                            icon={getNotificationIcon(notification.type)}
+                            className="text-xl sm:text-2xl"
+                        />
+                        </div>
 
                       <div className="min-w-0 flex-1">
                         <div className="mb-1 flex flex-wrap items-start justify-between gap-2">

@@ -15,6 +15,8 @@ import { customerBriefService } from '@/services/customerBriefService';
 import { profileService } from '@/services/profileService';
 import { METADATA } from '@/lib/metadata';
 import { getImageUrl } from '@/lib/imageUtils';
+import { faBoxOpen, faChevronDown, faChevronUp, faClipboard, faExclamationCircle, faPaperclip } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 export default function AdminOrderDetailPage() {
   const router = useRouter();
@@ -249,7 +251,8 @@ export default function AdminOrderDetailPage() {
         rel="noopener noreferrer"
         className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"
       >
-        <span>📎</span> {label}
+        <FontAwesomeIcon icon={faPaperclip} className="mr-2" />
+        {label}
       </a>
     );
   };
@@ -317,7 +320,7 @@ export default function AdminOrderDetailPage() {
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 sm:h-16 sm:w-16">
-                  <span className="text-2xl sm:text-4xl">📦</span>
+                  <FontAwesomeIcon icon={faBoxOpen} className="text-primary" />
                 </div>
                 <div>
                   <h1 className="mb-2 text-2xl font-bold text-white sm:text-3xl lg:text-4xl">
@@ -487,7 +490,7 @@ export default function AdminOrderDetailPage() {
                             }
                             className="flex items-center gap-2 text-sm text-blue-400 transition hover:text-blue-300"
                           >
-                            <span>📋</span>
+                            <FontAwesome icon={expandedProductBrief === index ? faChevronUp : faChevronDown} className="h-3 w-3" />
                             <span>View Full Conversation</span>
                             {item.hasAdminResponse && (
                               <span className="rounded-full bg-green-900/30 px-2 py-0.5 text-xs text-green-400">
@@ -518,7 +521,8 @@ export default function AdminOrderDetailPage() {
                                       )}
                                       {msg.hasOwnDesign === false && (
                                         <span className="text-xs text-yellow-400">
-                                          ✏️ Needs design assistance
+                                          <FontAwesomeIcon icon={faPaperclip} className="h-3 w-3" />
+                                          Needs design assistance
                                         </span>
                                       )}
                                     </div>
@@ -552,7 +556,9 @@ export default function AdminOrderDetailPage() {
             <div className="space-y-5 sm:space-y-6">
               {itemsWithBriefs.filter((i) => i.hasBrief).length === 0 ? (
                 <div className="rounded-xl border border-gray-800 bg-slate-900/50 p-8 text-center backdrop-blur-sm sm:p-12">
-                  <div className="mb-4 text-5xl opacity-50 sm:text-6xl">📋</div>
+                  <div className="mb-4 text-5xl opacity-50 sm:text-6xl">
+                    <FontAwesomeIcon icon={faClipboard} />
+                  </div>
                   <h3 className="mb-2 text-lg font-semibold text-white sm:text-xl">
                     No Customization Briefs
                   </h3>
@@ -590,7 +596,8 @@ export default function AdminOrderDetailPage() {
                                 )}
                                 {msg.hasOwnDesign === false && (
                                   <span className="text-xs text-yellow-400">
-                                    ✏️ Needs design assistance
+                                    <FontAwesomeIcon icon={faPaperclip} className="h-3 w-3" />
+                                    Needs design assistance
                                   </span>
                                 )}
                               </div>

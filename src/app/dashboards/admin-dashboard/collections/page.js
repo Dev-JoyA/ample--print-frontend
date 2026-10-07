@@ -9,6 +9,7 @@ import SEOHead from '@/components/common/SEOHead';
 import { METADATA } from '@/lib/metadata';
 import { collectionService } from '@/services/collectionService';
 import { useAuthCheck } from '@/app/lib/auth';
+import { faFolder } from '@fortawesome/free-solid-svg-icons';
 
 export default function CollectionsPage() {
   const router = useRouter();
@@ -157,7 +158,9 @@ export default function CollectionsPage() {
 
         {filteredCollections.length === 0 ? (
           <div className="rounded-lg border border-gray-800 bg-slate-900 p-8 text-center sm:p-12">
-            <div className="mb-4 text-5xl sm:text-6xl">📁</div>
+            <div className="mb-4 text-5xl sm:text-6xl">
+                <FontAwesomeIcon icon={faFolder} className="mx-auto" />
+            </div>
             <h3 className="mb-2 text-lg font-medium text-white sm:text-xl">
               {searchTerm ? 'No matching collections' : 'No collections yet'}
             </h3>
@@ -209,7 +212,7 @@ export default function CollectionsPage() {
                       <div className="mb-4 flex items-start justify-between">
                         <div className="flex items-center gap-3">
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-red-600/20 to-purple-600/20 text-2xl sm:h-12 sm:w-12 sm:text-3xl">
-                            📁
+                            <FontAwesomeIcon icon={faFolder}  />
                           </div>
                           <div>
                             <h3 className="break-words text-base font-semibold text-white transition group-hover:text-red-400 sm:text-lg">

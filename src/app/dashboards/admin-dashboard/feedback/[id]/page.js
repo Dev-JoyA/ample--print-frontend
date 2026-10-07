@@ -11,6 +11,8 @@ import { feedbackService } from '@/services/feedbackService';
 import { useAuthCheck } from '@/app/lib/auth';
 import { METADATA } from '@/lib/metadata';
 import { getImageUrl } from '@/lib/imageUtils';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 
 export default function FeedbackDetailPage() {
   const params = useParams();
@@ -278,7 +280,7 @@ export default function FeedbackDetailPage() {
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 rounded-lg bg-slate-800 p-2 transition hover:bg-slate-700"
                       >
-                        <span className="text-blue-400">📎</span>
+                        <FontAwesomeIcon icon={faPaperclip}/>
                         <span className="text-xs text-gray-300">Attachment {idx + 1}</span>
                       </a>
                     ))}

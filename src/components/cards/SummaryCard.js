@@ -33,10 +33,10 @@ const SummaryCard = ({ title, value, icon, color = 'blue', onClick }) => {
   };
 
   return (
-    <div
-      className={`group cursor-pointer rounded-lg border border-dark-lighter bg-slate-900 p-4 transition-all hover:${borderColorClasses[color]} sm:p-5 md:p-6`}
-      onClick={onClick}
-    >
+   <div
+    className={`group flex h-full cursor-pointer flex-col rounded-lg border border-dark-lighter bg-slate-900 p-4 transition-all ${borderColorClasses[color]} sm:p-5 md:p-6`}
+        onClick={onClick}
+        >
       <div className="flex items-center justify-between gap-2">
         <div className="flex-1">
           <p className="mb-1 text-xs text-gray-400 sm:mb-2 sm:text-sm">{title}</p>
@@ -44,10 +44,10 @@ const SummaryCard = ({ title, value, icon, color = 'blue', onClick }) => {
             {value}
           </p>
         </div>
-        <div
-          className={`flex h-10 w-10 items-center justify-center rounded-full ${bgColorClasses[color]} sm:h-12 sm:w-12`}
-        >
-          <span className="text-lg sm:text-xl md:text-2xl">{icon}</span>
+        <div className="flex items-center justify-center">
+        <span className="text-lg sm:text-xl md:text-2xl">
+            {icon}
+        </span>
         </div>
       </div>
       {onClick && (

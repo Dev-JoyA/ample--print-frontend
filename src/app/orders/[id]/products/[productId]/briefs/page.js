@@ -9,6 +9,8 @@ import { orderService } from '@/services/orderService';
 import { customerBriefService } from '@/services/customerBriefService';
 import ProductBriefThread from '@/app/briefs/productBriefThread';
 import { METADATA } from '@/lib/metadata';
+import { faCheck, faExclamationTriangle, faLock } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 export default function ProductBriefsPage() {
   const params = useParams();
@@ -129,7 +131,9 @@ export default function ProductBriefsPage() {
       <DashboardLayout userRole="customer">
         <div className="mx-auto max-w-4xl px-4 py-8">
           <div className="rounded-xl border border-red-800 bg-red-900/20 p-8 text-center">
-            <div className="mb-4 text-5xl">⚠️</div>
+            <div className="mb-4 text-5xl">
+                <FontAwesomeIcon icon={faExclamationTriangle} className="mx-auto text-red-400" />
+            </div>
             <p className="mb-4 text-red-400">{error}</p>
             <button
               onClick={() => router.back()}
@@ -181,7 +185,9 @@ export default function ProductBriefsPage() {
           {conversationStatus.isLocked && (
             <div className="mb-6 rounded-lg border border-red-700 bg-red-900/30 p-4">
               <div className="flex items-start gap-3">
-                <span className="text-2xl">🔒</span>
+                <span className="text-2xl">
+                  <FontAwesomeIcon icon={faLock} className="mx-auto text-red-400" />
+                </span>
                 <div>
                   <p className="font-medium text-red-400">Conversation Locked</p>
                   <p className="mt-1 text-sm text-gray-300">
@@ -203,7 +209,7 @@ export default function ProductBriefsPage() {
           {conversationStatus.hasAdminResponse && !conversationStatus.isAdminResponseViewed && (
             <div className="mb-6 rounded-lg border border-yellow-700 bg-yellow-900/30 p-4">
               <div className="flex items-start gap-3">
-                <span className="text-2xl">⏳</span>
+                <FontAwesomeIcon icon={faExclamationTriangle} className="text-2xl text-yellow-400" />
                 <div>
                   <p className="font-medium text-yellow-400">Awaiting Your Review</p>
                   <p className="mt-1 text-sm text-gray-300">
@@ -221,7 +227,7 @@ export default function ProductBriefsPage() {
             conversationStatus.hasCustomerRespondedAfter && (
               <div className="mb-6 rounded-lg border border-green-700 bg-green-900/30 p-4">
                 <div className="flex items-start gap-3">
-                  <span className="text-2xl">✅</span>
+                  <FontAwesomeIcon icon={faCheck} className="text-2xl text-green-400" />
                   <div>
                     <p className="font-medium text-green-400">Response Sent</p>
                     <p className="mt-1 text-sm text-gray-300">

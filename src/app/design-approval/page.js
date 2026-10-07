@@ -12,6 +12,8 @@ import { designService } from '@/services/designService';
 import { feedbackService } from '@/services/feedbackService';
 import { METADATA } from '@/lib/metadata';
 import { getImageUrl } from '@/lib/imageUtils';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPallet } from '@fortawesome/free-solid-svg-icons';
 
 export default function DesignApprovalPage() {
   const router = useRouter();
@@ -189,7 +191,9 @@ export default function DesignApprovalPage() {
 
           {designs.length === 0 ? (
             <div className="rounded-xl border border-gray-800 bg-slate-900/30 py-16 text-center">
-              <div className="mb-4 text-6xl">🎨</div>
+              <div className="mb-4 text-6xl">
+                <FontAwesomeIcon icon={faPallet} className="mx-auto" />
+              </div>
               <h3 className="mb-2 text-xl font-semibold text-white">No designs pending approval</h3>
               <p className="text-gray-400">You don't have any designs waiting for your review</p>
             </div>

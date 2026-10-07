@@ -8,6 +8,7 @@ import SearchBar from './SearchBar';
 import NotificationBell from './NotificationBell';
 import CartIcon from './CartIcon';
 import ProfileDropdown from './ProfileDropdown';
+import Button from '@/components/ui/Button';
 
 const Header = ({ onSearch, showSearch = true }) => {
   const pathname = usePathname();
@@ -15,9 +16,71 @@ const Header = ({ onSearch, showSearch = true }) => {
 
   const isAuthPage = pathname?.startsWith('/auth/');
 
-  if (isAuthPage || !isAuthenticated || loading) {
+  if (isAuthPage) {
     return null;
   }
+
+  if (!isAuthenticated) {
+  const isActive = (section) => {
+    if (section === 'home') return pathname === '/';
+    return pathname?.startsWith(`/${section}`);
+  };
+
+  const NAV_ITEMS = [
+    { label: 'Home', href: '/', section: 'home' },
+    { label: 'Collections', href: '/collections', section: 'collections' },
+    { label: 'About', href: '/about', section: 'about' },
+  ];
+
+  return (
+    <header className="sticky top-0 z-50 border-b border-dark-light bg-slate-950/95 backdrop-blur">
+      <div className="mx-auto flex h-[5rem] max-w-7xl items-center justify-between px-4 sm:h-[4.5rem] sm:px-6 lg:px-8">
+        <Link
+          href="/"
+          className="flex h-full shrink-0 items-center"
+          aria-label="Go to homepage"
+        >
+          <img
+            className="h-full w-auto object-contain brightness-110 drop-shadow-md"
+            src="/images/logo/logo.png"
+            alt="Logo"
+          />
+        </Link>
+
+        <nav className="hidden items-center gap-2 md:flex lg:gap-3">
+          {NAV_ITEMS.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              className={`whitespace-nowrap px-2 py-2 text-xs font-semibold transition-colors lg:px-2.5 lg:text-sm ${
+                isActive(item.section)
+                  ? 'text-red-600'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+              aria-current={isActive(item.section) ? 'page' : undefined}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link href="/auth/sign-in">
+            <Button variant="secondary" size="sm">
+              Login
+            </Button>
+          </Link>
+
+          <Link href="/new-order">
+            <Button variant="primary" size="sm">
+              Explore Studio
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </header>
+  );
+}
 
   const userRole = user?.role?.toLowerCase() || 'customer';
 

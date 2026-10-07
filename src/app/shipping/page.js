@@ -12,6 +12,8 @@ import { profileService } from '@/services/profileService';
 import { orderService } from '@/services/orderService';
 import { shippingService } from '@/services/shippingService';
 import { METADATA } from '@/lib/metadata';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBank, faBuilding, faMoneyBillWave, faTruck } from '@fortawesome/free-solid-svg-icons';
 
 function ShippingPageContent() {
   const router = useRouter();
@@ -297,7 +299,7 @@ function ShippingPageContent() {
                 >
                   <div className="flex flex-col items-center text-center">
                     <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/20 sm:mb-3 sm:h-14 sm:w-14">
-                      <span className="text-2xl sm:text-3xl">🏢</span>
+                      <FontAwesomeIcon icon={faBuilding} className="text-primary text-2xl sm:text-3xl" />
                     </div>
                     <div className="mb-2 sm:mb-3">
                       <h3 className="text-sm font-semibold text-white sm:text-base">Pickup</h3>
@@ -329,7 +331,7 @@ function ShippingPageContent() {
                 >
                   <div className="flex flex-col items-center text-center">
                     <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-green-500/20 sm:mb-3 sm:h-14 sm:w-14">
-                      <span className="text-2xl sm:text-3xl">💵</span>
+                      <FontAwesomeIcon  icon={faMoneyBillWave} className="text-green-500 text-2xl sm:text-3xl" />
                     </div>
                     <div className="mb-2 sm:mb-3">
                       <h3 className="text-sm font-semibold text-white sm:text-base">
@@ -364,7 +366,7 @@ function ShippingPageContent() {
                 >
                   <div className="flex flex-col items-center text-center">
                     <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/20 sm:mb-3 sm:h-14 sm:w-14">
-                      <span className="text-2xl sm:text-3xl">🚚</span>
+                      <FontAwesomeIcon icon={faTruck} className="text-primary text-2xl sm:text-3xl" />
                     </div>
                     <div className="mb-2 sm:mb-3">
                       <h3 className="text-sm font-semibold text-white sm:text-base">Delivery</h3>

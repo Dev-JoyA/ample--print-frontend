@@ -11,6 +11,7 @@ import SEOHead from '@/components/common/SEOHead';
 import { invoiceService } from '@/services/invoiceService';
 import { useAuthCheck } from '@/app/lib/auth';
 import { METADATA } from '@/lib/metadata';
+import { faFileInvoiceDollar } from '@fortawesome/free-solid-svg-icons';
 
 export default function CustomerInvoicesPage() {
   useAuthCheck();
@@ -270,7 +271,9 @@ export default function CustomerInvoicesPage() {
 
           {filteredInvoices.length === 0 ? (
             <div className="rounded-xl border border-gray-800 bg-slate-900/30 py-16 text-center">
-              <div className="mb-4 text-6xl">📄</div>
+              <div className="mb-4 text-6xl">
+                <FontAwesomeIcon icon={faFileInvoiceDollar} className="mx-auto" />
+              </div>
               <h3 className="mb-2 text-xl font-semibold text-white">No invoices found</h3>
               <p className="text-gray-400">
                 {filter === 'all'
