@@ -10,6 +10,7 @@ import { METADATA } from '@/lib/metadata';
 import { collectionService } from '@/services/collectionService';
 import { useAuthCheck } from '@/app/lib/auth';
 import { faFolder } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 export default function CollectionsPage() {
   const router = useRouter();
@@ -218,7 +219,6 @@ export default function CollectionsPage() {
                             <h3 className="break-words text-base font-semibold text-white transition group-hover:text-red-400 sm:text-lg">
                               {collection.name}
                             </h3>
-                            <p className="text-xs text-gray-500">ID: {collection._id.slice(-6)}</p>
                           </div>
                         </div>
                         <div className="flex gap-1 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100">

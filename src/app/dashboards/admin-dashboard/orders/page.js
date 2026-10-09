@@ -12,6 +12,8 @@ import { orderService } from '@/services/orderService';
 import { useAuthCheck } from '@/app/lib/auth';
 import { METADATA } from '@/lib/metadata';
 import { faBox } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 
 function AdminOrdersPageContent() {
   const router = useRouter();

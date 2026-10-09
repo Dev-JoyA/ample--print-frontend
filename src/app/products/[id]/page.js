@@ -220,14 +220,13 @@ export default function ProductDetailPage() {
     let hasRequiredInfo = false;
 
     if (hasOwnDesign === true) {
-      // Customer has own design - need at least one design file
       hasRequiredInfo = imagery.length > 0;
       if (!hasRequiredInfo) {
-        setError('Please upload your design files');
+        alert('Please upload your design files to proceed.');
+        //setError('Please upload your design files');
         return;
       }
     } else if (hasOwnDesign === false) {
-      // Customer needs design help - need instructions or reference images
       hasRequiredInfo =
         designInstructions.trim() !== '' ||
         logos.length > 0 ||
@@ -239,8 +238,7 @@ export default function ProductDetailPage() {
         return;
       }
     } else {
-      // No design choice made yet
-      setError('Please tell us if you have your own design or need design assistance');
+      alert('Please select whether you have your own design or need design assistance.');
       return;
     }
 
@@ -308,7 +306,6 @@ Quantity: ${quantity} units
 Size/Color: ${size || 'Standard'} / ${color || 'To be discussed'}`;
         formData.append('description', description);
       } else {
-        // Customer needs design assistance - full details
         const detailedDescription = `
 PRODUCT INFORMATION:
 -------------------
@@ -467,14 +464,14 @@ ${new Date().toLocaleString()}
             <div className="mt-6 flex gap-3">
               <Button
                 variant="secondary"
-                className="flex-1"
+                className="flex-1 !bg-gray-700/30 hover:!text-gray-200 !text-gray-700"
                 onClick={() => setShowPriceAlert(false)}
               >
                 Cancel
               </Button>
               <Button
                 variant="primary"
-                className="flex-1 !bg-yellow-500 hover:!bg-yellow-600"
+                className="flex-1 !bg-slate-950 hover:!border-2 !text-white"
                 onClick={handlePriceAlertConfirm}
               >
                 I Understand, Continue
@@ -880,7 +877,6 @@ ${new Date().toLocaleString()}
               {showUploadSection && (
                 <div className="space-y-6 border-t border-gray-800 pt-4">
                   {hasOwnDesign === true ? (
-                    // Customer has their own design - Show file upload only
                     <>
                       <div>
                         <h3 className="mb-2 text-sm font-semibold text-white">

@@ -137,22 +137,7 @@ export default function Page() {
                       </svg>
                       {products.length} product{products.length !== 1 ? 's' : ''}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <svg
-                        className="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 01.586 1.414V19a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"
-                        />
-                      </svg>
-                      ID: {collectionId.slice(-8)}
-                    </span>
+                    
                   </div>
                 </div>
               </div>

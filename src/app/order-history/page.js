@@ -13,6 +13,7 @@ import { useAuth, useAuthCheck } from '@/app/lib/auth';
 import { METADATA } from '@/lib/metadata';
 import { getImageUrl } from '@/lib/imageUtils';
 import { faBox } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 const OrderStatus = {
   Pending: 'Pending',

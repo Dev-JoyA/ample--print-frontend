@@ -14,8 +14,8 @@ const DesignSelectionModal = ({ isOpen, onClose, onConfirm, productName }) => {
     <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/70 p-4">
       <div className="w-full max-w-md rounded-2xl border border-gray-800 bg-slate-900 p-6 shadow-2xl">
         <div className="mb-4 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20">
-            <FontAwesomeIcon icon={faPalette} className="text-primary" />
+          <div className="flex h-10 w-10 items-center justify-center ">
+            <FontAwesomeIcon icon={faPalette}  />
           </div>
           <h3 className="text-lg font-bold text-white">Do you have your own design?</h3>
         </div>
@@ -34,7 +34,7 @@ const DesignSelectionModal = ({ isOpen, onClose, onConfirm, productName }) => {
             }`}
           >
             <div className="flex items-center gap-3">
-              <FontAwesomeIcon icon={faFolder} className="text-2xl text-primary" />
+              <FontAwesomeIcon icon={faFolder} className="text-2xl" />
               <div>
                 <p className="font-semibold text-white">Yes, I have my own design</p>
                 <p className="text-xs text-gray-400">
@@ -53,7 +53,7 @@ const DesignSelectionModal = ({ isOpen, onClose, onConfirm, productName }) => {
             }`}
           >
             <div className="flex items-center gap-3">
-              <FontAwesomeIcon icon={faPalette} className="text-2xl text-primary" />
+              <FontAwesomeIcon icon={faPalette} className="text-2xl" />
               <div>
                 <p className="font-semibold text-white">No, I need design assistance</p>
                 <p className="text-xs text-gray-400">
