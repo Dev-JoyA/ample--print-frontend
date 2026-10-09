@@ -86,9 +86,6 @@ export default function CollectionDetailPage() {
               <h1 className="break-words text-2xl font-bold text-white sm:text-3xl">
                 {collection?.name}
               </h1>
-              <p className="mt-1 text-sm text-gray-400 sm:text-base">
-                Collection ID: {collectionId}
-              </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link href={`/dashboards/admin-dashboard/collections/${collectionId}/products`}>

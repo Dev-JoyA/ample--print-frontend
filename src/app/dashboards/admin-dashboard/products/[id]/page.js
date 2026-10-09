@@ -146,9 +146,7 @@ export default function ProductDetailPage() {
                 <h1 className="max-w-[250px] truncate text-2xl font-bold text-white sm:max-w-full sm:text-3xl">
                   {product.name}
                 </h1>
-                <p className="mt-1 text-xs text-gray-400 sm:text-sm">
-                  Product ID: {product._id?.slice(-8) || product._id}
-                </p>
+        
               </div>
               <div className="flex flex-wrap gap-2">
                 <Link href={`/dashboards/admin-dashboard/products/${productId}/edit`}>

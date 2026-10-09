@@ -1,7 +1,8 @@
 'use client';
 
-import { faBox } from '@fortawesome/free-solid-svg-icons';
+import { faBold, faBox } from '@fortawesome/free-solid-svg-icons';
 import StatusBadge from '../ui/StatusBadge';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 const OrderCard = ({ order, onClick }) => {
   return (
@@ -11,8 +12,8 @@ const OrderCard = ({ order, onClick }) => {
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3 sm:gap-4">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/20 text-lg sm:h-12 sm:w-12 sm:text-xl">
-            <FontAwesomeIcon icon={faBox} className="text-primary" />
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center text-lg sm:h-12 sm:w-12 sm:text-xl">
+            <FontAwesomeIcon icon={faBox}  />
           </div>
 
           <div>
@@ -36,7 +37,7 @@ const OrderCard = ({ order, onClick }) => {
         <div className="flex items-center justify-between gap-3 sm:justify-end sm:gap-4 md:gap-6">
           <div className="text-right">
             <p className="text-xs text-gray-400 sm:text-sm">Total</p>
-            <p className="text-base font-bold text-primary sm:text-lg">
+            <p className="text-base font-bold sm:text-lg">
               ₦{order.totalAmount?.toLocaleString()}
             </p>
           </div>
