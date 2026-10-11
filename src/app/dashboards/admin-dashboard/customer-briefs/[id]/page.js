@@ -13,7 +13,16 @@ import { customerBriefService } from '@/services/customerBriefService';
 import { designService } from '@/services/designService';
 import { getImageUrl, getDownloadUrl, getAudioUrl, getProductImageUrl } from '@/lib/imageUtils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faComments, faDownload, faExclamationCircle, faFile, faImage, faMicrophone, faPalette, faVideoCamera } from '@fortawesome/free-solid-svg-icons';
+import {
+  faComments,
+  faDownload,
+  faFile,
+  faImage,
+  faImages,
+  faMicrophone,
+  faPalette,
+  faVideoCamera,
+} from '@fortawesome/free-solid-svg-icons';
 
 export default function CustomerBriefDetailPage({ params }) {
   const router = useRouter();
@@ -25,7 +34,6 @@ export default function CustomerBriefDetailPage({ params }) {
   const [loading, setLoading] = useState(true);
   const [loadingConversation, setLoadingConversation] = useState(false);
   const [error, setError] = useState('');
-  const [hasAutoMarked, setHasAutoMarked] = useState(false);
 
   const [responseText, setResponseText] = useState('');
   const [responseFiles, setResponseFiles] = useState({
@@ -50,6 +58,7 @@ export default function CustomerBriefDetailPage({ params }) {
   const statusColors = {
     pending: 'blue',
     responded: 'green',
+    complete: 'purple',
     viewed: 'purple',
   };
 
@@ -73,23 +82,6 @@ export default function CustomerBriefDetailPage({ params }) {
       fetchBriefDetails(resolvedParams.id);
     }
   }, [resolvedParams]);
-
-  useEffect(() => {
-    const autoMarkAsViewedByAdmin = async () => {
-      if (!hasAutoMarked && brief?._id && !brief.viewedByAdmin) {
-        try {
-          await customerBriefService.markAsViewedByAdmin(brief._id);
-          setHasAutoMarked(true);
-          setBrief((prev) => ({ ...prev, viewedByAdmin: true }));
-          console.log('Auto-marked brief as viewed by admin');
-        } catch (err) {
-          console.error('Failed to mark as viewed by admin:', err);
-        }
-      }
-    };
-
-    autoMarkAsViewedByAdmin();
-  }, [brief?._id, brief?.viewedByAdmin, hasAutoMarked]);
 
   useEffect(() => {
     return () => {
@@ -150,11 +142,7 @@ export default function CustomerBriefDetailPage({ params }) {
     }
   };
 
-  const determineBriefStatus = (brief) => {
-    if (brief.viewedByAdmin) return 'viewed';
-    if (brief.hasAdminResponse) return 'responded';
-    return 'pending';
-  };
+  const determineBriefStatus = (msg) => msg?.status || 'pending';
 
   const getRoleBadge = (role) => {
     const roleLower = role?.toLowerCase();
@@ -344,7 +332,7 @@ export default function CustomerBriefDetailPage({ params }) {
       if (logoInputRef.current) logoInputRef.current.value = '';
     } catch (err) {
       console.error('Failed to submit response:', err);
-      alert('Failed to submit response');
+      alert(err?.message || 'Failed to submit response');
     } finally {
       setSubmitting(false);
     }
@@ -379,11 +367,19 @@ export default function CustomerBriefDetailPage({ params }) {
     );
   }
 
-  const status = determineBriefStatus(brief);
+  const customerRequest = conversation.find((m) => m.role === 'customer') || brief;
+  const latestMessage = conversation[conversation.length - 1] || brief;
+  const status = determineBriefStatus(latestMessage);
+  const threadComplete = status === 'complete';
   const orderNumber = brief.orderId?.orderNumber || 'N/A';
   const productName = brief.productId?.name || brief.productName || 'Unknown Product';
-  const customerName = brief.orderId?.userId?.email?.split('@')[0] || 'Customer';
-  const hasFiles = brief.image || brief.voiceNote || brief.video || brief.logo;
+  const customerName = brief.customerName || 'Customer';
+  const customerUserName = brief.customerUserName;
+  const hasFiles =
+    customerRequest.image ||
+    customerRequest.voiceNote ||
+    customerRequest.video ||
+    customerRequest.logo;
 
   return (
     <DashboardLayout userRole="admin">
@@ -413,6 +409,7 @@ export default function CustomerBriefDetailPage({ params }) {
                   </div>
                   <p className="text-xs text-gray-400 sm:text-sm">
                     Order #{orderNumber} • {productName} • {customerName}
+                    {customerUserName ? ` (@${customerUserName})` : ''}
                   </p>
                 </div>
               </div>
@@ -421,12 +418,14 @@ export default function CustomerBriefDetailPage({ params }) {
                 <div className="rounded-lg bg-slate-800/50 px-3 py-2 text-center sm:px-4">
                   <p className="text-[10px] text-gray-400 sm:text-xs">Files</p>
                   <p className="text-base font-bold text-white sm:text-lg">
-                    {[
-                      brief.image && <FontAwesomeIcon key="image" icon={faImage} />,
-                      brief.voiceNote && <FontAwesomeIcon key="voice" icon={faMicrophone} />,
-                      brief.video && <FontAwesomeIcon key="video" icon={faVideoCamera} />,
-                      brief.logo && <FontAwesomeIcon key="logo" icon={faPalette} />,
-                    ].filter(Boolean).length || 0}
+                    {
+                      [
+                        customerRequest.image,
+                        customerRequest.voiceNote,
+                        customerRequest.video,
+                        customerRequest.logo,
+                      ].filter(Boolean).length
+                    }
                   </p>
                 </div>
                 <div className="rounded-lg bg-slate-800/50 px-3 py-2 text-center sm:px-4">
@@ -436,23 +435,12 @@ export default function CustomerBriefDetailPage({ params }) {
                 <div className="rounded-lg bg-slate-800/50 px-3 py-2 text-center sm:px-4">
                   <p className="text-[10px] text-gray-400 sm:text-xs">Submitted</p>
                   <p className="text-base font-bold text-white sm:text-lg">
-                    {getTimeAgo(brief.createdAt)}
+                    {getTimeAgo(customerRequest.createdAt)}
                   </p>
                 </div>
               </div>
             </div>
           </div>
-
-          {!brief.viewedByAdmin && (
-            <div className="mb-6 rounded-lg border border-blue-700 bg-blue-900/30 p-3 sm:p-4">
-              <div className="flex items-center gap-2 text-blue-400">
-                <span className="text-sm">
-                    <FontAwesomeIcon icon={faExclamationCircle} />
-                </span>
-                <span className="text-sm font-medium">Auto-marked as viewed by admin</span>
-              </div>
-            </div>
-          )}
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="space-y-6 lg:col-span-1">
@@ -461,17 +449,17 @@ export default function CustomerBriefDetailPage({ params }) {
                 <div className="p-4 sm:p-6">
                   <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-white sm:text-lg">
                     <span className="text-primary">
-                        <FontAwesomeIcon icon={faFile} />
+                      <FontAwesomeIcon icon={faFile} />
                     </span>
                     Customer Request
                   </h2>
 
                   <div className="space-y-4">
-                    {brief.description ? (
+                    {customerRequest.description ? (
                       <div className="rounded-lg bg-slate-800/50 p-3 sm:p-4">
                         <p className="mb-2 text-xs text-gray-400 sm:text-sm">Description</p>
                         <p className="whitespace-pre-wrap break-words text-sm text-white sm:text-base">
-                          {brief.description}
+                          {customerRequest.description}
                         </p>
                       </div>
                     ) : (
@@ -484,9 +472,9 @@ export default function CustomerBriefDetailPage({ params }) {
                       <div>
                         <p className="mb-2 text-xs text-gray-400 sm:text-sm">Attachments</p>
                         <div className="space-y-2">
-                          {brief.image && (
+                          {customerRequest.image && (
                             <button
-                              onClick={() => setPreviewImage(getImageUrl(brief.image))}
+                              onClick={() => setPreviewImage(getImageUrl(customerRequest.image))}
                               className="group flex w-full items-center gap-3 rounded-lg bg-slate-800/50 px-3 py-2 transition hover:bg-slate-800 sm:px-4 sm:py-3"
                             >
                               <FontAwesomeIcon icon={faImages} className="text-xl sm:text-2xl" />
@@ -500,21 +488,21 @@ export default function CustomerBriefDetailPage({ params }) {
                             </button>
                           )}
 
-                          {brief.voiceNote && (
+                          {customerRequest.voiceNote && (
                             <div className="rounded-lg bg-slate-800/50 px-3 py-2 sm:px-4 sm:py-3">
                               <div className="mb-2 flex items-center gap-2 sm:gap-3">
                                 <FontAwesomeIcon icon={faMicrophone} className="text-xl sm:text-2xl" />
                                 <span className="text-xs text-white sm:text-sm">Voice Note</span>
                               </div>
                               <audio controls className="h-8 w-full">
-                                <source src={getAudioUrl(brief.voiceNote)} />
+                                <source src={getAudioUrl(customerRequest.voiceNote)} />
                               </audio>
                             </div>
                           )}
 
-                          {brief.video && (
+                          {customerRequest.video && (
                             <button
-                              onClick={() => setPreviewVideo(getImageUrl(brief.video))}
+                              onClick={() => setPreviewVideo(getImageUrl(customerRequest.video))}
                               className="group flex w-full items-center gap-3 rounded-lg bg-slate-800/50 px-3 py-2 transition hover:bg-slate-800 sm:px-4 sm:py-3"
                             >
                               <FontAwesomeIcon icon={faVideoCamera} className="text-xl sm:text-2xl" />
@@ -528,9 +516,9 @@ export default function CustomerBriefDetailPage({ params }) {
                             </button>
                           )}
 
-                          {brief.logo && (
+                          {customerRequest.logo && (
                             <button
-                              onClick={() => setPreviewImage(getImageUrl(brief.logo))}
+                              onClick={() => setPreviewImage(getImageUrl(customerRequest.logo))}
                               className="group flex w-full items-center gap-3 rounded-lg bg-slate-800/50 px-3 py-2 transition hover:bg-slate-800 sm:px-4 sm:py-3"
                             >
                               <FontAwesomeIcon icon={faPalette} className="text-xl sm:text-2xl" />
@@ -573,11 +561,10 @@ export default function CustomerBriefDetailPage({ params }) {
                         msg.role === 'admin' ||
                         msg.role === 'super-admin' ||
                         msg.role === 'superadmin';
-                      const isCustomerMsg = msg.role === 'customer';
 
                       return (
                         <div
-                          key={index}
+                          key={msg._id || index}
                           className={`flex ${isAdminMsg ? 'justify-end' : 'justify-start'}`}
                         >
                           <div
@@ -589,6 +576,9 @@ export default function CustomerBriefDetailPage({ params }) {
                           >
                             <div className="mb-2 flex flex-wrap items-center gap-2">
                               {getRoleBadge(msg.role)}
+                              {msg.respondedByName && (
+                                <span className="text-xs font-medium text-gray-300">{msg.respondedByName}</span>
+                                )}
                               <span className="text-[10px] text-gray-500 sm:text-xs">
                                 {formatDate(msg.createdAt)}
                               </span>
@@ -607,7 +597,7 @@ export default function CustomerBriefDetailPage({ params }) {
                                     onClick={() => setPreviewImage(getImageUrl(msg.image))}
                                     className="inline-flex items-center gap-1 rounded-lg bg-slate-700/50 px-2 py-1 text-xs text-blue-400 transition hover:bg-slate-700 sm:px-3 sm:py-1.5 sm:text-sm"
                                   >
-                                    <FontAwesomeIcon icon={faImage}  />
+                                    <FontAwesomeIcon icon={faImage} />
                                     View Image
                                   </button>
                                   <a
@@ -623,7 +613,7 @@ export default function CustomerBriefDetailPage({ params }) {
 
                               {msg.voiceNote && (
                                 <div className="flex flex-wrap items-center gap-2 rounded-lg bg-slate-700/50 px-2 py-1 sm:px-3 sm:py-1.5">
-                                  <FontAwesomeIcon icon={faMicrophone}  />
+                                  <FontAwesomeIcon icon={faMicrophone} />
                                   <audio controls className="h-8 max-w-[150px] sm:max-w-[200px]">
                                     <source src={getAudioUrl(msg.voiceNote)} />
                                   </audio>
@@ -701,142 +691,48 @@ export default function CustomerBriefDetailPage({ params }) {
                 </div>
               </div>
 
-              <div className="overflow-hidden rounded-xl border border-gray-800 bg-slate-900/50 backdrop-blur-sm">
-                <div className="border-b border-gray-800 p-4 sm:p-6">
-                  <h2 className="flex items-center gap-2 text-base font-semibold text-white sm:text-lg">
-                    <FontAwesomeIcon icon={faComments} className="text-primary" />
-                    Your Response
-                  </h2>
+              {threadComplete ? (
+                <div className="rounded-xl border border-green-800 bg-green-900/20 p-4 text-center">
+                  <p className="text-sm text-green-400">
+                    This conversation is complete. No further messages can be added.
+                  </p>
                 </div>
-
-                <div className="space-y-4 p-4 sm:p-6">
-                  <Textarea
-                    placeholder="Type your response here..."
-                    value={responseText}
-                    onChange={(e) => setResponseText(e.target.value)}
-                    rows={3}
-                    className="w-full border-gray-700 bg-slate-800 text-sm focus:border-primary sm:text-base"
-                  />
-
-                  <div className="flex flex-wrap items-center gap-3">
-                    {!isRecording && !audioBlob ? (
-                      <button
-                        onClick={startRecording}
-                        className="flex items-center gap-2 rounded-lg bg-red-600/20 px-3 py-2 text-sm text-red-400 transition hover:bg-red-600/30 sm:px-4"
-                      >
-                        <FontAwesomeIcon icon={faMicrophone} />
-                        <span>Record Voice Note</span>
-                      </button>
-                    ) : isRecording ? (
-                      <div className="flex items-center gap-2 rounded-lg bg-red-600/20 px-3 py-2 sm:gap-3 sm:px-4">
-                        <span className="h-2 w-2 animate-pulse rounded-full bg-red-500 sm:h-3 sm:w-3"></span>
-                        <span className="font-mono text-xs text-red-400 sm:text-sm">
-                          {formatTime(recordingTime)}
-                        </span>
-                        <button onClick={stopRecording} className="text-white hover:text-gray-300">
-                          <svg
-                            className="h-4 w-4 sm:h-5 sm:w-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    ) : (
-                      audioBlob && (
-                        <div className="flex flex-wrap items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 sm:gap-3 sm:px-4">
-                          <FontAwesomeIcon icon={faMicrophone}  />
-                          <audio
-                            controls
-                            src={audioUrl}
-                            className="h-8 max-w-[150px] sm:max-w-[200px]"
-                          />
-                          <button
-                            onClick={discardRecording}
-                            className="text-gray-400 hover:text-red-400"
-                          >
-                            <svg
-                              className="h-4 w-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      )
-                    )}
+              ) : (
+                <div className="overflow-hidden rounded-xl border border-gray-800 bg-slate-900/50 backdrop-blur-sm">
+                  <div className="border-b border-gray-800 p-4 sm:p-6">
+                    <h2 className="flex items-center gap-2 text-base font-semibold text-white sm:text-lg">
+                      <FontAwesomeIcon icon={faComments} className="text-primary" />
+                      Your Response
+                    </h2>
                   </div>
 
-                  <div className="flex flex-wrap gap-3">
-                    <div className="relative">
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={(e) => handleFileChange(e, 'images')}
-                        accept="image/*"
-                        multiple
-                        className="hidden"
-                        id="image-upload"
-                      />
-                      <label
-                        htmlFor="image-upload"
-                        className="flex cursor-pointer items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm transition hover:bg-slate-700"
-                      >
-                        <FontAwesomeIcon icon={faImage} />
-                        <span>Add Images</span>
-                      </label>
-                    </div>
+                  <div className="space-y-4 p-4 sm:p-6">
+                    <Textarea
+                      placeholder="Type your response here..."
+                      value={responseText}
+                      onChange={(e) => setResponseText(e.target.value)}
+                      rows={3}
+                      className="w-full border-gray-700 bg-slate-800 text-sm focus:border-primary sm:text-base"
+                    />
 
-                    <div className="relative">
-                      <input
-                        type="file"
-                        ref={logoInputRef}
-                        onChange={(e) => handleFileChange(e, 'logo')}
-                        accept="image/*,.svg"
-                        className="hidden"
-                        id="logo-upload"
-                      />
-                      <label
-                        htmlFor="logo-upload"
-                        className="flex cursor-pointer items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm transition hover:bg-slate-700"
-                      >
-                        <FontAwesomeIcon icon={faPalette} className="text-purple-400" />
-                        <span>Add Logo</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  {(responseFiles.images.length > 0 || responseFiles.logo) && (
-                    <div className="flex flex-wrap gap-2 rounded-lg bg-slate-800/30 p-3">
-                      {responseFiles.images.map((file, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-2 rounded-lg bg-slate-700 px-2 py-1 sm:px-3 sm:py-1.5"
+                    <div className="flex flex-wrap items-center gap-3">
+                      {!isRecording && !audioBlob ? (
+                        <button
+                          onClick={startRecording}
+                          className="flex items-center gap-2 rounded-lg bg-red-600/20 px-3 py-2 text-sm text-red-400 transition hover:bg-red-600/30 sm:px-4"
                         >
-                          <FontAwesomeIcon icon={faImage} className="text-blue-400" />
-                          <span className="max-w-[100px] truncate text-xs text-gray-300 sm:max-w-[150px] sm:text-sm">
-                            {file.name}
+                          <FontAwesomeIcon icon={faMicrophone} />
+                          <span>Record Voice Note</span>
+                        </button>
+                      ) : isRecording ? (
+                        <div className="flex items-center gap-2 rounded-lg bg-red-600/20 px-3 py-2 sm:gap-3 sm:px-4">
+                          <span className="h-2 w-2 animate-pulse rounded-full bg-red-500 sm:h-3 sm:w-3"></span>
+                          <span className="font-mono text-xs text-red-400 sm:text-sm">
+                            {formatTime(recordingTime)}
                           </span>
-                          <button
-                            onClick={() => removeFile('images', index)}
-                            className="text-gray-500 hover:text-red-400"
-                          >
+                          <button onClick={stopRecording} className="text-white hover:text-gray-300">
                             <svg
-                              className="h-3 w-3 sm:h-4 sm:w-4"
+                              className="h-4 w-4 sm:h-5 sm:w-5"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -845,57 +741,159 @@ export default function CustomerBriefDetailPage({ params }) {
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={2}
-                                d="M6 18L18 6M6 6l12 12"
+                                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"
                               />
                             </svg>
                           </button>
                         </div>
-                      ))}
-
-                      {responseFiles.logo && (
-                        <div className="flex items-center gap-2 rounded-lg bg-slate-700 px-2 py-1 sm:px-3 sm:py-1.5">
-                          <FontAwesomeIcon icon={faPalette}  />
-                          <span className="max-w-[100px] truncate text-xs text-gray-300 sm:max-w-[150px] sm:text-sm">
-                            {responseFiles.logo.name}
-                          </span>
-                          <button
-                            onClick={() => removeFile('logo')}
-                            className="text-gray-500 hover:text-red-400"
-                          >
-                            <svg
-                              className="h-3 w-3 sm:h-4 sm:w-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                      ) : (
+                        audioBlob && (
+                          <div className="flex flex-wrap items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 sm:gap-3 sm:px-4">
+                            <FontAwesomeIcon icon={faMicrophone} />
+                            <audio
+                              controls
+                              src={audioUrl}
+                              className="h-8 max-w-[150px] sm:max-w-[200px]"
+                            />
+                            <button
+                              onClick={discardRecording}
+                              className="text-gray-400 hover:text-red-400"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M6 18L18 6M6 6l12 12"
-                              />
-                            </svg>
-                          </button>
-                        </div>
+                              <svg
+                                className="h-4 w-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        )
                       )}
                     </div>
-                  )}
 
-                  <div className="flex flex-col gap-3 pt-4 sm:flex-row">
-                    <Button
-                      variant="primary"
-                      onClick={handleSubmitResponse}
-                      disabled={submitting}
-                      className="flex-1"
-                    >
-                      {submitting ? 'Sending...' : 'Send Response'}
-                    </Button>
-                    <Button variant="secondary" onClick={() => router.back()} className="flex-1">
-                      Cancel
-                    </Button>
+                    <div className="flex flex-wrap gap-3">
+                      <div className="relative">
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={(e) => handleFileChange(e, 'images')}
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          id="image-upload"
+                        />
+                        <label
+                          htmlFor="image-upload"
+                          className="flex cursor-pointer items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm transition hover:bg-slate-700"
+                        >
+                          <FontAwesomeIcon icon={faImage} />
+                          <span>Add Images</span>
+                        </label>
+                      </div>
+
+                      <div className="relative">
+                        <input
+                          type="file"
+                          ref={logoInputRef}
+                          onChange={(e) => handleFileChange(e, 'logo')}
+                          accept="image/*,.svg"
+                          className="hidden"
+                          id="logo-upload"
+                        />
+                        <label
+                          htmlFor="logo-upload"
+                          className="flex cursor-pointer items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm transition hover:bg-slate-700"
+                        >
+                          <FontAwesomeIcon icon={faPalette} className="text-purple-400" />
+                          <span>Add Logo</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {(responseFiles.images.length > 0 || responseFiles.logo) && (
+                      <div className="flex flex-wrap gap-2 rounded-lg bg-slate-800/30 p-3">
+                        {responseFiles.images.map((file, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-2 rounded-lg bg-slate-700 px-2 py-1 sm:px-3 sm:py-1.5"
+                          >
+                            <FontAwesomeIcon icon={faImage} className="text-blue-400" />
+                            <span className="max-w-[100px] truncate text-xs text-gray-300 sm:max-w-[150px] sm:text-sm">
+                              {file.name}
+                            </span>
+                            <button
+                              onClick={() => removeFile('images', index)}
+                              className="text-gray-500 hover:text-red-400"
+                            >
+                              <svg
+                                className="h-3 w-3 sm:h-4 sm:w-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
+
+                        {responseFiles.logo && (
+                          <div className="flex items-center gap-2 rounded-lg bg-slate-700 px-2 py-1 sm:px-3 sm:py-1.5">
+                            <FontAwesomeIcon icon={faPalette} />
+                            <span className="max-w-[100px] truncate text-xs text-gray-300 sm:max-w-[150px] sm:text-sm">
+                              {responseFiles.logo.name}
+                            </span>
+                            <button
+                              onClick={() => removeFile('logo')}
+                              className="text-gray-500 hover:text-red-400"
+                            >
+                              <svg
+                                className="h-3 w-3 sm:h-4 sm:w-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex flex-col gap-3 pt-4 sm:flex-row">
+                      <Button
+                        variant="primary"
+                        onClick={handleSubmitResponse}
+                        disabled={submitting}
+                        className="flex-1"
+                      >
+                        {submitting ? 'Sending...' : 'Send Response'}
+                      </Button>
+                      <Button variant="secondary" onClick={() => router.back()} className="flex-1">
+                        Cancel
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

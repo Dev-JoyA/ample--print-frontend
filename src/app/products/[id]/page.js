@@ -234,7 +234,7 @@ export default function ProductDetailPage() {
         voiceNote !== null;
 
       if (!hasRequiredInfo) {
-        setError('Please provide design instructions or reference images');
+        alert('Please provide design instructions or reference images');
         return;
       }
     } else {

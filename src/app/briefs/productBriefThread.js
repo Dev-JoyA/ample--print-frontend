@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import { customerBriefService } from '@/services/customerBriefService';
 import { getImageUrl, getAudioUrl } from '@/lib/imageUtils';
+import { BRIEF_AUTO_CONFIRM_HOURS } from '@/lib/briefConfig';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/components/providers/ToastProvider';
 
@@ -101,6 +102,13 @@ export default function ProductBriefThread({
     latestAdmin?.status === 'responded';
   const canMarkComplete =
     hasAdminResponse && !isAdminComplete && !customerRespondedAfter && isEditable;
+
+  const autoConfirmAt =
+    latestAdmin?.viewedAt && latestAdmin.status === 'responded' && !customerRespondedAfter
+      ? new Date(
+          new Date(latestAdmin.viewedAt).getTime() + BRIEF_AUTO_CONFIRM_HOURS * 60 * 60 * 1000
+        )
+      : null;
 
   const handleMarkAsComplete = async () => {
     if (!latestAdmin || markingComplete) return;
@@ -356,6 +364,16 @@ export default function ProductBriefThread({
               <p className="mb-4 text-sm text-gray-400">
                 Admin has responded. You can reply or mark it as complete.
               </p>
+              {autoConfirmAt && (
+                <p className="mb-4 text-xs text-yellow-400">
+                  If you don't reply, this will be confirmed automatically on{' '}
+                  {autoConfirmAt.toLocaleString('en-US', {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                  })}
+                  .
+                </p>
+              )}
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Button
                   variant="secondary"

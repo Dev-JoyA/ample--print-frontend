@@ -208,18 +208,22 @@ export default function CustomerDashboard() {
     }
   };
 
-  const fetchPendingBriefResponses = async () => {
+    const fetchPendingBriefResponses = async () => {
     try {
       if (!user?.userId) return;
 
       const response = await customerBriefService.getPendingResponses();
 
-      let pendingResponses = [];
+      let responses = [];
       if (response?.success && Array.isArray(response?.data)) {
-        pendingResponses = response.data;
+        responses = response.data;
+      } else if (Array.isArray(response?.data)) {
+        responses = response.data;
       } else if (Array.isArray(response)) {
-        pendingResponses = response;
+        responses = response;
       }
+
+      const pendingResponses = responses.filter((r) => r.status !== 'complete');
 
       setPendingBriefResponses(pendingResponses);
       setStats((prev) => ({
@@ -230,6 +234,29 @@ export default function CustomerDashboard() {
       console.error('Failed to fetch pending brief responses:', error);
     }
   };
+
+//   const fetchPendingBriefResponses = async () => {
+//     try {
+//       if (!user?.userId) return;
+
+//       const response = await customerBriefService.getPendingResponses();
+
+//       let pendingResponses = [];
+//       if (response?.success && Array.isArray(response?.data)) {
+//         pendingResponses = response.data;
+//       } else if (Array.isArray(response)) {
+//         pendingResponses = response;
+//       }
+
+//       setPendingBriefResponses(pendingResponses);
+//       setStats((prev) => ({
+//         ...prev,
+//         pendingBriefResponses: pendingResponses.length,
+//       }));
+//     } catch (error) {
+//       console.error('Failed to fetch pending brief responses:', error);
+//     }
+//   };
 
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
@@ -510,7 +537,9 @@ export default function CustomerDashboard() {
                           Order #{response.orderNumber}
                         </span>
                         <span className="h-1.5 w-1.5 rounded-full bg-purple-400"></span>
-                        <span className="text-xs text-purple-400">New Response</span>
+                        <span className="text-xs text-purple-400">
+                            {response.viewed ? 'Awaiting your reply' : 'New Response'}
+                        </span>
                       </div>
                       <p className="mt-1 text-sm text-gray-300">
                         Admin responded to your brief for{' '}

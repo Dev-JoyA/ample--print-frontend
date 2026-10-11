@@ -13,6 +13,8 @@ import { orderService } from '@/services/orderService';
 import { customerBriefService } from '@/services/customerBriefService';
 import { METADATA, getOrderMetadata } from '@/lib/metadata';
 import { getImageUrl } from '@/lib/imageUtils';
+import { faFolder } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBox, faCheck, faClipboard, faCogs, faExclamationCircle, faPalette, faThumbsUp } from '@fortawesome/free-solid-svg-icons';
 
 export default function OrderDetailPage() {

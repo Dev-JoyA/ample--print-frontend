@@ -205,9 +205,6 @@ export default function OrderDetailPage({ params }) {
             <div className="rounded-lg border border-gray-800 bg-slate-900 p-4">
               <p className="mb-1 text-sm text-gray-400">Customer</p>
               <p className="font-medium text-white">{order.userId?.email || 'N/A'}</p>
-              <p className="mt-2 text-sm text-gray-400">
-                ID: {order.userId?._id?.slice(-8) || 'N/A'}
-              </p>
             </div>
 
             <div className="rounded-lg border border-gray-800 bg-slate-900 p-4">
