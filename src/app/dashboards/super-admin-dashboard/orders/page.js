@@ -156,6 +156,12 @@ function SuperAdminOrdersPageContent() {
     });
   };
 
+  const getCustomerName = (order) => {
+    const profile = order.userId?.profile;
+    const fullName = [profile?.firstName, profile?.lastName].filter(Boolean).join(' ').trim();
+    return fullName || profile?.userName || 'N/A';
+  };
+
   const getStatusColor = (status) => {
     const colors = {
       Pending: 'yellow',
@@ -435,11 +441,12 @@ function SuperAdminOrdersPageContent() {
                             </span>
                           </td>
                           <td className="p-4">
-                            <span className="text-sm text-white">
-                              {order.userId?.email?.split('@')[0] ||
-                                order.userId?.fullname ||
-                                'N/A'}
-                            </span>
+                            <p className="text-sm text-white">{getCustomerName(order)}</p>
+                            {order.userId?.profile?.userName && (
+                              <p className="text-xs text-gray-500">
+                                @{order.userId.profile.userName}
+                              </p>
+                            )}
                           </td>
                           <td className="p-4 text-sm text-gray-300">
                             {order.items?.length || 0} item(s)

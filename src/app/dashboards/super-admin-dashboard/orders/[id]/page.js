@@ -36,6 +36,17 @@ export default function OrderDetailPage({ params }) {
     }
   }, [orderId]);
 
+  const parseThread = (response) => {
+    const data = response?.data ?? response;
+    if (Array.isArray(data)) return data;
+
+    const messages = [];
+    if (data?.customer) messages.push({ ...data.customer, role: 'customer' });
+    if (data?.admin) messages.push({ ...data.admin, role: 'admin' });
+    if (data?.superAdmin) messages.push({ ...data.superAdmin, role: 'super-admin' });
+    return messages;
+  };
+
   const fetchOrderDetails = async () => {
     try {
       setLoading(true);
@@ -53,19 +64,27 @@ export default function OrderDetailPage({ params }) {
                 orderId,
                 productId
               );
-              const briefData = briefResponse?.data || briefResponse;
+              const thread = parseThread(briefResponse).sort(
+                (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+              );
+              const latest = thread[thread.length - 1];
+
               return {
                 ...item,
-                hasBrief: !!briefData?.customer,
-                hasAdminResponse: !!briefData?.admin,
-                briefId: briefData?.customer?._id,
+                hasBrief: thread.some((m) => m.role === 'customer'),
+                hasAdminResponse: thread.some(
+                  (m) => m.role === 'admin' || m.role === 'super-admin'
+                ),
+                threadStatus: latest?.status || null,
+                latestBriefId: latest?._id || null,
               };
             } catch (err) {
               return {
                 ...item,
                 hasBrief: false,
                 hasAdminResponse: false,
-                briefId: null,
+                threadStatus: null,
+                latestBriefId: null,
               };
             }
           })
@@ -118,6 +137,16 @@ export default function OrderDetailPage({ params }) {
     return colors[status] || 'gray';
   };
 
+  const getBriefStatusInfo = (status) => {
+    if (status === 'complete') {
+      return { label: 'Confirmed', className: 'bg-green-900/30 text-green-400' };
+    }
+    if (status === 'responded') {
+      return { label: 'Awaiting customer reply', className: 'bg-yellow-900/30 text-yellow-400' };
+    }
+    return { label: 'Awaiting admin response', className: 'bg-blue-900/30 text-blue-400' };
+  };
+
   const getStringId = (id) => {
     if (!id) return '';
     if (typeof id === 'string') return id;
@@ -155,8 +184,17 @@ export default function OrderDetailPage({ params }) {
   }
 
   const hasInvoice = order.invoiceId;
-  const needsInvoice = !hasInvoice && order.status === 'OrderReceived';
+  const needsInvoice = !hasInvoice && order.status === 'AwaitingInvoice';
   const invoiceIdString = getStringId(order.invoiceId);
+
+  const customerProfile = order.userId?.profile;
+  const customerFullName = [customerProfile?.firstName, customerProfile?.lastName]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+  const customerUserName = customerProfile?.userName;
+  const customerEmail = order.userId?.email;
+  const customerPhone = customerProfile?.phoneNumber;
 
   return (
     <>
@@ -203,8 +241,33 @@ export default function OrderDetailPage({ params }) {
 
           <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-3">
             <div className="rounded-lg border border-gray-800 bg-slate-900 p-4">
-              <p className="mb-1 text-sm text-gray-400">Customer</p>
-              <p className="font-medium text-white">{order.userId?.email || 'N/A'}</p>
+              <p className="mb-2 text-sm text-gray-400">Customer</p>
+              <p className="font-medium text-white">
+                {customerFullName || customerUserName || 'N/A'}
+              </p>
+              {customerUserName && <p className="text-sm text-gray-400">@{customerUserName}</p>}
+              <div className="mt-3 space-y-1 text-sm">
+                {customerEmail ? (
+                  <a
+                    href={`mailto:${customerEmail}`}
+                    className="block break-all text-gray-300 hover:text-primary-dark"
+                  >
+                    {customerEmail}
+                  </a>
+                ) : (
+                  <span className="block text-gray-500">No email</span>
+                )}
+                {customerPhone ? (
+                  <a
+                    href={`tel:${customerPhone.replace(/\s+/g, '')}`}
+                    className="block text-gray-300 hover:text-primary-dark"
+                  >
+                    {customerPhone}
+                  </a>
+                ) : (
+                  <span className="block text-gray-500">No phone number</span>
+                )}
+              </div>
             </div>
 
             <div className="rounded-lg border border-gray-800 bg-slate-900 p-4">
@@ -245,7 +308,7 @@ export default function OrderDetailPage({ params }) {
 
             <div className="divide-y divide-gray-800">
               {items.map((item, index) => {
-                const briefIdString = getStringId(item.briefId);
+                const briefStatus = getBriefStatusInfo(item.threadStatus);
 
                 return (
                   <div key={index} className="p-6">
@@ -255,26 +318,17 @@ export default function OrderDetailPage({ params }) {
                         <p className="text-sm text-gray-400">Quantity: {item.quantity}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-lg font-bold text-primary">
+                        <p className="text-lg font-bold text-gray-100">
                           {formatCurrency(item.price * item.quantity)}
                         </p>
                         <p className="text-sm text-gray-400">{formatCurrency(item.price)} each</p>
                       </div>
                     </div>
 
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {item.hasBrief && briefIdString ? (
-                        <Link href={`/briefs/${briefIdString}`}>
-                          <button className="flex items-center gap-1 rounded-full bg-blue-900/30 px-3 py-1.5 text-xs text-blue-400 transition hover:bg-blue-900/50">
-                            <span>📋</span> View Customer Brief
-                            {item.hasAdminResponse && (
-                              <span className="ml-1 text-green-400">(Has Response)</span>
-                            )}
-                          </button>
-                        </Link>
-                      ) : item.hasBrief ? (
-                        <span className="rounded-full bg-blue-900/30 px-3 py-1.5 text-xs text-blue-400">
-                          <span>📋</span> Brief Available
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      {item.hasBrief ? (
+                        <span className={`rounded-full px-3 py-1.5 text-xs ${briefStatus.className}`}>
+                          {briefStatus.label}
                         </span>
                       ) : (
                         <span className="rounded-full bg-gray-800 px-3 py-1.5 text-xs text-gray-500">
@@ -282,12 +336,10 @@ export default function OrderDetailPage({ params }) {
                         </span>
                       )}
 
-                      {item.hasAdminResponse && (
-                        <Link
-                          href={`/briefs/responses?orderId=${orderId}&productId=${item.productId}`}
-                        >
-                          <button className="flex items-center gap-1 rounded-full bg-green-900/30 px-3 py-1.5 text-xs text-green-400 transition hover:bg-green-900/50">
-                            <span>💬</span> View Response Thread
+                      {item.latestBriefId && (
+                        <Link href={`/dashboards/admin/customer-briefs/${item.latestBriefId}`}>
+                          <button className="flex items-center gap-1 rounded-full bg-blue-900/30 px-3 py-1.5 text-xs text-blue-400 transition hover:bg-blue-900/50">
+                            <span>💬</span> Open conversation
                           </button>
                         </Link>
                       )}
