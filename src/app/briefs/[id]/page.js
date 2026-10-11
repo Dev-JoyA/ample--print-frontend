@@ -12,6 +12,7 @@ import { useProtectedRoute } from '@/app/lib/auth';
 import { customerBriefService } from '@/services/customerBriefService';
 import { useToast } from '@/components/providers/ToastProvider';
 import { getImageUrl, getAudioUrl } from '@/lib/imageUtils';
+import { BRIEF_AUTO_CONFIRM_HOURS } from '@/lib/briefConfig';
 import { formatDistanceToNow } from 'date-fns';
 
 const EDITABLE_ORDER_STATUSES = ['Pending', 'OrderReceived', 'FilesUploaded'];
@@ -29,7 +30,6 @@ export default function BriefResponseDetailPage({ params }) {
   const [error, setError] = useState('');
   const [notFound, setNotFound] = useState(false);
   const [markingComplete, setMarkingComplete] = useState(false);
-  const [hasAutoMarked, setHasAutoMarked] = useState(false);
 
   const [responding, setResponding] = useState(false);
   const [showResponseForm, setShowResponseForm] = useState(false);
@@ -49,33 +49,11 @@ export default function BriefResponseDetailPage({ params }) {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const timerRef = useRef(null);
-  const hasLeftPageRef = useRef(false);
+  const viewMarkedRef = useRef(false);
 
   useEffect(() => {
     if (!authLoading && user) fetchBriefAndConversation();
   }, [authLoading, user, id]);
-
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      hasLeftPageRef.current = true;
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      if (!hasLeftPageRef.current && brief && !hasAutoMarked) {
-        const isAdminBrief = brief.role === 'admin' || brief.role === 'super-admin';
-        const shouldAutoMark = isAdminBrief && brief.status === 'responded' && !brief.viewed;
-
-        if (shouldAutoMark) {
-          customerBriefService
-            .markAsViewed(brief._id)
-            .catch((err) => console.error('Auto-mark on exit failed:', err));
-        }
-      }
-    };
-  }, [brief, hasAutoMarked]);
 
   useEffect(() => {
     return () => {
@@ -131,7 +109,6 @@ export default function BriefResponseDetailPage({ params }) {
 
   const hasAdminResponse = !!latestAdmin;
   const isAdminComplete = latestAdmin?.status === 'complete';
-  const isAdminViewed = latestAdmin?.viewed === true;
   const hasCustomerRespondedAfter =
     latestCustomer &&
     latestAdmin &&
@@ -146,11 +123,33 @@ export default function BriefResponseDetailPage({ params }) {
   const canMarkComplete =
     hasAdminResponse && !isAdminComplete && !hasCustomerRespondedAfter && isEditable;
 
+  const autoConfirmAt =
+    latestAdmin?.viewedAt && latestAdmin.status === 'responded' && !hasCustomerRespondedAfter
+      ? new Date(
+          new Date(latestAdmin.viewedAt).getTime() + BRIEF_AUTO_CONFIRM_HOURS * 60 * 60 * 1000
+        )
+      : null;
+
+  useEffect(() => {
+    if (viewMarkedRef.current || loading || loadingConversation || !latestAdmin || !brief) return;
+    if (latestAdmin.status === 'responded' && !latestAdmin.viewed) {
+      viewMarkedRef.current = true;
+      customerBriefService
+        .markAsViewed(latestAdmin._id)
+        .then(() =>
+          fetchConversation(
+            String(brief.orderId?._id || brief.orderId),
+            String(brief.productId?._id || brief.productId)
+          )
+        )
+        .catch((err) => console.error('Mark as viewed failed:', err));
+    }
+  }, [loading, loadingConversation, latestAdmin?._id]);
+
   const markAsComplete = async () => {
     if (!latestAdmin || markingComplete) return;
     try {
       setMarkingComplete(true);
-      setHasAutoMarked(true);
       await customerBriefService.markAsComplete(latestAdmin._id);
       showToast('Response marked as complete', 'success');
       await fetchBriefAndConversation();
@@ -438,6 +437,16 @@ export default function BriefResponseDetailPage({ params }) {
                 <p className="mb-4 text-sm text-gray-400">
                   Admin has responded to your brief. Review and choose your next step.
                 </p>
+                {autoConfirmAt && (
+                  <p className="mb-4 text-xs text-yellow-400">
+                    If you don't reply, this will be confirmed automatically on{' '}
+                    {autoConfirmAt.toLocaleString('en-US', {
+                      dateStyle: 'medium',
+                      timeStyle: 'short',
+                    })}
+                    .
+                  </p>
+                )}
                 <div className="flex flex-col gap-3 sm:flex-row">
                   {canRespond && (
                     <Button

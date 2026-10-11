@@ -1,0 +1,1 @@
+export const BRIEF_AUTO_CONFIRM_HOURS = 24;

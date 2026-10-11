@@ -10,6 +10,7 @@ import { METADATA } from '@/lib/metadata';
 import { useProtectedRoute } from '@/app/lib/auth';
 import { customerBriefService } from '@/services/customerBriefService';
 import { useToast } from '@/components/providers/ToastProvider';
+import { BRIEF_AUTO_CONFIRM_HOURS } from '@/lib/briefConfig';
 
 export default function BriefResponsesPage() {
   const router = useRouter();
@@ -100,8 +101,13 @@ export default function BriefResponsesPage() {
     return `${diffDays}d ago`;
   };
 
-  const pendingResponses = responses.filter((r) => !r.viewed);
-  const completedResponses = responses.filter((r) => r.viewed);
+  const isDone = (r) => r.status === 'complete';
+
+  const autoConfirmDate = (viewedAt) =>
+    new Date(new Date(viewedAt).getTime() + BRIEF_AUTO_CONFIRM_HOURS * 60 * 60 * 1000);
+
+  const pendingResponses = responses.filter((r) => !isDone(r));
+  const completedResponses = responses.filter(isDone);
   const filteredResponses = filter === 'pending' ? pendingResponses : completedResponses;
 
   if (authLoading) {
@@ -222,34 +228,39 @@ export default function BriefResponsesPage() {
                 key={response.briefId}
                 onClick={() => handleViewResponse(response)}
                 className={`cursor-pointer overflow-hidden rounded-xl border transition hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 ${
-                  !response.viewed
+                  !isDone(response)
                     ? 'border-yellow-600/40 bg-gradient-to-r from-yellow-900/10 via-slate-900/50 to-slate-900/50'
                     : 'border-gray-800 bg-slate-900/30'
                 }`}
               >
-                <div className={`h-0.5 ${!response.viewed ? 'bg-yellow-500' : 'bg-green-600'}`} />
+                <div className={`h-0.5 ${!isDone(response) ? 'bg-yellow-500' : 'bg-green-600'}`} />
 
                 <div className="p-4 sm:p-5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <div
                         className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-xl ${
-                          !response.viewed ? 'bg-yellow-600/20' : 'bg-green-600/20'
+                          !isDone(response) ? 'bg-yellow-600/20' : 'bg-green-600/20'
                         }`}
                       >
-                        {!response.viewed ? '📬' : '✓'}
+                        {!isDone(response) ? '📬' : '✓'}
                       </div>
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="text-sm font-semibold text-white">
                             Order #{response.orderNumber}
                           </span>
-                          {!response.viewed && (
+                          {!isDone(response) && !response.viewed && (
                             <span className="animate-pulse rounded-full bg-yellow-600/20 px-2 py-0.5 text-xs text-yellow-400">
                               New
                             </span>
                           )}
-                          {response.viewed && (
+                          {!isDone(response) && response.viewed && (
+                            <span className="rounded-full bg-yellow-600/20 px-2 py-0.5 text-xs text-yellow-400">
+                              Awaiting your reply
+                            </span>
+                          )}
+                          {isDone(response) && (
                             <span className="rounded-full bg-green-600/20 px-2 py-0.5 text-xs text-green-400">
                               Completed
                             </span>
@@ -269,6 +280,13 @@ export default function BriefResponsesPage() {
                     </p>
                   )}
 
+                  {!isDone(response) && response.viewedAt && (
+                    <p className="mt-2 text-xs text-yellow-400">
+                      If you don't reply, this will be confirmed automatically on{' '}
+                      {formatDate(autoConfirmDate(response.viewedAt))}.
+                    </p>
+                  )}
+
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex flex-wrap gap-2">
                       {response.hasDesign && (
@@ -278,7 +296,7 @@ export default function BriefResponsesPage() {
                       )}
                     </div>
                     <div className="flex gap-2">
-                      {!response.viewed && (
+                      {!isDone(response) && (
                         <Button
                           variant="success"
                           size="sm"
@@ -296,14 +314,14 @@ export default function BriefResponsesPage() {
                         </Button>
                       )}
                       <Button
-                        variant={!response.viewed ? 'primary' : 'secondary'}
+                        variant={!isDone(response) ? 'primary' : 'secondary'}
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleViewResponse(response);
                         }}
                       >
-                        {!response.viewed ? 'Review Now' : 'View Details'}
+                        {!isDone(response) ? 'Review Now' : 'View Details'}
                       </Button>
                     </div>
                   </div>
